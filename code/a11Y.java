@@ -25,6 +25,8 @@ a11Y() {
 	boolean debugInfo = true;
 	long findDelay = 100;
 	long debugDelay = 1000;
+	long stepDelay = 50;
+	long waitNodesTimeout = 10000;
 	List assistOverlays = new ArrayList();
 	String ENV;
 	This assistButton;
@@ -74,6 +76,8 @@ a11Y() {
 		THIS.namespace.setVariable("useA11yStructure", useA11yStructure, false);
 		THIS.namespace.setVariable("includeAllMethods", includeAllMethods, false);
 		THIS.namespace.setVariable("quickAddMode", quickAddMode, false);
+		THIS.namespace.setVariable("stepDelay", stepDelay, false);
+		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
 		if (ENV == null) {
 			String superImport = tasker.getVariable("ImportJava");
 			try {
@@ -203,5 +207,9 @@ a11Y.namespace.setVariable("assistButton", assistButton, false);
 This updateManager = UpdateManager();
 updateManager.namespace.setVariable("directoryPath", ENV, false);
 a11Y.namespace.setVariable("updateManager", updateManager, false);
+
+This packageManager = PackageManager();
+a11Y.namespace.setVariable("packageManager", packageManager, false);
+
 
 tasker.sendCommand("a11Y=:=start");
