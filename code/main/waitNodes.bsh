@@ -108,8 +108,12 @@ ArrayList waitNodes(String text, long timeout) {
 	return waitNodes("text", text, null, timeout);
 }
 
+ArrayList waitNodes(String text) {
+	return waitNodes("text", text, null, waitNodesTimeout);
+}
+
 ArrayList waitNodes(String key, String value, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
-	config = new Object[][] {
+	Object[][] config = new Object[][] {
 		{ parentLevel, nearbyKey, nearbyValue }
 	};
 	return waitNodes(key, value, config, timeout);
