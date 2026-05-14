@@ -5,7 +5,7 @@ boolean swipe(double startX, double startY, double endX, double endY, long durat
 	if (stopFlick) {
 		Object[][] swipePoints = new Object[][] {
 			{
-				(float) startX, (float) startY, 0,10L
+				(float) startX, (float) startY, 0,1L
 			}, // Action Down
 			{
 				(float) endX,
@@ -24,7 +24,7 @@ boolean swipe(double startX, double startY, double endX, double endY, long durat
 	} else {
 		Object[][] swipePoints = new Object[][] {
 			{
-				(float) startX, (float) startY, 0,10L
+				(float) startX, (float) startY, 0,1L
 			}, {
 				(float) endX,
 				(float) endY,
@@ -38,4 +38,20 @@ boolean swipe(double startX, double startY, double endX, double endY, long durat
 
 boolean swipe(double startX, double startY, double endX, double endY, long duration) {
 	return swipe(startX, startY, endX, endY, duration, false);
+}
+
+boolean swipe(double startX, double startY, double endX, double endY) {
+	return swipe(startX, startY, endX, endY, 10, false);
+}
+
+boolean swipe(double startX, double startY, double endX, double endY, boolean stopFlick) {
+	return swipe(startX, startY, endX, endY, 10, stopFlick);
+}
+
+boolean swipe(double startY, double endY) {
+	return swipe(0.5, startY, 0.5, endY, 10, false);
+}
+
+boolean swipe(double startY, double endY, boolean stopFlick) {
+	return swipe(0.5, startY, 0.5, endY, 10, stopFlick);
 }
