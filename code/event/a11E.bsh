@@ -54,6 +54,7 @@ a11E() {
 	Map listeners = new HashMap();
 	List eventList = new ArrayList();
 	Map eventMap = new HashMap();
+	int historyLimit = 10;
 
 	boolean isMuted;
 	public String toConstant(String methodName) {

@@ -8,6 +8,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import bsh.This;
 import io.reactivex.internal.operators.observable.ObservableHide;
+import io.reactivex.disposables.Disposable;
 
 startMonitor() {
 
@@ -36,7 +37,7 @@ startMonitor() {
 		/* * Use observeOn to force the 'accept' block onto your custom executor.
 		 * This prevents the Accessibility Service thread from hanging during validation.
 		 */
-		disposable = events.observeOn(Schedulers.from(a11E.executor))
+		Disposable disposable = events.observeOn(Schedulers.from(a11E.executor))
 			.subscribe(new Consumer() {
 				accept(Object accessibilityEvent) {
 					// Now running on "a11E_x" thread
@@ -63,9 +64,9 @@ startMonitor() {
 					a11E.event = accessibilityEvent;
 					a11E.node = accessibilityEvent.getSource();
 
-					int limit = 10;
-					if (a11E.history.size() > limit) {
-						a11E.history.subList(limit, a11E.history.size()).clear();
+					a11E.history(0, accessibilityEvent);
+					if (a11E.history.size() > a11E.limit) {
+						a11E.history.subList(a11E.limit, a11E.history.size()).clear();
 					}
 
 					Map listeners = a11E.listeners != void ? a11E.listeners : null;
@@ -79,16 +80,12 @@ startMonitor() {
 						This sourceListener;
 						boolean valid = validate(listener, accessibilityEvent);
 
-						if (!valid) {
-							tasker.setJavaVariable("failedL", listener);
-							tasker.setJavaVariable("failedE", accessibilityEvent);
-						}
-
 						if (listener.namespace.getMethod("Source", new Class[] {}) != null && valid) {
 
 							sourceListener = listener.Source();
 							AccessibilityNodeInfo node = accessibilityEvent.getSource();
 							if (node != null) valid = validate(sourceListener, node);
+							
 						}
 
 						if (valid) {
@@ -99,10 +96,12 @@ startMonitor() {
 									listener.invokeMethod(methodName, new Object[] { accessibilityEvent });
 								}
 							});
+							
 						}
 					}
 					
 					accessibilityEvent.recycle();
+					
 				}
 			}, new Consumer() {
 				accept(Object errorObject) {
