@@ -19,21 +19,21 @@ import java.lang.reflect.Method;
 import rikka.shizuku.ShizukuBinderWrapper;
 
 /*───────────────────────────────────────────────────────────────
-swipeShizuku(double sX, double sY, double eX, double eY, long dur, boolean stopFlick)
+swipeShizuku(double startX, double startY, double endX, double endY, long duration, boolean stopFlick)
 **Performs a swipe gesture via Shizuku**
 Provides control over momentum (flick) at the end of the gesture.
 
 Arguments:
 
-* sX, sY: Start coordinates (0.0-1.0 for relative, or absolute pixels).
-* eX, eY: End coordinates.
-* dur: Duration of the swipe in milliseconds.
+* startX, startY: Start coordinates (0.0-1.0 for relative, or absolute pixels).
+* endX, endY: End coordinates.
+* duration: durationation of the swipe in milliseconds.
 * stopFlick: If true, pauses at the end to prevent momentum.
 
 Example:
 swipeShizuku(0.5, 0.8, 0.5, 0.2, 300, true);
 ───────────────────────────────────────────────────────────────*/
-public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur, boolean stopFlick) {
+public boolean swipeShizuku(double startX, double startY, double endX, double endY, long duration, boolean stopFlick) {
 	ShizukuBinderWrapper rawBinder = tasker.getShizukuService("input");
 	Class iimStub = Class.forName("android.hardware.input.IInputManager$Stub");
 	Method asInterface = iimStub.getMethod("asInterface", new Class[] { android.os.IBinder.class });
@@ -49,34 +49,30 @@ public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur
 	float screenH = (float) dm.heightPixels;
 
 	/* Normalize coordinates */
-	float startX = (float) sX;
-	float startY = (float) sY;
-	float endX = (float) eX;
-	float endY = (float) eY;
-	if (Math.abs(startX) <= 1.0f) startX *= screenW;
-	if (Math.abs(startY) <= 1.0f) startY *= screenH;
-	if (Math.abs(endX) <= 1.0f) endX *= screenW;
-	if (Math.abs(endY) <= 1.0f) endY *= screenH;
+	if (Math.abs((float) startX) <= 1.0f) startX *= screenW;
+	if (Math.abs((float) startY) <= 1.0f) startY *= screenH;
+	if (Math.abs((float) endX) <= 1.0f) endX *= screenW;
+	if (Math.abs((float) endY) <= 1.0f) endY *= screenH;
 
 	try {
 		long downTime = SystemClock.uptimeMillis();
 
 		/* 1. ACTION_DOWN */
-		MotionEvent evDown = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, startX, startY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+		MotionEvent evDown = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, (float) startX, (float) startY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		evDown.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 		iim.injectInputEvent(evDown, 1);
 		evDown.recycle();
 
 		/* 2. Interpolate ACTION_MOVE */
-		int steps = (int) Math.max(2, dur / 16);
-		long stepDelay = dur / steps;
+		int steps = (int) Math.max(2, duration / 16);
+		long stepDelay = duration / steps;
 
 		for (int i = 1; i <= steps; i++) {
 			float t = (float) i / steps;
-			float moveX = startX + (endX - startX) * t;
-			float moveY = startY + (endY - startY) * t;
+			float movendX = startX + (endX - startX) * t;
+			float movendY = startY + (endY - startY) * t;
 
-			MotionEvent evMove = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, moveX, moveY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+			MotionEvent evMove = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) movendX, (float) movendY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 			evMove.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 			iim.injectInputEvent(evMove, 1);
 			evMove.recycle();
@@ -87,7 +83,7 @@ public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur
 		/* 3. Stop Flick Logic */
 		if (stopFlick) {
 			/* Hold at target to zero out calculated velocity */
-			MotionEvent evHold = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, endX, endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+			MotionEvent evHold = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 			evHold.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 			iim.injectInputEvent(evHold, 1);
 			evHold.recycle();
@@ -95,7 +91,7 @@ public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur
 		}
 
 		/* 4. ACTION_UP */
-		MotionEvent evUp = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, endX, endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+		MotionEvent evUp = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		evUp.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 		iim.injectInputEvent(evUp, 1);
 		evUp.recycle();
@@ -111,8 +107,22 @@ public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur
 }
 
 /* Overloaded swipe method */
-public boolean swipeShizuku(double sX, double sY, double eX, double eY, long dur) {
-	return swipeShizuku(sX, sY, eX, eY, dur, false);
+boolean swipeShizuku(double startX, double startY, double endX, double endY, long duration) {
+	return swipeShizuku(startX, startY, endX, endY, duration, false);
 }
 
+boolean swipeShizuku(double startX, double startY, double endX, double endY) {
+	return swipeShizuku(startX, startY, endX, endY, 10, false);
+}
 
+boolean swipeShizuku(double startX, double startY, double endX, double endY, boolean stopFlick) {
+	return swipeShizuku(startX, startY, endX, endY, 10, stopFlick);
+}
+
+boolean swipeShizuku(double startY, double endY) {
+	return swipeShizuku(0.5, startY, 0.5, endY, 10, false);
+}
+
+boolean swipeShizuku(double startY, double endY, boolean stopFlick) {
+	return swipeShizuku(0.5, startY, 0.5, endY, 10, stopFlick);
+}
