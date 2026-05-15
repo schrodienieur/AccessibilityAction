@@ -17,6 +17,8 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import java.lang.reflect.Method;
 import rikka.shizuku.ShizukuBinderWrapper;
+import android.hardware.input.IInputManager$Stub$Proxy;
+import android.hardware.input.IInputManager$Stub;
 
 /*───────────────────────────────────────────────────────────────
 swipeShizuku(double startX, double startY, double endX, double endY, long duration, boolean stopFlick)
@@ -34,12 +36,9 @@ Example:
 swipeShizuku(0.5, 0.8, 0.5, 0.2, 300, true);
 ───────────────────────────────────────────────────────────────*/
 public boolean swipeShizuku(double startX, double startY, double endX, double endY, long duration, boolean stopFlick) {
-	ShizukuBinderWrapper rawBinder = tasker.getShizukuService("input");
-	Class iimStub = Class.forName("android.hardware.input.IInputManager$Stub");
-	Method asInterface = iimStub.getMethod("asInterface", new Class[] { android.os.IBinder.class });
-	android.hardware.input.IInputManager$Stub$Proxy iim = asInterface.invoke(null, new Object[] { rawBinder });
+	ShizukuBinderWrapper inputBinder = tasker.getShizukuService("input");
+	IInputManager$Stub$Proxy iim = IInputManager$Stub.asInterface(inputBinder);
 	if (iim == null) return false;
-
 
 	/* Setup screen metrics */
 	WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -71,11 +70,10 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 			float t = (float) i / steps;
 			float movendX = startX + (endX - startX) * t;
 			float movendY = startY + (endY - startY) * t;
-
-			MotionEvent evMove = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) movendX, (float) movendY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-			evMove.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-			iim.injectInputEvent(evMove, 1);
-			evMove.recycle();
+			MotionEvent eventMove = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) movendX, (float) movendY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+			eventMove.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+			iim.injectInputEvent(eventMove, 1);
+			eventMove.recycle();
 
 			if (stepDelay > 0) Thread.sleep(stepDelay);
 		}
@@ -83,10 +81,10 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 		/* 3. Stop Flick Logic */
 		if (stopFlick) {
 			/* Hold at target to zero out calculated velocity */
-			MotionEvent evHold = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-			evHold.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-			iim.injectInputEvent(evHold, 1);
-			evHold.recycle();
+			MotionEvent eventHold = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+			eventHold.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+			iim.injectInputEvent(eventHold, 1);
+			eventHold.recycle();
 			Thread.sleep(60);
 		}
 
@@ -101,8 +99,6 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 		tasker.log("swipeShizuku Error: " + e.toString());
 		return false;
 	}
-
-
 
 }
 
@@ -129,4 +125,8 @@ boolean swipeShizuku(double startY, double endY, boolean stopFlick) {
 
 boolean swipeShizuku(double startY, double endY, long duration) {
 	return swipeShizuku(0.5, startY, 0.5, endY, duration, false);
+}
+
+boolean swipeShizuku(double startY, double endY, long duration, boolean stopFlick) {
+	return swipeShizuku(0.5, startY, 0.5, endY, duration, stopFlick);
 }

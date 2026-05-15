@@ -21,7 +21,8 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import java.lang.reflect.Method;
 import rikka.shizuku.ShizukuBinderWrapper;
-
+import android.hardware.input.IInputManager$Stub$Proxy;
+import android.hardware.input.IInputManager$Stub;
 /*───────────────────────────────────────────────────────────────
 gestureShizuku(Object[][] points, Paint paint)
 **Replays Complex Touch Events via Shizuku**
@@ -29,12 +30,8 @@ gestureShizuku(Object[][] points, Paint paint)
 public boolean gestureShizuku(Object[][] points, Paint paint) {
 	if (points == null || points.length == 0) return false;
 
-	ShizukuBinderWrapper rawBinder = tasker.getShizukuService("input");
-	Class iimStub = Class.forName("android.hardware.input.IInputManager$Stub");
-	Method asInterface = iimStub.getMethod("asInterface", new Class[] { android.os.IBinder.class });
-	android.hardware.input.IInputManager$Stub$Proxy iim = asInterface.invoke(null, new Object[] { rawBinder });
-	if (iim == null) return false;
-
+	ShizukuBinderWrapper inputBinder = tasker.getShizukuService("input");
+	IInputManager$Stub$Proxy iim = IInputManager$Stub.asInterface(inputBinder);
 
 	WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	DisplayMetrics dm = new DisplayMetrics();
@@ -98,10 +95,10 @@ public boolean gestureShizuku(Object[][] points, Paint paint) {
 					float bx = invT * invT * lastX + 2 * invT * t * cX + t * t * targetX;
 					float by = invT * invT * lastY + 2 * invT * t * cY + t * t * targetY;
 
-					MotionEvent ev = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, bx, by, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-					ev.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-					iim.injectInputEvent(ev, 1);
-					ev.recycle();
+					MotionEvent event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, bx, by, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+					event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+					iim.injectInputEvent(event, 1);
+					event.recycle();
 
 					if (showTrail) {
 						canvasRef.drawLine(lastX, lastY, bx, by, paint);
@@ -117,10 +114,10 @@ public boolean gestureShizuku(Object[][] points, Paint paint) {
 				int action = (actionType == 0) ? MotionEvent.ACTION_DOWN :
 					(actionType == 1) ? MotionEvent.ACTION_UP : MotionEvent.ACTION_MOVE;
 
-				MotionEvent ev = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, targetX, targetY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-				ev.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-				iim.injectInputEvent(ev, 1);
-				ev.recycle();
+				MotionEvent event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, targetX, targetY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+				event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+				iim.injectInputEvent(event, 1);
+				event.recycle();
 
 				if (showTrail) {
 					canvasRef.drawLine(lastX, lastY, targetX, targetY, paint);

@@ -11,6 +11,8 @@ import android.view.WindowManager;
 import android.content.Context;
 import rikka.shizuku.ShizukuBinderWrapper;
 import java.lang.reflect.Method;
+import android.hardware.input.IInputManager$Stub$Proxy;
+import android.hardware.input.IInputManager$Stub;
 
 /*───────────────────────────────────────────────────────────────
   tapShizuku(double x, double y, long duration)
@@ -41,36 +43,30 @@ tapShizuku(double x, double y, long duration) {
 		float finalX = (float) x;
 		float finalY = (float) y;
 		debugMe(finalX, finalY);
-		
-		/* 2. Setup Shizuku InputManager Connection */
-		ShizukuBinderWrapper rawBinder = tasker.getShizukuService("input");
-		Class iimStub = Class.forName("android.hardware.input.IInputManager$Stub");
-		Method asInterface = iimStub.getMethod("asInterface", new Class[] { android.os.IBinder.class });
-		android.hardware.input.IInputManager$Stub$Proxy iim = asInterface.invoke(null, new Object[] { rawBinder });
 
-		/* 3. Prepare Injection Method */
-		Method injectM = iim.getClass().getMethod("injectInputEvent", new Class[] { InputEvent.class, int.class });
-		injectM.setAccessible(true);
+		/* 2. Setup Shizuku InputManager Connection */
+		ShizukuBinderWrapper inputBinder = tasker.getShizukuService("input");
+		IInputManager$Stub$Proxy iim = IInputManager$Stub.asInterface(inputBinder);
 
 		/* 4. Execute ACTION_DOWN */
 		long downTime = System.currentTimeMillis();
-		
-		MotionEvent evDown = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-		evDown.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		injectM.invoke(iim, new Object[] { evDown, 1 });
-		evDown.recycle();
+
+		MotionEvent eventDown = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+		eventDown.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+		iim.injectInputEvent(eventDown, 1);
+		eventDown.recycle();
 
 		/* 5. Handle Duration (Wait for hold) */
 		if (duration > 0) {
 			Thread.sleep(duration);
 		}
-		
+
 		/* 6. Execute ACTION_UP */
 		long eventTime = System.currentTimeMillis();
-		MotionEvent evUp = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_UP, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
-		evUp.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		injectM.invoke(iim, new Object[] { evUp, 1 });
-		evUp.recycle();
+		MotionEvent eventUp = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_UP, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
+		eventUp.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+		iim.injectInputEvent(eventUp, 1);
+		eventUp.recycle();
 		return true;
 
 	} catch (Exception e) {
@@ -100,5 +96,3 @@ boolean tapShizuku(float x, float y, long duration) {
 	if (x >=1f || y >=1f) return false;
 	return tapShizuku((double) x, (double) y, duration);
 }
-
-
