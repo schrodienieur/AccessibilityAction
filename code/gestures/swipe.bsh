@@ -60,5 +60,8 @@ boolean swipe(double startY, double endY, long duration) {
 	return swipe(0.5, startY, 0.5, endY, duration, false);
 }
 
+boolean swipe(double startY, double endY, long duration, boolean stopFlick) {
+	return swipe(0.5, startY, 0.5, endY, duration, stopFlick);
+}
 
 
