@@ -1,7 +1,6 @@
 /*────────────────────────────────────────────────────────────────
 This code was primarily generated using AI with minimal human editing.
 ──────────────────────────────────────────────────────────────── */
-
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -24,38 +23,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import bsh.This;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.os.Handler;
-import android.os.Looper;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
 
 /*────────────────────────────────────────────────────────────────
-	NodeBox(AccessibilityNodeInfo node, int overlayType, AccessibilityNodeInfo node)
-	Custom class to manage the node box overlay for given node.
+NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node)
+Custom class to manage the node box overlay for given node.
 
-	Parameters:
-		node: AccessibilityNodeInfo
-		overlayType: int
-		node: AccessibilityNodeInfo
 
-	Returns:
-		bsh.This NodeBox
-	
-	Methods:
-		- showInfo() shows InfoToast for given node.
-		- removeInfo() removes InfoToast for given node.
-		- setColor(int strokeWidth, int strokeColor, int fillColor) sets color for box.
-		- showDialog() shows InfoDialog for given node.
-		- removeDialog() removes InfoDialog for given node.
-		- hide() hides the box
-		- unhide() unhides the box
-		- show() displays the box
-		- reset() resets color, remove InfoToast, remove DialogToast.
-		- updateParams() updates the box parameters
-		- addViewTo(FrameLayout rootLayout) adds the box view to rootLayout
-		- setGestureListener(This eventListener) sets the gesture listener for the box view.
-  ──────────────────────────────────────────────────────────────── */
+Parameters:
+	nodeContext: Context
+	overlayType: int
+	node: AccessibilityNodeInfo
+
+Returns:
+	bsh.This NodeBox
+
+
+
+──────────────────────────────────────────────────────────────── */
 
 NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	final This TOP = this;
@@ -66,7 +54,9 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	boolean useA11y = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY == overlayType ? true : false;
 	Runnable displayOverlay;
 
+
 	int getStatusBarHeight() {
+		if (DISPLAY_ID != 0) return 0;
 		int result = 0;
 		int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
 		if (resourceId > 0) result = context.getResources().getDimensionPixelSize(resourceId);
@@ -85,6 +75,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		}
 	}
 	WindowManager WINDOW_MANAGER;
+	Context displayContext;
 	boolean isRemoved;
 	boolean isShown;
 	int DEFAULT_COLOR = Color.TRANSPARENT;
@@ -98,9 +89,24 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	if (this.caller.nodeBoxStrokeColor != void) DEFAULT_STROKE_COLOR = this.caller.nodeBoxStrokeColor;
 	if (this.caller.nodeBoxStrokeWidth != void) DEFAULT_STROKE_WIDTH = this.caller.nodeBoxStrokeWidth;
 
+	/* Create display context dynamically based on the global.DISPLAY_ID variable if specified */
+	displayContext = nodeContext;
+	if (global.DISPLAY_ID != void && global.DISPLAY_ID != null) {
+		try {
+			int displayId = global.DISPLAY_ID;
+			DisplayManager dm = (DisplayManager) nodeContext.getSystemService(Context.DISPLAY_SERVICE);
+			if (dm != null) {
+				Display targetDisplay = dm.getDisplay(displayId);
+				if (targetDisplay != null) {
+					displayContext = nodeContext.createDisplayContext(targetDisplay);
+				}
+			}
+		} catch (Exception e) {
+			tasker.log("NodeBox: Failed to apply custom display context: " + e.getMessage());
+		}
+	}
 
-
-	View view = new View(nodeContext);
+	View view = new View(displayContext);
 	Rect bounds = new Rect();
 	WindowManager.LayoutParams params;
 	FrameLayout.LayoutParams frameParams;
@@ -163,10 +169,8 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		return this;
 	}
 
-
-
 	showInfo() {
-		infoToast = InfoToast(node, nodeContext, overlayType);
+		infoToast = InfoToast(node, displayContext, overlayType);
 	}
 
 	removeInfo() {
@@ -174,7 +178,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	showDialog() {
-		infoDialog = InfoDialog(node, nodeContext, overlayType);
+		infoDialog = InfoDialog(node, displayContext, overlayType);
 	}
 
 	removeDialog() {
@@ -203,13 +207,13 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-		public void onViewAttachedToWindow(View v) {
+		onViewAttachedToWindow(View v) {
 			isRemoved = false;
 			isShown = true;
 			a11Y.addOverlay(TOP);
 		}
 
-		public void onViewDetachedFromWindow(View v) {
+		onViewDetachedFromWindow(View v) {
 			isRemoved = true;
 			isShown = false;
 			a11Y.removeOverlay(TOP);
@@ -217,7 +221,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	});
 
 	getWindowManager() {
-		if (WINDOW_MANAGER == null) WINDOW_MANAGER = nodeContext.getSystemService(Context.WINDOW_SERVICE);
+		if (WINDOW_MANAGER == null) WINDOW_MANAGER = (WindowManager) displayContext.getSystemService(Context.WINDOW_SERVICE);
 		return WINDOW_MANAGER;
 	}
 
@@ -229,7 +233,6 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		frameLayout.addView(view, frameParams);
 	}
 
-	// Only with WindowManager
 	remove(WindowManager win) {
 		if (!isRemoved) {
 			win.removeView(view);
@@ -244,8 +247,8 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		removeInfo();
 		removeDialog();
 	}
+
 	setTouchable(boolean toucable) {
-		// Retrieve the current params directly from the view
 		WindowManager.LayoutParams currentParams = (WindowManager.LayoutParams) view.getLayoutParams();
 		if (currentParams == null) {
 			currentParams = params;
@@ -268,13 +271,15 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		Handler mainHandler = new Handler(Looper.getMainLooper());
 		mainHandler.post(postRun);
 	}
-	
+
 	return this;
+
+
+
 }
 
 NodeBox(AccessibilityNodeInfo node) {
 	Context nodeContext = tasker.getAccessibilityService();
 	int overlayType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
 	return NodeBox(nodeContext, overlayType, node);
-
 }
