@@ -28,20 +28,55 @@ import io.reactivex.subjects.CompletableSubject;
 import com.joaomgcd.taskerm.action.java.ClassImplementation;
 import java.util.concurrent.Callable;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
 
+/*────────────────────────────────────────────────────────────────
+gesture(Object[][] points, Paint paint)
+Dispatches a multi-step gesture trail using modern accessibility metrics,
+safely adapting to target displays if defined in global.DISPLAY_ID.
+
+Arguments:
+
+* points → Multidimensional array containing steps [X, Y, actionType, duration, (optional control points)]
+* paint → Optional Paint styling instance to handle visual trail overlays
+
+Returns:
+
+* boolean → True if gesture execution finishes successfully, false otherwise.
+──────────────────────────────────────────────────────────────── */
 public boolean gesture(Object[][] points, Paint paint) {
 	Object accessibilityService = tasker.getAccessibilityService();
 	if (points == null || points.length == 0) return false;
 	if (accessibilityService == null || accessibilityService == void) return false;
 
+
 	AccessibilityService service = (AccessibilityService) accessibilityService;
-	
-	AccessibilityNodeInfo root = accessibilityService.getRootInActiveWindow();
+
+	AccessibilityNodeInfo root = service.getRootInActiveWindow();
 	if (root == null) {
 		return gestureShizuku(points, paint);
 	}
-	WindowManager windowManager = (WindowManager) service.getSystemService(Context.WINDOW_SERVICE);
 
+	Context windowContext = service;
+	int targetDisplayId = 0; /* Default Display ID */
+
+	if (global.DISPLAY_ID != void && global.DISPLAY_ID != null) {
+		try {
+			targetDisplayId = DISPLAY_ID;
+			DisplayManager dm = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
+			if (dm != null) {
+				Display targetDisplay = dm.getDisplay(targetDisplayId);
+				if (targetDisplay != null) {
+					windowContext = service.createDisplayContext(targetDisplay);
+				}
+			}
+		} catch (Exception e) {
+			tasker.log("gesture: Failed to resolve custom display ID: " + e.getMessage());
+		}
+	}
+
+	WindowManager windowManager = (WindowManager) windowContext.getSystemService(Context.WINDOW_SERVICE);
 	DisplayMetrics dm = new DisplayMetrics();
 	windowManager.getDefaultDisplay().getRealMetrics(dm);
 	int screenWidth = dm.widthPixels;
@@ -56,7 +91,7 @@ public boolean gesture(Object[][] points, Paint paint) {
 	CompletableSubject uiInitSignal = CompletableSubject.create();
 	mainHandler.post(new Runnable() {
 		run() {
-			overlayRef = new ImageView(service);
+			overlayRef = new ImageView(windowContext);
 			overlayRef.setImageBitmap(bitmapRef);
 			uiInitSignal.onComplete();
 		}
@@ -150,7 +185,11 @@ public boolean gesture(Object[][] points, Paint paint) {
 					}
 				});
 
-				service.dispatchGesture(new GestureDescription.Builder().addStroke(currentStroke).build(), (AccessibilityService.GestureResultCallback) callback, a11yHandler);
+				GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
+				gestureBuilder.addStroke(currentStroke);
+				gestureBuilder.setDisplayId(targetDisplayId);
+
+				service.dispatchGesture(gestureBuilder.build(), (AccessibilityService.GestureResultCallback) callback, a11yHandler);
 				stepSignal.blockingAwait();
 
 				lastX = currentStepX;
@@ -171,6 +210,7 @@ public boolean gesture(Object[][] points, Paint paint) {
 		});
 		return false;
 	}
+
 }
 
 public boolean gesture(Object[][] points) {
