@@ -59,7 +59,7 @@ public This PackageManager() {
 	  getLaunchIntent(String pkg)
 	  **Validates and Returns Launch Intent**
 	  Returns a launch intent only if the package is enabled, 
-	  not stopped, not suspended, and has a launchable activity.[cite: 1]
+	  not stopped, not suspended, and has a launchable activity.
 	 ───────────────────────────────────────────────────────────────*/
 	public Intent getLaunchIntent(String pkg) {
 		if (pkg == null) return null;
@@ -80,7 +80,7 @@ public This PackageManager() {
 	  findFirstPackageByPreciseLabel(String label)
 	  **Finds Package via Cache**
 	  Retrieves the package name from the pre-built cache using 
-	  the provided display label.[cite: 1]
+	  the provided display label.
 	 ───────────────────────────────────────────────────────────────*/
 	public String findFirstPackageByPreciseLabel(String label) {
 		if (label == null) return null;
@@ -93,7 +93,7 @@ public This PackageManager() {
 	  resolvePackage(String labelOrPackage)
 	  **Primary Resolution Logic**
 	  Attempts to resolve an input as either a direct package name 
-	  or a display label via cached mapping.[cite: 1]
+	  or a display label via cached mapping.
 	 ───────────────────────────────────────────────────────────────*/
 	public String resolvePackage(String labelOrPackage) {
 		if (labelOrPackage == null) return null;
