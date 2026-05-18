@@ -12,6 +12,8 @@ import android.os.Bundle;
 import java.util.List;
 import java.util.ArrayList;
 import bsh.This;
+import android.os.Build;
+import android.content.Context;
 
 /*───────────────────────────────────────────────────────────────
  * openApp(pkg, activity)
@@ -25,7 +27,14 @@ openApp(String pkg, String activity) {
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
     try {
-        context.startActivity(intent);
+        int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+        if (displayId != 0) {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(displayId);
+            context.startActivity(intent, options.toBundle());
+        } else {
+            context.startActivity(intent);
+        }
     } catch (Exception e) {
         /* Failed to launch component (e.g., activity not found) */
         tasker.log("openApp(pkg, activity): Failed to launch component " + pkg + "/" + activity + ": ", LOG_FILE);
@@ -57,11 +66,17 @@ openApp(String labelOrPackage) {
     }
 
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    
+    int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
     try {
-        context.startActivity(intent);
+        if (displayId != 0) {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(displayId);
+            context.startActivity(intent, options.toBundle());
+        } else {
+            context.startActivity(intent);
+        }
     } catch (Exception e) {
-        tasker.log("openApp: Failed to launch main intent for package " + pkg + ": ", LOG_FILE);
+        tasker.log("openApp: Failed to launch main intent for package " + pkg + ": " + e.getMessage(), LOG_FILE);
     }
 }
 
@@ -101,8 +116,9 @@ openApp(String labelOrPackage, boolean background) {
          * NOTE: This requires Android 5.0 (API 21).
          */
         ActivityOptions options = ActivityOptions.makeTaskLaunchBehind();
+        int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+        if (displayId != 0) options.setLaunchDisplayId(displayId);
         Bundle optionsBundle = options.toBundle();
-        
         tasker.log("launchAppInBackground: Launching " + pkg + " in background.", LOG_FILE);
         
         // Use the Context.startActivity(Intent, Bundle) overload
@@ -111,7 +127,6 @@ openApp(String labelOrPackage, boolean background) {
     } catch (Throwable e) {
         /* Catch Throwable for compatibility on older Android versions where ActivityOptions might not be fully supported. */
         tasker.log("launchAppInBackground: Failed to launch app behind: ", LOG_FILE);
-        tasker.log("Note: makeTaskLaunchBehind requires Android 5.0 (API 21) or higher.", LOG_FILE);
     }
 }
 

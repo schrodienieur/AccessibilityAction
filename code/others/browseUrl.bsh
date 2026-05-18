@@ -1,5 +1,7 @@
 import android.content.Intent;
 import android.net.Uri;
+import android.app.ActivityOptions;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 browseUrl(String url)
@@ -28,13 +30,15 @@ Arguments:
 Example:
 browseUrl("[https://google.com](https://google.com)", "com.android.chrome");
 ───────────────────────────────────────────────────────────────*/
-browseUrl(url, packageName) {
+browseUrl(String url, String labelOrPackage) {
 	/* Basic scheme check for standard web addresses. */
 	if (url.startsWith("www.")) {
 		url = "http://" + url;
 	}
-
-
+	This a11Y = tasker.getJavaVariable("a11Y");
+	This pm = a11Y.packageManager;
+    String packageName;
+	if (labelOrPackage != null) packageName = pm.resolvePackage(labelOrPackage);
 	intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 
 	/* Only target a specific package if the argument is not null/void. */
@@ -44,11 +48,13 @@ browseUrl(url, packageName) {
 
 	/* Service context requires NEW_TASK flag to launch activities. */
 	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-	/* Use the global context to start the activity. */
-	context.startActivity(intent);
-
-
-
+	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+	if (displayId != 0) {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(displayId);
+            context.startActivity(intent, options.toBundle());
+        } else {
+            context.startActivity(intent);
+    }
 }
 
