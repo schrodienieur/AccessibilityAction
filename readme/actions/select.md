@@ -25,7 +25,7 @@ select("Option 1");
 &nbsp;
 **Select by attribute:**
 ```
-select("resource-id", "com.example:id/tab", 0);
+select(identifierKey, "com.example:id/tab", 0);
 ```
 
 &nbsp;

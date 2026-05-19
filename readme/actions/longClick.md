@@ -27,7 +27,7 @@ longClick("Item 1");
 &nbsp;
 **Long click by resource id:**
 ```
-longClick("resource-id", "com.example:id/icon", 0);
+longClick(identifierKey, "com.example:id/icon", 0);
 ```
 
 &nbsp;

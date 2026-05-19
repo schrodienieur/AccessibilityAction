@@ -28,7 +28,7 @@ scrollTo("Login");
 **Scroll by custom attribute:**
 Scrolls looking for a node with a specific resource-id.
 ```
-scrollTo("resource-id", "com.example:id/button");
+scrollTo(identifierKey, "com.example:id/button");
 ```
 
 &nbsp;

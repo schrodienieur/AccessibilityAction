@@ -26,7 +26,7 @@ paste("Message");
 &nbsp;
 **Paste by attribute selector:**
 ```
-paste("resource-id", "com.example:id/input_field");
+paste(identifierKey, "com.example:id/input_field");
 ```
 
 &nbsp;

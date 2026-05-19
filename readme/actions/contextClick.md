@@ -26,7 +26,7 @@ contextClick("Options");
 &nbsp;
 **Context click by resource id:**
 ```
-contextClick("resource-id", "com.example:id/item", 0);
+contextClick(identifierKey, "com.example:id/item", 0);
 ```
 
 &nbsp;

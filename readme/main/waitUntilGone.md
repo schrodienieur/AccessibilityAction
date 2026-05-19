@@ -25,7 +25,7 @@ waitUntilGone("text", "Loading", 5000);
 ```
 config = new Object[][] {
   {"spinner", "text", "Loading"},
-  {"dialog", "resource-id", "com.example:id/dialog"}
+  {"dialog", identifierKey, "com.example:id/dialog"}
 };
 waitUntilGone(config, 5000, true);
 ```

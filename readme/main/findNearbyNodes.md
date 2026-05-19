@@ -22,7 +22,7 @@ nearby = findNearbyNodes(sourceNode, 0, "text", "Price");
 &nbsp;
 **Use a parent-level search radius:**
 ```
-nearby = findNearbyNodes(sourceNode, 1, "resource-id", "com.example:id/label");
+nearby = findNearbyNodes(sourceNode, 1, identifierKey, "com.example:id/label");
 ```
 
 &nbsp;

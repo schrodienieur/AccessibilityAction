@@ -26,7 +26,7 @@ cut("Notes");
 &nbsp;
 **Cut by attribute selector:**
 ```
-cut("resource-id", "com.example:id/message");
+cut(identifierKey, "com.example:id/message");
 ```
 
 &nbsp;

@@ -24,7 +24,7 @@ node = getNode("Login");
 &nbsp;
 **Find by resource id:**
 ```
-node = getNode("resource-id", "com.example:id/button");
+node = getNode(identifierKey, "com.example:id/button");
 ```
 
 &nbsp;

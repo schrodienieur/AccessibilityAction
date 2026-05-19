@@ -29,7 +29,7 @@ scrollInDirection(node, "up");
 &nbsp;
 **Scroll forward using a resource id:**
 ```
-scrollInDirection("resource-id", "com.example:id/list", "forward");
+scrollInDirection(identifierKey, "com.example:id/list", "forward");
 ```
 
 &nbsp;

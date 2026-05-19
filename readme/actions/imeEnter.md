@@ -19,7 +19,7 @@ Send an IME Enter action to a target node.
 
 **Send IME Enter to a field by id:**
 ```
-imeEnter("resource-id", "com.example:id/message_input", 0);
+imeEnter(identifierKey, "com.example:id/message_input", 0);
 ```
 
 &nbsp;

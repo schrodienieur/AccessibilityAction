@@ -25,7 +25,7 @@ focus("Password Field");
 &nbsp;
 **Focus by attribute:**
 ```
-focus("resource-id", "com.example:id/input");
+focus(identifierKey, "com.example:id/input");
 ```
 
 &nbsp;

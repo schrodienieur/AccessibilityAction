@@ -25,7 +25,7 @@ setSeekbar("Volume", 0.7);
 &nbsp;
 **Set progress by percentage:**
 ```
-setSeekbar("resource-id", "com.example:id/slider", 50);
+setSeekbar(identifierKey, "com.example:id/slider", 50);
 ```
 
 &nbsp;

@@ -7,8 +7,11 @@
 # Accessibility Action
 Accessibility related actions and events for android automation app called [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm&hl=id)
 
-[![Downloads](https://img.shields.io/github/downloads/mqwec43as/AccessibilityAction/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/mqwec43as/AccessibilityAction/releases/latest/download/AccessibilityAction.zip)
-[![Latest](https://img.shields.io/github/release/mqwec43as/AccessibilityAction.svg?maxAge=3600&label=latest&labelColor=06599d&color=043b69)](https://github.com/mqwec43as/AccessibilityAction/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mqwec43as/AccessibilityAction/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&&style=for-the-badge)](https://github.com/mqwec43as/AccessibilityAction/releases/latest/download/AccessibilityAction.zip)
+[![Stable](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?sort=date&display_name=tag&style=for-the-badge&label=stable
+)](https://github.com/mqwec43as/AccessibilityAction/releases/latest)
+[![Beta](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?include_prereleases&sort=date&display_name=tag&style=for-the-badge&label=beta
+)](https://github.com/mqwec43as/AccessibilityAction/releases)
 
 _Requires Java Code action available on v6.6_
 
@@ -26,10 +29,19 @@ _Requires Java Code action available on v6.6_
 
 Use text to build our automation, like AutoHotkey or AutoInput Action V2
 
-**Open Youtube subscription**
+**Open Youtube today feed**
 ```java
 openApp("Youtube");
 click("Subscription");
+click("Today");
+```
+
+**Open reddit on secondary display and scroll to r/tasker**
+```
+setDisplay(21); // or setDisplay("scrcpy");
+openApp("Reddit");
+node = scrollTo("r/tasker");
+click(node);
 ```
 
 **React on click.**
@@ -73,8 +85,8 @@ Create and test UI automation script by choosing through dialogs.
 &nbsp;
 <div align="center">
 
-# DOCUMENTATION
-[Available Methods & Variables](/readme/Documentation.md) | [Examples](/code/examples/)
+# [DOCUMENTATION](/readme/Documentation.md)
+[Read here](/readme/Documentation.md) | [Examples](/code/examples/)
 </div>
 &nbsp;
 <div align="center">

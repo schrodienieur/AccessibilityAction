@@ -41,7 +41,7 @@ tap("Login");
 &nbsp;
 **Tap by resource id:**
 ```
-tap("resource-id", "com.example:id/login_button");
+tap(identifierKey, "com.example:id/login_button");
 ```
 
 &nbsp;

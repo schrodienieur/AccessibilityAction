@@ -24,7 +24,7 @@ dismiss("New Update Available");
 &nbsp;
 **Dismiss by resource id:**
 ```
-dismiss("resource-id", "com.example:id/close_button");
+dismiss(identifierKey, "com.example:id/close_button");
 ```
 
 &nbsp;

@@ -25,7 +25,7 @@ copy("Username");
 &nbsp;
 **Copy by resource id:**
 ```
-copy("resource-id", "com.example:id/input");
+copy(identifierKey, "com.example:id/input");
 ```
 
 &nbsp;

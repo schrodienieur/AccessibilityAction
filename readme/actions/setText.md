@@ -24,7 +24,7 @@ setText("Email", "user@example.com");
 &nbsp;
 **Set text by resource id:**
 ```
-setText("resource-id", "com.example:id/input", "12345");
+setText(identifierKey, "com.example:id/input", "12345");
 ```
 
 &nbsp;

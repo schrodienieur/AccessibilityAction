@@ -27,7 +27,7 @@ click("Login");
 &nbsp;
 **Click by resource-id:**
 ```
-click("resource-id", "com.example:id/submit_button");
+click(identifierKey, "com.example:id/submit_button");
 ```
 
 &nbsp;
