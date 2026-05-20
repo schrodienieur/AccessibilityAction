@@ -19,7 +19,7 @@ a11Y() {
 			}
 			old.removeAssist();
 		} catch (Exception e) {}
-		
+
 	}
 
 	boolean debugSteps = false;
@@ -44,6 +44,7 @@ a11Y() {
 	long lastActionPickerReminder = 0;
 	long actionPickerReminderDelay = 120000;
 	This TOP;
+	This materialColorFallback;
 	String scriptEditor = "";
 	This inspector;
 	String LOG_FILE;
@@ -223,6 +224,16 @@ a11Y() {
 		a11E.unmute();
 	}
 
+	useColorFallback() {
+		if (materialColorFallback == null) materialColorFallback = MaterialColorFallback();
+ 		useColorFallback = true;
+		materialColorFallback.load();
+	}
+	
+	execute(Runnable postRun) {
+		executor.execute(postRun);
+	}
+
 	long startTime = System.currentTimeMillis();
 	return this;
 
@@ -240,6 +251,9 @@ tasker.setJavaVariable("a11Y", a11Y);
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
+// Limit following methods and scripted objects to Tasker app
+if (!context.getPackageName().equals("net.dinglisch.android.taskerm")) return;
+
 This assistButton = AssistButton(0.8, 0.8);
 a11Y.namespace.setVariable("assistButton", assistButton, false);
 
@@ -251,12 +265,13 @@ This packageManager = PackageManager();
 a11Y.namespace.setVariable("packageManager", packageManager, false);
 
 This tm = ThemeManager(context);
-tm.setThemeLight();
+tm.setThemeDark();
 int color = tm.color("colorPrimary", false);
 This mcf = MaterialColorFallback();
 a11Y.namespace.setVariable("materialColorFallback", mcf, false);
 if (color == 0) {
 	a11Y.namespace.setVariable("useColorFallback", true, false);
+	mcf.load();
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");
 }
 tasker.sendCommand("a11Y=:=start");
