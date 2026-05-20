@@ -40,6 +40,7 @@ a11Y() {
 	boolean includeAllMethods = false;
 	boolean quickAddMode = true;
 	boolean updatePreRelease = false;
+	boolean useColorFallback = false;
 	long lastActionPickerReminder = 0;
 	long actionPickerReminderDelay = 120000;
 	This TOP;
@@ -96,6 +97,7 @@ a11Y() {
 		THIS.namespace.setVariable("quickAddMode", quickAddMode, false);
 		THIS.namespace.setVariable("stepDelay", stepDelay, false);
 		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
+		THIS.namespace.setVariable("useColorFallback", useColorFallback, false);
 		if (ENV == null) {
 			String superImport = tasker.getVariable("ImportJava");
 			try {
@@ -248,4 +250,13 @@ a11Y.namespace.setVariable("updateManager", updateManager, false);
 This packageManager = PackageManager();
 a11Y.namespace.setVariable("packageManager", packageManager, false);
 
+This tm = ThemeManager(context);
+tm.setThemeLight();
+int color = tm.color("colorPrimary", false);
+This mcf = MaterialColorFallback();
+a11Y.namespace.setVariable("materialColorFallback", mcf, false);
+if (color == 0) {
+	a11Y.namespace.setVariable("useColorFallback", true, false);
+	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");
+}
 tasker.sendCommand("a11Y=:=start");
