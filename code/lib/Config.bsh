@@ -1,0 +1,74 @@
+import bsh.This;
+import bsh.Variable;
+
+Config(String filePath) {
+	source(filePath);
+	This TOP = this;
+	String[] keys = new String[] {
+		"debugSteps",
+		"debugMe",
+		"debugInfo",
+		"findDelay",
+		"debugDelay",
+		"stepDelay",
+		"waitNodesTimeout",
+		"useOffset",
+		"useA11yOffset",
+		"waitNodes",
+		"useA11yStructure",
+		"includeAllMethods",
+		"quickAddMode",
+		"updatePreRelease",
+		"lastActionPickerReminder",
+		"actionPickerReminderDelay"
+	};
+
+	save() {
+		List keyList = Arrays.asList(TOP.keys);
+		String text = "";
+		Variable[] vars = ts.namespace.getDeclaredVariables();
+		Arrays.sort(vars, new java.util.Comparator() {
+			public int compare(Object a, Object b) {
+				Variable va = (Variable) a;
+				Variable vb = (Variable) b;
+				int typeCmp = va.getType().toString().compareTo(vb.getType().toString());
+				if (typeCmp != 0) return typeCmp;
+				return va.getName().compareTo(vb.getName());
+			}
+		});
+		for (Variable var: vars) {
+			String name = var.getName();
+			if (!keyList.contains(name)) continue;
+			text += var.getType() + " " + name + " = " + TOP.namespace.getVariable(var.getName()) + ";\n";
+		}
+
+		File file = new File(filePath);
+		FileWriter writer = new FileWriter(file);
+		writer.write(text);
+		writer.flush();
+		writer.close();
+	}
+
+	setTo(This target) {
+		for (String key: keys) {
+			target.namespace.setVariable(key, TOP.namespace.getVariable(key), false);
+		}
+	}
+	
+	loadFrom(This source) {
+		for (String key: keys) {
+			TOP.namespace.setVariable(key, source.namespace.getVariable(key), false);
+		}
+	}
+
+	load() {
+		File file = new File(filePath);
+		if (!file.exists()) {
+			return;
+		}
+		source(filePath);
+		loadFrom(this);
+	}
+	
+	return this;
+}
