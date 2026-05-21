@@ -231,7 +231,11 @@ ThemeManager(Context ctx) {
 	}
 
 	int color(String attrName) {
-		return color(attrName, useColorFallback != void ? useColorFallback : false);
+		boolean useFallback = true;
+		if (ENV != void) {
+			useFallback = !ENV.HAS_MATERIAL_COLOR;
+		}
+		return color(attrName, useFallback);
 	}
 
 	setAlpha(int color, int alpha) {

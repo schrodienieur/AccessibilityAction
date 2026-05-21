@@ -47,6 +47,10 @@ public This AssistButton(int initialX, int initialY) {
 		throw new JavaCodeException("Accessibility Service not running.");
 	}
 
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
+
 	boolean useA11y = true;
 	This activeStructure;
 	This scriptEditor = ScriptEditor();

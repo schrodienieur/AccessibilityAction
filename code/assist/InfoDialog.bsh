@@ -134,6 +134,10 @@ public Chip createPropertyChip(Context ctx, String value, boolean isActive) {
   ───────────────────────────────────────────────────────────────*/
 
 public This InfoDialog(AccessibilityNodeInfo targetNode, Context ctx, int overlayType) {
+	
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
 	final WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
 	final Handler mainHandler = new Handler(Looper.getMainLooper());
 

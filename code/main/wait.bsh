@@ -3,9 +3,8 @@ This code was primarily generated using AI with minimal human editing.
 ───────────────────────────────────────────────────────────────*/
 
 import java.util.concurrent.TimeUnit;
-if (RUNNING_ENV == "TASKER") {
-	import io.reactivex.Completable;
-}
+import io.reactivex.Completable;
+
 /*───────────────────────────────────────────────────────────────
  * wait(long milliseconds)
  * **Waits for Delay**
@@ -19,13 +18,13 @@ if (RUNNING_ENV == "TASKER") {
  * wait(500);
  * ───────────────────────────────────────────────────────────────*/
 void wait(long milliseconds) {
-	if (RUNNING_ENV == "TASKER") {
+	if (ENV.TASKER || ENV.KID_APP) {
 		try {
 			Completable.timer(milliseconds, TimeUnit.MILLISECONDS).blockingAwait();
 		} catch (Exception e) {
 			tasker.log("wait interrupted: ", LOG_FILE);
 		}
-	} else if (RUNNING_ENV = "MACRODROID") {
+	} else if (ENV.MACRODROID) {
 		Thread.sleep(milliseconds);
 	}
 }

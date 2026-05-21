@@ -31,6 +31,8 @@ import com.google.android.material.chip.Chip;
 import android.content.Context;
 import bsh.This;
 
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
 /*───────────────────────────────────────────────────────────────
   dp(int val)
   **Density Converter**
@@ -61,6 +63,10 @@ public void addSpacer(Context ctx, ViewGroup container) {
   Handles the creation and logic of the floating script editor.
  ───────────────────────────────────────────────────────────────*/
 ScriptEditor() {
+
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
 	Activity activity;
 	TextInputEditText editText;
 	boolean isRemoved;

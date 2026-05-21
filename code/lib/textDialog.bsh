@@ -23,6 +23,10 @@ import bsh.This;
  ───────────────────────────────────────────────────────────────*/
 public void textDialog(String text) {
 	
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
+	
 	Consumer uiLogic = new Consumer() {
 		accept(Object activityObj) {
 			final Activity activity = (Activity) activityObj;

@@ -10,14 +10,13 @@ import java.util.Map;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import bsh.This;
-if (RUNNING_ENV == "TASKER") {
-	import io.reactivex.functions.Function;
-	import io.reactivex.functions.Predicate;
-	import io.reactivex.Observable;
-	import io.reactivex.Single;
-	import com.joaomgcd.taskerm.action.java.JavaCodeException;
-	import io.reactivex.disposables.Disposable;
-}
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import io.reactivex.disposables.Disposable;
+
 /*───────────────────────────────────────────────────────────────
 waitNodes(Object[][] argsConfigs, long timeout, boolean hasAll)
 **Reactive Node Waiter with ID Mapping**
@@ -38,7 +37,7 @@ waitNodes(Object[][] argsConfigs, long timeout, boolean allFound) {
 
 	if (nodesMap.keySet().size() > 0) return nodesMap;
 
-	if (RUNNING_ENV == "TASKER") {
+	if (ENV.TASKER || ENV.KID_APP) {
 		boolean oldDebug = debugMe;
 		if (oldDebug == true) debugMe = false;
 
@@ -74,7 +73,7 @@ waitNodes(Object[][] argsConfigs, long timeout, boolean allFound) {
 		}
 
 		return nodesMap;
-	} else if (RUNNING_ENV == "MACRODROID") {
+	} else if (ENV.MACRODROID) {
 		root = getRoot();
 		return findNodes(root, argsConfigs, allFound);
 	}

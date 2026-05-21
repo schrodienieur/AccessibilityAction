@@ -5,8 +5,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
-
 a11Y() {
 	// 1. Retrieve the previous instance from Tasker's memory
 	This old = tasker.getJavaVariable("a11Y");
@@ -30,7 +28,7 @@ a11Y() {
 	long stepDelay = 50;
 	long waitNodesTimeout = 10000;
 	List assistOverlays = new ArrayList();
-	String ENV;
+	String ENV_PATH;
 	This assistButton;
 	This updateManager;
 	boolean useOffset = true;
@@ -40,11 +38,11 @@ a11Y() {
 	boolean includeAllMethods = false;
 	boolean quickAddMode = true;
 	boolean updatePreRelease = false;
-	boolean useColorFallback = false;
 	long lastActionPickerReminder = 0;
 	long actionPickerReminderDelay = 120000;
 	This TOP;
 	This materialColorFallback;
+	This ENV;
 	String scriptEditor = "";
 	This inspector;
 	String LOG_FILE;
@@ -72,7 +70,7 @@ a11Y() {
 		executor.execute(new Runnable() {
 			run() {
 				try {
-					if (ENV != null) source(ENV + "/a11Y.java");
+					if (ENV_PATH != null) source(ENV_PATH + "/a11Y.java");
 				} catch (e) {
 					tasker.logAndToast(e.getMessage(), LOG_FILE);
 				}
@@ -98,20 +96,20 @@ a11Y() {
 		THIS.namespace.setVariable("quickAddMode", quickAddMode, false);
 		THIS.namespace.setVariable("stepDelay", stepDelay, false);
 		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
-		THIS.namespace.setVariable("useColorFallback", useColorFallback, false);
-		if (ENV == null) {
+		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
+		if (ENV_PATH == null) {
 			String superImport = tasker.getVariable("ImportJava");
 			try {
 				this.interpreter.source(superImport);
 				THIS.invokeMethod("IMPORT", new Object[] { "AccessibilityAction" });
-				if (THIS.namespace.getVariable("MAIN_DIRECTORY") != null) ENV = THIS.namespace.getVariable("MAIN_DIRECTORY");
+				if (THIS.namespace.getVariable("MAIN_DIRECTORY") != null) ENV_PATH = THIS.namespace.getVariable("MAIN_DIRECTORY");
 				THIS.namespace.setVariable("a11Y", THIS, false);
 			} catch (e) {
-				tasker.showToast("Please set the folder with a11Y.setEnv(\"Directory path\")");
+				tasker.showToast("Please set the folder with a11Y.setEnvPath(\"Directory path\")");
 				return;
 			}
 		} else {
-			this.interpreter.source(ENV + "/import.java");
+			this.interpreter.source(ENV_PATH + "/import.java");
 		}
 		return THIS;
 	}
@@ -120,13 +118,17 @@ a11Y() {
 		set(this.caller);
 	}
 
-	setEnv(String path) {
-		ENV = path;
+	setEnvPath(String path) {
+		ENV_PATH = path;
 		LOG_FILE = path + "/log.txt";
+	}
+	
+	setEnv(This env) {
+		ENV = env;
 	}
 
 	resetEnv() {
-		ENV = null;
+		ENV_PATH = null;
 	}
 
 	reset() {
@@ -223,15 +225,43 @@ a11Y() {
 		This a11E = tasker.getJavaVariable("a11E");
 		a11E.unmute();
 	}
-
-	useColorFallback() {
-		if (materialColorFallback == null) materialColorFallback = MaterialColorFallback();
- 		useColorFallback = true;
-		materialColorFallback.load();
-	}
 	
 	execute(Runnable postRun) {
 		executor.execute(postRun);
+	}
+
+	run(String fileName) {
+		Runnable runMe = new Runnable() {
+			run() {
+				try {
+					String scriptDirName = "/scripts";
+					String fullPath = ENV_PATH + scriptDirName;
+					File target = new File(fullPath, fileName);
+					if (!target.exists()) {
+						File directory = new File(fullPath);
+						File[] files = directory.listFiles();
+						if (files != null) {
+							for (File file : files) {
+								if (file.isFile()) {
+									if (file.getName().equals(fileName)) {
+										target = file;
+										break;
+									}
+								}
+							}
+						}	
+					}
+					if (target.exists()) {
+						this.interpreter.source(target.getAbsolutePath());
+					} else {
+						tasker.log("File not found: " + fileName + " in " + scriptDirName, LOG_FILE);
+					}
+				} catch (Exception e) {
+					tasker.logAndToast(e.getMessage(), LOG_FILE);
+				}
+			}
+		};
+		execute(runMe);
 	}
 
 	long startTime = System.currentTimeMillis();
@@ -239,10 +269,20 @@ a11Y() {
 
 };
 
-String ENV = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
+String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
+addClassPath(ENV_PATH);
+importCommands("lib");
+importCommands("main");
 This a11Y = a11Y();
-a11Y.setEnv(ENV);
+a11Y.setEnvPath(ENV_PATH);
+
+This Env = Environment();
+a11Y.setEnv(Env);
+
+This config = Config(ENV_PATH + "/config.java");
+config.setTo(a11Y);
 a11Y.set();
+
 This inspector = MethodInspector(this);
 inspector.read();
 a11Y.inspector = inspector;
@@ -252,26 +292,22 @@ This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
 // Limit following methods and scripted objects to Tasker app
-if (!context.getPackageName().equals("net.dinglisch.android.taskerm")) return;
+if (!Env.HAS_MATERIAL_LIB) return;
 
 This assistButton = AssistButton(0.8, 0.8);
 a11Y.namespace.setVariable("assistButton", assistButton, false);
 
 This updateManager = UpdateManager();
-updateManager.namespace.setVariable("directoryPath", ENV, false);
+updateManager.namespace.setVariable("directoryPath", ENV_PATH, false);
 a11Y.namespace.setVariable("updateManager", updateManager, false);
 
 This packageManager = PackageManager();
 a11Y.namespace.setVariable("packageManager", packageManager, false);
 
-This tm = ThemeManager(context);
-tm.setThemeDark();
-int color = tm.color("colorPrimary", false);
-This mcf = MaterialColorFallback();
-a11Y.namespace.setVariable("materialColorFallback", mcf, false);
-if (color == 0) {
-	a11Y.namespace.setVariable("useColorFallback", true, false);
+if (!Env.HAS_MATERIAL_COLOR && Env.HAS_MATERIAL_COLOR_FALLBACK) {
+	This mcf = MaterialColorFallback();
 	mcf.load();
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");
 }
+
 tasker.sendCommand("a11Y=:=start");

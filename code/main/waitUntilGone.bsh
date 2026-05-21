@@ -7,14 +7,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import bsh.This;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
-
-if (RUNNING_ENV == "TASKER") {
-	import io.reactivex.functions.Function;
-	import io.reactivex.functions.Predicate;
-	import io.reactivex.Observable;
-	import io.reactivex.Single;
-	import io.reactivex.disposables.Disposable;
-}
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
 
 /*───────────────────────────────────────────────────────────────
 waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone)
@@ -32,7 +29,6 @@ boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 	AccessibilityNodeInfo root = getRoot();
 	Map currentNodes = findNodes(root, argsConfigs, true);
 
-
 	/* Check immediate state before starting subscription */
 	if (allGone) {
 		if (currentNodes.isEmpty()) return true;
@@ -40,7 +36,7 @@ boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 		if (currentNodes.keySet().size() < argsConfigs.length) return true;
 	}
 
-	if (RUNNING_ENV == "TASKER") {
+	if (ENV.TASKER || ENV.KID_APP ) {
 		boolean oldDebug = debugMe;
 		if (oldDebug == true) debugMe = false;
 
@@ -79,14 +75,12 @@ boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 
 			return false;
 		}
-	} else if (RUNNING_ENV == "MACRODROID") {
+	} else if (ENV.MACRODROID) {
 		root = getRoot();
 		Map found = findNodes(root, argsConfigs, true);
 		return allGone ? found.isEmpty() : found.keySet().size() < argsConfigs.length;
 	}
 	return false;
-
-
 
 }
 
@@ -155,7 +149,7 @@ Returns: Boolean true if node is gone, false/Exception if timeout.
 boolean waitUntilGone(AccessibilityNodeInfo node, long timeout) {
 	if (node == null) return true;
 
-	if (RUNNING_ENV == "TASKER") {
+	if (ENV.TASKER || ENV.KID_APP) {
 		try {
 			return (Boolean) tasker.getAccessibilityEvents()
 				.map(new io.reactivex.functions.Function() {

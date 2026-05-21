@@ -47,6 +47,9 @@ import com.google.android.material.card.MaterialCardView;
   ───────────────────────────────────────────────────────────────*/
 ListDialog(This config) {
 
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
 	Activity activity;
 	Context activityContext;
 	boolean isRemoved = true;

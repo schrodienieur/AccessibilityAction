@@ -40,6 +40,9 @@ public void addSpacer(Context ctx, ViewGroup container) {
   AssistSetting()
   ───────────────────────────────────────────────────────────────*/
 AssistSetting() {
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
 	Activity activity;
 	boolean isRemoved = true;
 	boolean hasShown = false;
@@ -193,7 +196,7 @@ AssistSetting() {
 		createSwitch("Include all methods for quick mode", "includeAllMethods");
 		createInput("Find hint duration (ms)", "findDelay", 100);
 		createInput("Debug highlight duration (ms)", "debugDelay", 1000);
-		TextInputLayout envInput = createInput("Project Path", "ENV", a11Y.ENV);
+		TextInputLayout envInput = createInput("Project Path", "ENV_PATH", a11Y.ENV_PATH);
 		envInput.setEnabled(false);
 
 		MaterialButton saveBtn = new MaterialButton(activity);
