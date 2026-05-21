@@ -1,0 +1,162 @@
+import bsh.This;
+import android.content.Context;
+import android.content.res.Resources;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+/*───────────────────────────────────────────────────────────────
+Environment()
+**Environment Detection Object**
+Identifies whether the script is executing within Tasker,
+MacroDroid, or an unknown automation environment using strictly
+typed internal variables as requested.
+
+Exposed Fields:
+
+* TYPE_UNKNOWN		(int : 0)
+* TYPE_TASKER		(int : 1)
+* TYPE_MACRODROID	(int : 2)
+* TYPE_KID_APP		(int : 3)
+* currentType		(int)
+* currentName		(String)
+* packageName		(String)
+
+Example:
+env = Environment();
+if (env.currentType == env.TYPE_TASKER) {
+tasker.log("Running in: " + env.currentName);
+}
+───────────────────────────────────────────────────────────────*/
+Environment() {
+	/* Define Enviromentironment Constants */
+	final int TYPE_UNKNOWN = 0;
+	final int TYPE_TASKER = 1;
+	final int TYPE_MACRODROID = 2;
+	final int TYPE_KID_APP = 3;
+
+	/* Initialize Defaults */
+	int currentType = TYPE_UNKNOWN;
+	boolean hasMaterialColor;
+	boolean hasMaterialLib;
+	boolean hasMaterialFallback;
+	String currentName = "UNKNOWN";
+	String packageName = "unknown";
+
+	/* Check for Tasker Enviromentironment */
+	if (tasker != void && context != void) {
+		packageName = context.getPackageName();
+		if (packageName.equals("net.dinglisch.android.taskerm")) {
+			currentType = TYPE_TASKER;
+			currentName = "TASKER";
+		} else {
+			currentType = TYPE_KID_APP;
+			currentName = "KID_APP";
+		}
+	}
+
+	/* Check for MacroDroid Enviromentironment */
+	if (magicText != void && variableSetter != void) {
+		try {
+			Context macroContext = com.arlosoft.macrodroid.AppContext.getContext();
+			if (macroContext != null) {
+				packageName = macroContext.getPackageName();
+				if (packageName.equals("com.arlosoft.macrodroid")) {
+					currentType = TYPE_MACRODROID;
+					currentName = "MACRODROID";
+				}
+			}
+		} catch (Exception e) {
+			currentType = TYPE_MACRODROID;
+			currentName = "MACRODROID";
+			packageName = "com.arlosoft.macrodroid";
+		}
+	}
+
+	
+	try {
+		Class.forName("com.google.android.material.textview.MaterialTextView", false, context.getClass().getClassLoader());
+		hasMaterialLib = true;
+	} catch(e) {}
+	
+	String themeIdentifier = "Theme.Material3.DynamicColors.Dark";
+	Resources baseRes = context.getResources();
+	String pkg = context.getPackageName();
+
+	// Check for Material Color
+	int themeId = baseRes.getIdentifier(themeIdentifier, "style", pkg);
+	hasMaterialColor = themeId != 0;
+
+	// Check for Material Fallback
+	String token = "system_accent1_900";
+	int resId = baseRes.getIdentifier(token, "color", "android");
+	if (resId != 0) {
+		try {
+			baseRes.getColor(resId);
+			hasMaterialFallback = true;
+		} catch (Exception e) {}
+	}
+	
+	isTasker() {
+		return currentType == TYPE_TASKER;
+	}
+	
+	isMacrodroid() {
+		return currentType == TYPE_MACRODROID;
+	}
+	
+	isUnknown() {
+		return currentType == TYPE_UNKNOWN;
+	}
+	
+	isKidApp() {
+		return currentType == TYPE_KID_APP;
+	}
+
+	final boolean TASKER = isTasker();
+	final boolean MACRODROID = isMacrodroid();
+	final boolean KID_APP = isKidApp();
+	final boolean UNKNOWN = isUnknown();
+	final boolean TASKER_OR_KID_APP = isTasker() || isKidApp();
+	final boolean HAS_MATERIAL_COLOR = hasMaterialColor;
+	final boolean HAS_MATERIAL_LIB = hasMaterialLib;
+	final boolean HAS_MATERIAL_COLOR_FALLBACK = hasMaterialFallback;
+
+	hasMaterialColor() {
+		return HAS_MATERIAL_COLOR;
+	}
+	
+	hasMaterialLib() {
+		return HAS_MATERIAL_LIB;
+	}
+	
+	hasMaterialFallback() {
+		return HAS_MATERIAL_COLOR_FALLBACK;
+	}
+
+	checkMaterialLib(This object) {
+		if (TASKER_OR_KID_APP && !HAS_MATERIAL_LIB) {
+			throw new JavaCodeException("Can't run " + object.namespace.getName() + " : Missing Material Library");
+		} else if (MACRODROID) {
+
+		}
+	}
+
+	checkMaterialColor(This object) {
+		if (!HAS_MATERIAL_COLOR) {
+			throw new JavaCodeException("Can't run " + object.namespace.getName() + " : Missing Material Color");
+		}
+	}
+
+	checkMaterialColorFallback(This object) {
+		if (!HAS_MATERIAL_COLOR_FALLBACK) {
+			throw new JavaCodeException("Can't run " + object.namespace.getName() + " : Missing Material Fallback");
+		}
+	}
+
+	checkMaterialColorAndFallback(This object) {
+		checkMaterialColor(object);
+		checkMaterialFallback(object);
+	}
+
+	return this;
+	
+}
