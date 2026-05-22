@@ -10,7 +10,7 @@ Accessibility related actions and events for android automation app called [Task
 [![Downloads](https://img.shields.io/github/downloads/mqwec43as/AccessibilityAction/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&&style=for-the-badge)](https://github.com/mqwec43as/AccessibilityAction/releases/latest/download/AccessibilityAction.zip)
 [![Stable](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?sort=date&display_name=tag&style=for-the-badge&label=stable
 )](https://github.com/mqwec43as/AccessibilityAction/releases/latest)
-[![Beta](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?include_prereleases&sort=date&display_name=tag&style=for-the-badge&label=beta
+[![Beta](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?include_prereleases&sort=semver&display_name=tag&style=for-the-badge&label=beta
 )](https://github.com/mqwec43as/AccessibilityAction/releases)
 
 _Requires Java Code action available on v6.6_
