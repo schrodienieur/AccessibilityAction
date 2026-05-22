@@ -43,10 +43,6 @@ public int dp(int value) {
 public This AssistButton(int initialX, int initialY) {
 	This a11Y = tasker.getJavaVariable("a11Y");
 	final AccessibilityService accessibilityService = getService();
-	if (accessibilityService == null) {
-		throw new JavaCodeException("Accessibility Service not running.");
-	}
-
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
 

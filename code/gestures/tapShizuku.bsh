@@ -32,7 +32,13 @@ tapShizuku(double x, double y, long duration) {
 		/* 1. Normalize Coordinates */
 		Context windowContext = getContext();
 		WindowManager wm = (WindowManager) windowContext.getSystemService(Context.WINDOW_SERVICE);
-		DisplayMetrics dm = getDisplayMetrics(windowContext.getDisplayId());
+		int targetDisplayId; 
+		try {
+			targetDisplayId = windowContext.getDisplayId();
+		} catch (Exception e) {
+			targetDisplayId = windowContext.getDisplay().getDisplayId();
+		}
+		DisplayMetrics dm = getDisplayMetrics(targetDisplayId);
 
 		int screenWidth = dm.widthPixels;
 		int screenHeight = dm.heightPixels;
@@ -53,7 +59,7 @@ tapShizuku(double x, double y, long duration) {
 
 		MotionEvent eventDown = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		eventDown.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		eventDown.setDisplayId(windowContext.getDisplayId());
+		eventDown.setDisplayId(targetDisplayId);
 		iim.injectInputEvent(eventDown, 1);
 		eventDown.recycle();
 
@@ -66,7 +72,7 @@ tapShizuku(double x, double y, long duration) {
 		long eventTime = System.currentTimeMillis();
 		MotionEvent eventUp = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_UP, finalX, finalY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		eventUp.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		eventUp.setDisplayId(windowContext.getDisplayId());
+		eventUp.setDisplayId(targetDisplayId);
 		iim.injectInputEvent(eventUp, 1);
 		eventUp.recycle();
 		return true;

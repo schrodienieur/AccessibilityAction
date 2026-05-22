@@ -44,7 +44,13 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 	/* Setup screen metrics */
 	Context windowContext = getContext();
 	WindowManager wm = (WindowManager) windowContext.getSystemService(Context.WINDOW_SERVICE);
-	DisplayMetrics dm = getDisplayMetrics(windowContext.getDisplayId());
+	int targetDisplayId;
+	try {
+		targetDisplayId = windowContext.getDisplayId();
+	} catch (Exception e) {
+		targetDisplayId = windowContext.getDisplay().getDisplayId();
+	}
+	DisplayMetrics dm = getDisplayMetrics(targetDisplayId);
 	float screenW = (float) dm.widthPixels;
 	float screenH = (float) dm.heightPixels;
 
@@ -60,7 +66,7 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 		/* 1. ACTION_DOWN */
 		MotionEvent evDown = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, (float) startX, (float) startY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		evDown.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		evDown.setDisplayId(windowContext.getDisplayId());
+		evDown.setDisplayId(targetDisplayId);
 		iim.injectInputEvent(evDown, 1);
 		evDown.recycle();
 
@@ -74,7 +80,7 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 			float movendY = startY + (endY - startY) * t;
 			MotionEvent eventMove = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) movendX, (float) movendY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 			eventMove.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-			eventMove.setDisplayId(windowContext.getDisplayId());
+			eventMove.setDisplayId(targetDisplayId);
 			iim.injectInputEvent(eventMove, 1);
 			eventMove.recycle();
 
@@ -86,7 +92,7 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 			/* Hold at target to zero out calculated velocity */
 			MotionEvent eventHold = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 			eventHold.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-			eventHold.setDisplayId(windowContext.getDisplayId());
+			eventHold.setDisplayId(targetDisplayId);
 			iim.injectInputEvent(eventHold, 1);
 			eventHold.recycle();
 			Thread.sleep(60);
@@ -95,7 +101,7 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 		/* 4. ACTION_UP */
 		MotionEvent evUp = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, (float) endX, (float) endY, 1.0f, 1.0f, 0, 1.0f, 1.0f, 0, 0);
 		evUp.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-		evUp.setDisplayId(windowContext.getDisplayId());
+		evUp.setDisplayId(targetDisplayId);
 		iim.injectInputEvent(evUp, 1);
 		evUp.recycle();
 

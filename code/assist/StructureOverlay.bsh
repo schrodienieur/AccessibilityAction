@@ -30,11 +30,11 @@ import android.view.ViewParent;
 
 
 /*────────────────────────────────────────────────────────────────
-	StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y)
+	StructureOverlay(AccessibilityNodeInfo root, boolean useA11y)
 	Custom class to manage the structure of given root node.
 
 	Parameters:
-		- AccessibilityNodeInfo rootNode, root node of the screen
+		- AccessibilityNodeInfo root, root node of the screen
 		- boolean useA11y, use accessibility service or not
 	
 	Returns:
@@ -55,7 +55,7 @@ import android.view.ViewParent;
 		- All highlight nodes will soon to be deprecated. Replaced with NodesFinder which is improved version of SimilarNodes
 
 ──────────────────────────────────────────────────────────────── */
-StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
+StructureOverlay(AccessibilityNodeInfo root, boolean useA11y) {
 	This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
 	boolean isRemoved;
@@ -68,32 +68,29 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 	This activeSimilar;
 	List searchHighlightNodes;
 	This listener;
-	Map nodeBoxMap = new HashMap();
+	Map map = new HashMap();
 	List highlighted = new ArrayList();
 	List hiddenBoxes = new ArrayList();
 	List boxHistory = new ArrayList();
 
 	final Object accessibilityService = getService();
-	if (accessibilityService == null) {
-		throw new JavaCodeException("Accessibility Service not running.");
-	}
 
-	Context overlayContext = getContext(useA11y);
-	final WindowManager windowManager = (WindowManager) overlayContext.getSystemService(Context.WINDOW_SERVICE);
+	Context context = getContext(useA11y);
+	final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	Handler mainHandler = new Handler(Looper.getMainLooper());
 
 	int overlayType = useA11y ?
 		WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY :
 		WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
-	This tm = ThemeManager(overlayContext);
-	tm.setThemeDark();
+	This themeManager = ThemeManager(context);
+	themeManager.setThemeDark();
 
 	setAlpha(int color, int alpha) {
 		return (alpha << 24) | (color & 0x00ffffff);
 	}
 
-	final FrameLayout rootLayout = new FrameLayout(overlayContext);
+	final FrameLayout rootLayout = new FrameLayout(context);
 	WindowManager.LayoutParams rootParams = new WindowManager.LayoutParams(
 		WindowManager.LayoutParams.MATCH_PARENT,
 		WindowManager.LayoutParams.MATCH_PARENT,
@@ -146,9 +143,7 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 
 
 	/* External API to highlight specific nodes via color. */
-	highlightNode(AccessibilityNodeInfo targetNode, int strokeColor, int fillColor) {
-		This nodeBox = nodeBoxMap.get(targetNode);
-		if (nodeBox == null) return null;
+	highlightNodeBox(This nodeBox, int strokeColor, int fillColor) {
 		nodeBox.setColor(4, strokeColor, fillColor);
 		reset() {
 			nodeBox.reset();
@@ -156,20 +151,46 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 		return this;
 	}
 
+	highlightNode(AccessibilityNodeInfo targetNode, int strokeColor, int fillColor) {
+		This nodeBox = map.get(targetNode);
+		return highlightNodeBox(nodeBox, strokeColor, fillColor);
+	}
+
 	highlightNodes(List nodes, int strokeColor, int fillColor) {
 		ArrayList highlights = new ArrayList();
 		for (int i = 0; i < nodes.size(); i++) {
-			AccessibilityNodeInfo targetNode = (AccessibilityNodeInfo) nodes.get(i);
+			AccessibilityNodeInfo targetNode  = nodes.get(i);
 			if (activeBox == null && targetNode.equals(activeBox.node)) continue;
 			This highlight = highlightNode(targetNode, strokeColor, fillColor);
 			highlights.add(highlight);
 		}
+
 		reset() {
 			if (highlights.isEmpty()) return;
 			for (This highlight: highlights) {
 				if (highlight != null) highlight.reset();
 			}
 		}
+
+		return this;
+	}
+
+
+	highlightNodeBoxes(List nodes, int strokeColor, int fillColor) {
+		ArrayList highlights = new ArrayList();
+		for (int i = 0; i < nodes.size(); i++) {
+			This target = nodes.get(i);
+			This highlight = highlightNodeBox(target, strokeColor, fillColor);
+			highlights.add(highlight);
+		}
+
+		reset() {
+			if (highlights.isEmpty()) return;
+			for (This highlight: highlights) {
+				if (highlight != null) highlight.reset();
+			}
+		}
+
 		return this;
 	}
 
@@ -180,13 +201,24 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 			nodeBox.reset();
 		}
 		hiddenBoxes.add(this);
+		return this;
 	}
 
 	/* External API to highlight specific nodes via color. */
 	hideNode(AccessibilityNodeInfo targetNode) {
-		This nodeBox = (View) nodeBoxMap.get(targetNode);
+		This nodeBox = (View) map.get(targetNode);
 		if (nodeBox == null) continue;
 		return hideBox(nodeBox);
+	}
+
+	hideBoxes() {
+		for (This nodeBox: map.values()) {
+			This hidden = hideBox(nodeBox);
+			hiddenBoxes.add(hidden);
+		}
+		unhide() {
+			unhideBoxes();
+		}
 	}
 
 	unhideBoxes() {
@@ -201,12 +233,12 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 		if (activeBox != null) activeBox.reset();
 		activeBox = this;
 		AccessibilityNodeInfo node = nodeBox.node;
-		int fillColor = setAlpha(tm.color("colorPrimary"), 150);
-		int strokeColor = tm.color("colorPrimary");
+		int fillColor = setAlpha(themeManager.color("colorPrimary"), 150);
+		int strokeColor = themeManager.color("colorPrimary");
 		nodeBox.setColor(5, strokeColor, fillColor);
 		nodeBox.showInfo();
 
-		activeSimilar = SimilarNodes(rootNode, nodeBoxMap, nodeBox);
+		activeSimilar = SimilarNodes(root, map, nodeBox);
 		activeSimilar.highlightAll();
 		String similarText = activeSimilar.getSimilarText();
 		if (similarText != null) nodeBox.infoToast.addRow("similar", "Similar", similarText);
@@ -263,7 +295,7 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 			addHistory(nodeBox);
 			if (tasker.getJavaVariable("a11Y").quickAddMode) {
 				remove();
-				This nodeData = SimilarNodes(rootNode, nodeBoxMap, nodeBox);
+				This nodeData = SimilarNodes(root, map, nodeBox);
 				tasker.setJavaVariable("nodeData", nodeData);
 				a11Y.executor.submit(new Runnable() {
 					run() {
@@ -288,7 +320,7 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 		ArrayList stack = new ArrayList();
 		if (listener == null) listener = getDefaultListener();
 		// Stack will be pair of node and their depth
-		stack.add(new Object[] { rootNode, 0 });
+		stack.add(new Object[] { root, 0 });
 		while (!stack.isEmpty()) {
 			Object[] item = (Object[]) stack.remove(0);
 			AccessibilityNodeInfo node = (AccessibilityNodeInfo) item[0];
@@ -301,11 +333,11 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 
 			if (!bounds.isEmpty() && bounds.width() > 2 && bounds.height() > 2) {
 				int area = bounds.width() * bounds.height();
-				This nodeBox = NodeBox(overlayContext, overlayType, node);
+				This nodeBox = NodeBox(context, overlayType, node);
 				nodeBox.setGestureListener(listener);
 				nodeBox.setTouchable(nodeBoxTouchable);
 				nodeList.add(new Object[] { depth, area, nodeBox });
-				nodeBoxMap.put(node, nodeBox);
+				map.put(node, nodeBox);
 			}
 			for (int i = 0; i < node.getChildCount(); i++) {
 				AccessibilityNodeInfo child = node.getChild(i);
@@ -332,6 +364,7 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 	}
 
 	show() {
+		long start = System.currentTimeMillis();
 		if (nodeList.isEmpty()) createNodeList();
 		windowManager.addView(rootLayout, rootParams);
 		Runnable showRun = new Runnable() {
@@ -343,6 +376,9 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 					This nodeBox = wrap[2];
 					nodeBox.addViewTo(rootLayout);
 				}
+				
+				float end = System.currentTimeMillis() - start;
+				tasker.showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
 			}
 		};
 		post(showRun);
@@ -365,14 +401,14 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 						nodeBox.setGestureListener(listener);
 						nodeBox.setTouchable(nodeBoxTouchable);
 						nodeBox.addViewTo(rootLayout);
-						nodeBoxMap.put(nodeBox.node, nodeBox);
+						map.put(nodeBox.node, nodeBox);
 					} else if (nodeItem instanceof AccessibilityNodeInfo) {
 						AccessibilityNodeInfo node = nodeItem;
-						This nodeBox = NodeBox(overlayContext, overlayType, node);
+						This nodeBox = NodeBox(context, overlayType, node);
 						nodeBox.setGestureListener(listener);
 						nodeBox.setTouchable(nodeBoxTouchable);
 						nodeBox.addViewTo(rootLayout);
-						nodeBoxMap.put(node, nodeBox);
+						map.put(node, nodeBox);
 					}
 
 				}
@@ -425,11 +461,11 @@ StructureOverlay(AccessibilityNodeInfo rootNode, boolean useA11y) {
 	return this;
 }
 StructureOverlay(boolean useA11y) {
-	AccessibilityNodeInfo rootNode = (AccessibilityNodeInfo) getRoot();
-	if (rootNode == null) {
+	AccessibilityNodeInfo root = (AccessibilityNodeInfo) getRoot();
+	if (root == null) {
 		throw new JavaCodeException("Could not get root node.");
 	}
-	return StructureOverlay(rootNode, useA11y);
+	return StructureOverlay(root, useA11y);
 }
 
 StructureOverlay() {
