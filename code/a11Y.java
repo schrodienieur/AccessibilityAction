@@ -4,8 +4,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Field;
 
 a11Y() {
+	Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
+    propertiesField.setAccessible(true);
 	// 1. Retrieve the previous instance from Tasker's memory
 	This old = tasker.getJavaVariable("a11Y");
 	if (old != null) {
@@ -43,8 +47,10 @@ a11Y() {
 	This TOP;
 	This materialColorFallback;
 	This ENV;
+	This displayInfos;
 	String scriptEditor = "";
 	This inspector;
+	This NodeFilter;
 	String LOG_FILE;
 
 	ThreadFactory customThreadFactory = new ThreadFactory() {
@@ -97,6 +103,7 @@ a11Y() {
 		THIS.namespace.setVariable("stepDelay", stepDelay, false);
 		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
 		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
+		if (NodeFilter != null) THIS.namespace.setVariable("NodeFilter", NodeFilter, false);
 		if (ENV_PATH == null) {
 			String superImport = tasker.getVariable("ImportJava");
 			try {
@@ -122,7 +129,7 @@ a11Y() {
 		ENV_PATH = path;
 		LOG_FILE = path + "/log.txt";
 	}
-	
+
 	setEnv(This env) {
 		ENV = env;
 	}
@@ -225,7 +232,7 @@ a11Y() {
 		This a11E = tasker.getJavaVariable("a11E");
 		a11E.unmute();
 	}
-	
+
 	execute(Runnable postRun) {
 		executor.execute(postRun);
 	}
@@ -241,7 +248,7 @@ a11Y() {
 						File directory = new File(fullPath);
 						File[] files = directory.listFiles();
 						if (files != null) {
-							for (File file : files) {
+							for (File file: files) {
 								if (file.isFile()) {
 									if (file.getName().equals(fileName)) {
 										target = file;
@@ -249,7 +256,7 @@ a11Y() {
 									}
 								}
 							}
-						}	
+						}
 					}
 					if (target.exists()) {
 						this.interpreter.source(target.getAbsolutePath());
@@ -262,6 +269,14 @@ a11Y() {
 			}
 		};
 		execute(runMe);
+	}
+
+	testDisplay() {
+		if (displayInfos == null) {
+			set();
+			displayInfos = DisplayInfos();
+		}
+		displayInfos.show(6000);
 	}
 
 	long startTime = System.currentTimeMillis();
@@ -291,6 +306,8 @@ tasker.setJavaVariable("a11Y", a11Y);
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
+This NodeFilter = NodeFilter();
+a11Y.namespace.setVariable("NodeFilter", NodeFilter, false);
 // Limit following methods and scripted objects to Tasker app
 if (!Env.HAS_MATERIAL_LIB) return;
 

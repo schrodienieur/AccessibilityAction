@@ -27,6 +27,8 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.hardware.display.DisplayManager;
 import android.view.Display;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Field;
 /*────────────────────────────────────────────────────────────────
 NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node)
 Custom class to manage the node box overlay for given node.
@@ -43,7 +45,6 @@ Returns:
 
 
 ──────────────────────────────────────────────────────────────── */
-
 NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	final This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
@@ -53,6 +54,26 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	boolean useA11y = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY == overlayType ? true : false;
 	Runnable displayOverlay;
 
+	// Get properties
+	Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
+    propertiesField.setAccessible(true);
+	int properties = propertiesField.getInt(node);
+
+	// Has viewIdResourceName
+	if (NodeFilter != void) {
+		if (node.viewIdResourceName != null) {
+			properties |= NodeFilter.HAS_VIEW_ID_RESOURCE_NAME;
+		}
+
+		// Has content description
+		if (node.contentDescription != null || node.text != null) {
+			properties |= NodeFilter.HAS_TEXT;
+		}
+	}
+	
+	private boolean getProperty(int property) {
+        return (properties & property) != 0;
+    }
 
 	int getStatusBarHeight() {
 		if (DISPLAY_ID != 0) return 0;
@@ -117,6 +138,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	updateParams();
 
 	setColor(int strokeWidth, int strokeColor, int fillColor) {
+		unhide();
 		GradientDrawable activeFill = new GradientDrawable();
 		activeFill.setColor(fillColor);
 		activeFill.setStroke(strokeWidth, strokeColor);

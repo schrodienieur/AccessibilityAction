@@ -1,0 +1,132 @@
+import bsh.This;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Field;
+import android.graphics.Color;
+
+This NodeFilter(This structure) {
+	if (!(structure.namespace.name.equals("StructureOverlay") || structure.namespace.name.equals("NodeFilter") )) {
+		throw new JavaCodeException("Can't be called from " + structure.namespace.name + ". " + "Please call from StructureOverlay");
+	}
+
+    This themeManager;
+    int fillColor = Color.TRANSPARENT;
+	int strokeColor;
+    if (structure.themeManager != void ) {
+        themeManager = structure.themeManager;
+        strokeColor = themeManager.color("colorPrimary");
+    }
+    
+    // Properties from https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/accessibility/AccessibilityNodeInfo.java
+	final int CHECKABLE = 1 /* << 0 */;
+    final int CHECKED = 1 << 1;
+    final int FOCUSABLE = 1 << 2;
+    final int FOCUSED = 1 << 3;
+    final int SELECTED = 1 << 4;
+    final int CLICKABLE = 1 << 5;
+    final int LONG_CLICKABLE = 1 << 6;
+    final int ENABLED = 1 << 7;
+    final int PASSWORD = 1 << 8;
+    final int SCROLLABLE = 1 << 9;
+    final int ACCESSIBILITY_FOCUSED = 1 << 10;
+    final int VISIBLE_TO_USER = 1 << 11;
+    final int EDITABLE = 1 << 12;
+    final int OPENS_POPUP = 1 << 13;
+    final int DISMISSABLE = 1 << 14;
+    final int MULTI_LINE = 1 << 15;
+    final int CONTENT_INVALID = 1 << 16;
+    final int CONTEXT_CLICKABLE = 1 << 17;
+    final int IMPORTANCE = 1 << 18;
+    final int SCREEN_READER_FOCUSABLE = 1 << 19;
+    final int IS_SHOWING_HINT = 1 << 20;
+    final int IS_HEADING = 1 << 21;
+    final int IS_TEXT_ENTRY_KEY = 1 << 22;
+    final int IS_TEXT_SELECTABLE = 1 << 23;
+    final int REQUEST_INITIAL_ACCESSIBILITY_FOCUS = 1 << 24;
+    final int ACCESSIBILITY_DATA_SENSITIVE = 1 << 25;
+    final int SUPPORTS_GRANULAR_SCROLLING = 1 << 26;
+    final int FIELD_REQUIRED = 1 << 27;
+
+
+    final int HAS_VIEW_ID_RESOURCE_NAME = 1 << 32;
+    final int HAS_TEXT = 1 << 33;
+
+    Object[][] constantsObject = new Object[][] {
+        {"Checkable", CHECKABLE},
+        {"Checked", CHECKED},
+        {"Focusable", FOCUSABLE},
+        {"Focused", FOCUSED},
+        {"Selected", SELECTED},
+        {"Clickable", CLICKABLE},
+        {"LongClickable", LONG_CLICKABLE},
+        {"Enabled", ENABLED},
+        {"Password", PASSWORD},
+        {"Scrollable", SCROLLABLE},
+        {"AccessibilityFocused", ACCESSIBILITY_FOCUSED},
+        {"VisibleToUser", VISIBLE_TO_USER},
+        {"Editable", EDITABLE},
+        {"OpensPopup", OPENS_POPUP},
+        {"Dismissable", DISMISSABLE},
+        {"MultiLine", MULTI_LINE},
+        {"ContentInvalid", CONTENT_INVALID},
+        {"ContextClickable", CONTEXT_CLICKABLE},
+        {"Importance", IMPORTANCE},
+        {"ScreenReaderFocusable", SCREEN_READER_FOCUSABLE},
+        {"ShowingHint", IS_SHOWING_HINT},
+        {"Heading", IS_HEADING},
+        {"TextEntryKey", IS_TEXT_ENTRY_KEY},
+        {"TextSelectable", IS_TEXT_SELECTABLE},
+        {"RequestInitialAccessibilityFocus", REQUEST_INITIAL_ACCESSIBILITY_FOCUS},
+        {"DataSensitive", ACCESSIBILITY_DATA_SENSITIVE},
+        {"SupportsGranularScrolling", SUPPORTS_GRANULAR_SCROLLING},
+        {"FieldRequired", FIELD_REQUIRED},
+        {"Has View Id", HAS_VIEW_ID_RESOURCE_NAME},
+        {"Has Text", HAS_TEXT}
+    };
+
+    Map map = new HashMap();
+    for (Object[] constant: constantsObject) {
+        String name = constant[0];
+        map.put(name, constant[1]);
+    }
+
+    getConstantNames() {
+        List names = Arrays.asList(map.keySet());
+        return names;
+    }
+
+    getConstant(String name) {
+        Object value = map.get(name);
+        if (value != null) return value;
+        return 0;
+    }
+
+    private boolean getBooleanProperty(int property) {
+        return (mBooleanProperties & property) != 0;
+    }
+
+    filter(int properties) {
+        Set keySet = structure.map.keySet(); 
+        List nodeBoxes = new ArrayList();
+        for (Object key: keySet) {
+            This nodeBox = (This) structure.map.get(key);
+            boolean hasProperty = nodeBox.getProperty(properties);
+            if (hasProperty) {
+                nodeBoxes.add(nodeBox);
+            }
+        }      
+        return nodeBoxes; 
+    }
+
+    highlight(int properties) {
+        List nodeBoxes = filter(properties);
+        This highlight = structure.highlightNodeBoxes(nodeBoxes, strokeColor, fillColor);
+        return highlight;
+    }
+
+	return this;
+}
+
+NodeFilter() {
+    return NodeFilter(this);
+}

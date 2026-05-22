@@ -1,0 +1,20 @@
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.view.accessibility.AccessibilityNodeInfo;
+import bsh.This;
+
+NodeData(AccessibilityNodeInfo node) {
+	String className = node.getClassName();
+	String viewId = node.getViewIdResourceName();
+	Rect bounds = new Rect();
+	Point coor = getCoordinates(node);
+	text = getText(node);
+	boolean isClickable = node.isClickable();
+	boolean isEnabled = node.isEnabled();
+	boolean isFocusable = node.isFocusable();
+	boolean isScrollable = node.isScrollable();
+	boolean isEditable = node.isEditable();
+	int childCount = node.getChildCount();
+	boolean isSettable = (node.getActions() & node.ACTION_SET_TEXT) != 0;
+	return this;
+}

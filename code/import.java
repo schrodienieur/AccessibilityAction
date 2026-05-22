@@ -28,3 +28,4 @@ if (stepDelay == void) stepDelay = 50;
 if (waitNodesTimeout == void) waitNodesTimeout = 10000;
 if (DISPLAY_ID == void) DISPLAY_ID = 0;
 if (ENV == void) ENV = Environment();
+if (NodeFilter == void) NodeFilter = NodeFilter();
