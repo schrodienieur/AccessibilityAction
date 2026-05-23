@@ -32,7 +32,7 @@ focus(AccessibilityNodeInfo node) {
 }
 
 focus(ArrayList nodes) {
-	node = toNode(nodes);
+	AccessibilityNodeInfo node = toNode(nodes);
 	if (node == null) return;
 	return focus(node);
 }
@@ -43,20 +43,19 @@ focus(ArrayList nodes, int index) {
 
 
 focus(HashMap nodes) {
-	node = toNode(nodes);
+	AccessibilityNodeInfo node = toNode(nodes);
 	if (node == null) return;
 	return focus(node);
 }
 
 focus(HashMap nodes, key) {
-	node = toNode(nodes);
+	AccessibilityNodeInfo node = toNode(nodes);
 	if (node == null) return;
 	return focus(node);
 }
 
 focus(String key, String value, int index) {
-	root_before = getRoot();
-	n = getNode(key, value, index);
+	AccessibilityNodeInfo n = getNode(key, value, index);
 	return focus(n);
 }
 

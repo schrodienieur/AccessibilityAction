@@ -52,7 +52,7 @@ ActionPicker(This nodeData) {
 	}
 	This config = dialog(this);
 
-	dialog = ListDialog(config);
+	This dialog = ListDialog(config);
 	boolean isActionSelected = dialog.show();
 	boolean isKeyRequired;
 	Map selectedKey;

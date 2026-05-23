@@ -27,7 +27,7 @@ dismiss(AccessibilityNodeInfo node) {
 }
 
 dismiss(ArrayList nodes) {
-	node = toNode(nodes);
+	AccessibilityNodeInfo node = toNode(nodes);
 	if (node == null) return;
 	return dismiss(node);
 }

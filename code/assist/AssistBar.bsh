@@ -57,6 +57,7 @@ public This AssistBar(int initialX, int initialY) {
 	boolean isShown;
 	boolean hasShownOnce;	
 	boolean useA11yStructure;
+	
 
 	isRemoved() {
 		return structureOverlay != null && structureOverlay.isRemoved();
@@ -210,9 +211,9 @@ public This AssistBar(int initialX, int initialY) {
 	MaterialButton scriptBtn = IconButton(tm.attr("mw_action_code"), false);
 	scriptBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			assistSetting.remove();
-			structureOverlay.remove();
-			scriptEditor.toggle();
+			if (assistSetting != null) assistSetting.remove();
+			if (structureOverlay != null) structureOverlay.remove();
+			if (scriptEditor != null) scriptEditor.toggle();
 		}
 	});
 
@@ -222,9 +223,9 @@ public This AssistBar(int initialX, int initialY) {
 	MaterialButton settingBtn = IconButton(tm.attr("mw_action_settings"), false);
 	settingBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			scriptEditor.remove();
-			structureOverlay.remove();
-			assistSetting.toggle();
+			if (scriptEditor != null) scriptEditor.remove();
+			if (structureOverlay != null) structureOverlay.remove();
+			if (assistSetting != null) assistSetting.toggle();
 		}
 	});
 

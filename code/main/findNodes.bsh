@@ -135,15 +135,15 @@ findNodes(AccessibilityNodeInfo root, Object[][] argsConfigs, boolean allFound) 
 	int totalMap = argsConfigs.length;
 	boolean foundAny = false;
 	for (int i = 0; i < argsConfigs.length; i++) {
-		config = argsConfigs[i];
+		Object[] config = argsConfigs[i];
 		String resultId = (String) config[0]; // First element is the ID
 		/* Create a new array without the ID for the search logic */
-		searchArgs = new Object[config.length - 1];
+		Object[] searchArgs = new Object[config.length - 1];
 		for (int k = 1; k < config.length; k++) {
 			searchArgs[k - 1] = config[k];
 		}
-		len = searchArgs.length;
-		nodes = new ArrayList();
+		int len = searchArgs.length;
+		List nodes = new ArrayList();
 		if (len == 1) {
 			nodes = findNodes(root, "text", (String) searchArgs[0]);
 		} else if (len == 2) {
@@ -190,7 +190,7 @@ results = findNodes(root, "id", "my_btn", args);
 ───────────────────────────────────────────────────────────────*/
 ArrayList findNodes(AccessibilityNodeInfo root, String key, String value, Object[][] argsConfigs) {
 	if (root == null) { root = getRoot(); }
-	foundNodes = findNodes(root, key, value);
+	List foundNodes = findNodes(root, key, value);
 	return findNodesNearby(foundNodes, argsConfigs);
 }
 
@@ -200,7 +200,7 @@ ArrayList findNodes(String key, String value, Object[][] argsConfigs) {
 }
 
 ArrayList findNodes(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
-	config = new Object[][] {
+	Object[][] config = new Object[][] {
 		{ parentLevel, nearbyKey, nearbyValue }
 	};
 	return findNodes(root, key, value, config);
