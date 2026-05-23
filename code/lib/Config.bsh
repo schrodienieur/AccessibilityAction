@@ -4,29 +4,59 @@ import bsh.Variable;
 Config(String filePath) {
 	source(filePath);
 	This TOP = this;
-	String[] keys = new String[] {
-		"debugSteps",
-		"debugMe",
-		"debugInfo",
-		"findDelay",
-		"debugDelay",
-		"stepDelay",
-		"waitNodesTimeout",
-		"useOffset",
-		"useA11yOffset",
-		"waitNodes",
-		"useA11yStructure",
-		"includeAllMethods",
-		"quickAddMode",
-		"updatePreRelease",
-		"lastActionPickerReminder",
-		"actionPickerReminderDelay"
+	
+	// { Group Name, key, description, showInSettings }
+	Object[][] keysConfig = new Object[][] {
+		{ "Action", "waitNodes", "Waiting nodes will timeout if not found", true },
+		{ "Action", "stepDelay", "Step delay (ms)", true },
+		{ "Action", "waitNodesTimeout", "Waiting nodes timeout (ms)", true },
+		{ "Debugging", "debugMe", "Enable debug mode", true },
+		{ "Debugging", "debugSteps", "Show debugging information on a toast", false },
+		{ "Debugging", "debugInfo", "Show debugging information on a toast", true },
+		{ "Debugging", "useOffset", "Use offset for normal overlay" ,true},
+		{ "Debugging", "useA11yOffset", "Use offset for Accessibility", true},
+		{ "Debugging", "useA11yStructure", "Use accessibility for structure overlay", true },
+		{ "Debugging", "quickAddMode", "Long press a box enter quick mode instead of opening copy dialog", true },
+		{ "Debugging", "includeAllMethods", "Include all methods for quick mode", true },
+		{ "Debugging", "actionPickerAddToEditor", "Action picker append to editor or copy to clipboard", true },
+		{ "Debugging", "findDelay", "Find hint duration (ms)", true },
+		{ "Debugging", "debugDelay", "Debug highlight duration (ms)", true },
+		{ "Debugging", "actionPickerReminderDelay", "Action picker reminder delay (ms)", true },
+		{ "Other", "updatePreRelease", "Update to pre-release version", true }
 	};
 
+	String[] keys = new String[keysConfig.length];
+	for (int i = 0; i < keysConfig.length; i++) {
+		keys[i] = (String) keysConfig[i][1];
+	}
+	
+	
+	InputPreset(Object[] config) {
+		String groupName = config[0];
+		String key = config[1];
+		String description = config[2];
+		boolean showInSettings = config[3];
+		return this;
+	}
+
+	Map getSettings() {
+		Map settings = new HashMap();
+		for (Object[] config: keysConfig) {
+			This inputPreset = InputPreset(config);
+			List settingRows = (List) settings.get(inputPreset.groupName);
+			if (settingRows == null) {
+				settingRows = new ArrayList();
+				settings.put(inputPreset.groupName, settingRows);
+			}
+			settingRows.add(inputPreset);
+		}
+		return settings;
+	}
+	
 	save() {
 		List keyList = Arrays.asList(TOP.keys);
 		String text = "";
-		Variable[] vars = ts.namespace.getDeclaredVariables();
+		Variable[] vars = TOP.namespace.getDeclaredVariables();
 		Arrays.sort(vars, new java.util.Comparator() {
 			public int compare(Object a, Object b) {
 				Variable va = (Variable) a;
@@ -36,10 +66,13 @@ Config(String filePath) {
 				return va.getName().compareTo(vb.getName());
 			}
 		});
-		for (Variable var: vars) {
-			String name = var.getName();
+		for (Variable
+			var: vars) {
+			String name =
+				var.getName();
 			if (!keyList.contains(name)) continue;
-			text += var.getType() + " " + name + " = " + TOP.namespace.getVariable(var.getName()) + ";\n";
+			text +=
+				var.getType() + " " + name + " = " + TOP.namespace.getVariable(var.getName()) + ";\n";
 		}
 
 		File file = new File(filePath);
@@ -54,7 +87,7 @@ Config(String filePath) {
 			target.namespace.setVariable(key, TOP.namespace.getVariable(key), false);
 		}
 	}
-	
+
 	loadFrom(This source) {
 		for (String key: keys) {
 			TOP.namespace.setVariable(key, source.namespace.getVariable(key), false);
@@ -69,6 +102,6 @@ Config(String filePath) {
 		source(filePath);
 		loadFrom(this);
 	}
-	
+
 	return this;
 }

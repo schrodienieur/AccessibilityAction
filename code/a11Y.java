@@ -8,9 +8,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
 
 a11Y() {
-	Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
-    propertiesField.setAccessible(true);
-	// 1. Retrieve the previous instance from Tasker's memory
+	// Retrieve the previous instance from Tasker's memory
 	This old = tasker.getJavaVariable("a11Y");
 	if (old != null) {
 		try {
@@ -20,10 +18,23 @@ a11Y() {
 				}
 			}
 			old.removeAssist();
+			if (old.structureOverlay != void) old.structureOverlay.remove();
 		} catch (Exception e) {}
 
 	}
 
+	// Constants
+	final int TYPE_STRUCTURE_OVERLAY = 1;
+	final int TYPE_SETTINGS = 1 << 0;
+	final int TYPE_NODE_SEARCH = 1 << 1;
+	final int TYPE_FILTER_SHEET = 1 << 2;
+	final int TYPE_SCRIPT_EDITOR = 1 << 3;
+	final int TYPE_ACTION_PICKER = 1 << 4;
+	final int TYPE_INFO_SHEET = 1 << 5;
+	final int TYPE_ASSIST_BAR = 1 << 6;
+	final This TOP = this;
+
+	// About to remove, superseded by config
 	boolean debugSteps = false;
 	boolean debugMe = false;
 	boolean debugInfo = true;
@@ -31,10 +42,6 @@ a11Y() {
 	long debugDelay = 1000;
 	long stepDelay = 50;
 	long waitNodesTimeout = 10000;
-	List assistOverlays = new ArrayList();
-	String ENV_PATH;
-	This assistButton;
-	This updateManager;
 	boolean useOffset = true;
 	boolean useA11yOffset = true;
 	boolean waitNodes = true;
@@ -44,14 +51,22 @@ a11Y() {
 	boolean updatePreRelease = false;
 	long lastActionPickerReminder = 0;
 	long actionPickerReminderDelay = 120000;
-	This TOP;
-	This materialColorFallback;
+	boolean actionPickerAddToEditor = true;
+
+	// Variables
+	List assistOverlays = new ArrayList();
 	This ENV;
+	String ENV_PATH;
+	String LOG_FILE;
+	
+	This assistBar;
+	This updateManager;
+	This materialColorFallback;
 	This displayInfos;
 	String scriptEditor = "";
 	This inspector;
-	This NodeFilter;
-	String LOG_FILE;
+	This NodeInfo;
+	This config;
 
 	ThreadFactory customThreadFactory = new ThreadFactory() {
 		private AtomicInteger count = new AtomicInteger(0);
@@ -102,8 +117,9 @@ a11Y() {
 		THIS.namespace.setVariable("quickAddMode", quickAddMode, false);
 		THIS.namespace.setVariable("stepDelay", stepDelay, false);
 		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
+		THIS.namespace.setVariable("actionPickerAddToEditor", actionPickerAddToEditor, false);
 		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
-		if (NodeFilter != null) THIS.namespace.setVariable("NodeFilter", NodeFilter, false);
+		if (NodeInfo != null) THIS.namespace.setVariable("NodeInfo", NodeInfo, false);
 		if (ENV_PATH == null) {
 			String superImport = tasker.getVariable("ImportJava");
 			try {
@@ -139,15 +155,7 @@ a11Y() {
 	}
 
 	reset() {
-		debugSteps = false;
-		debugMe = false;
-		debugInfo = true;
-		findDelay = 100;
-		debugDelay = 1000;
-		useOffset = true;
-		useA11yOffset = true;
-		waitNodes = true;
-		useA11yStructure = false;
+		config.setTo(TOP);
 	}
 
 
@@ -195,11 +203,11 @@ a11Y() {
 	}
 
 	showAssist() {
-		if (!assistButton.isShown) assistButton.show();
+		if (!assistBar.isShown) assistBar.show();
 	}
 
 	removeAssist() {
-		if (assistButton.isShown) assistButton.remove();
+		if (assistBar.isShown) assistBar.remove();
 	}
 
 	update() {
@@ -296,6 +304,7 @@ a11Y.setEnv(Env);
 
 This config = Config(ENV_PATH + "/config.java");
 config.setTo(a11Y);
+a11Y.namespace.setVariable("config", config, false);
 a11Y.set();
 
 This inspector = MethodInspector(this);
@@ -306,13 +315,13 @@ tasker.setJavaVariable("a11Y", a11Y);
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
-This NodeFilter = NodeFilter();
-a11Y.namespace.setVariable("NodeFilter", NodeFilter, false);
+This NodeInfo = NodeInfo();
+a11Y.namespace.setVariable("NodeInfo", NodeInfo, false);
 // Limit following methods and scripted objects to Tasker app
 if (!Env.HAS_MATERIAL_LIB) return;
 
-This assistButton = AssistButton(0.8, 0.8);
-a11Y.namespace.setVariable("assistButton", assistButton, false);
+This assistBar = AssistBar(0.8, 0.8);
+a11Y.namespace.setVariable("assistBar", assistBar, false);
 
 This updateManager = UpdateManager();
 updateManager.namespace.setVariable("directoryPath", ENV_PATH, false);

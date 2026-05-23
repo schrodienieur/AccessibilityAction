@@ -275,14 +275,23 @@ ActionPicker(This nodeData) {
 		overDialog.show();
 	}
 	if (overload != void) {
-		if (a11Y.scriptEditor.length() > 0) a11Y.scriptEditor += "\n\n";
-		a11Y.scriptEditor += overload.get("usage");
-		String text = "Open to editor to test.";
-		List notReplaced = overload.get("notReplacedParams");
-		if (!notReplaced.isEmpty()) text += "\n" + notReplaced.toString() + " are not set yet.";
-		if (a11Y.scriptEditor.length() == 0 || System.currentTimeMillis() - a11Y.lastActionPickerReminder > a11Y.actionPickerReminderDelay || a11Y.lastActionPickerReminder == void || a11Y.lastActionPickerReminder == 0) {
-			tasker.showToast(text, "Appended to editor.");
-			a11Y.lastActionPickerReminder = System.currentTimeMillis();
+		switch (actionPickerAddToEditor) {
+			case true:
+				if (a11Y.scriptEditor.length() > 0) a11Y.scriptEditor += "\n\n";
+				a11Y.scriptEditor += overload.get("usage");
+				String text = "Open to editor to test.";
+				List notReplaced = overload.get("notReplacedParams");
+				if (!notReplaced.isEmpty()) text += "\n" + notReplaced.toString() + " are not set yet.";
+				if (a11Y.scriptEditor.length() == 0 || System.currentTimeMillis() - a11Y.lastActionPickerReminder > a11Y.actionPickerReminderDelay || a11Y.lastActionPickerReminder == void || a11Y.lastActionPickerReminder == 0) {
+					tasker.showToast(text, "Appended to editor.");
+					a11Y.lastActionPickerReminder = System.currentTimeMillis();
+				}
+
+				break;
+			case false:
+				setClipboard(overload.get("usage"));
+				showToast("Copy to clipboard");
+				break;
 		}
 		return overload;
 	} else {

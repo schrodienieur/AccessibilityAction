@@ -38,25 +38,28 @@ public int dp(int value) {
 }
 
 /*───────────────────────────────────────────────────────────────
-	AssistButton(int initialX, int initialY)
+	AssistBar(int initialX, int initialY)
   ───────────────────────────────────────────────────────────────*/
-public This AssistButton(int initialX, int initialY) {
+public This AssistBar(int initialX, int initialY) {
+	final This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = a11Y.TYPE_ASSIST_BAR;
 	final AccessibilityService accessibilityService = getService();
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
 
-
 	boolean useA11y = true;
-	This activeStructure;
+	This structureOverlay;
+	This filterSheet;
 	This scriptEditor = ScriptEditor();
 	This assistSetting = AssistSetting();
 	boolean isRemoved;
-	boolean useA11yStructure;
 	boolean isShown;
+	boolean hasShownOnce;	
+	boolean useA11yStructure;
 
 	isRemoved() {
-		return activeStructure != null && activeStructure.isRemoved();
+		return structureOverlay != null && structureOverlay.isRemoved();
 	}
 
 	setButtonColorState(MaterialButton btn, boolean isActive) {
@@ -98,6 +101,16 @@ public This AssistButton(int initialX, int initialY) {
 	container.setLayoutParams(containerParams);
 	assistButton.addView(container);
 
+	container.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
+		public void onChildViewAdded(View parent, View child) {
+
+		}
+
+		public void onChildViewRemoved(View parent, View child) {
+			// This code runs when a view is removed
+		}
+	});
+
 	List buttons = new ArrayList();
 	Handler mainHandler = new Handler(Looper.getMainLooper());
 	GestureDetector detector;
@@ -119,9 +132,13 @@ public This AssistButton(int initialX, int initialY) {
 	  UTILITY METHODS
 	────────────────────────────*/
 
+	show(int type) {
+
+	}
+
 	removeStructure() {
-		if (activeStructure != null && !activeStructure.isRemoved()) {
-			activeStructure.remove();
+		if (structureOverlay != null && !structureOverlay.isRemoved()) {
+			structureOverlay.remove();
 		}
 	}
 
@@ -194,7 +211,7 @@ public This AssistButton(int initialX, int initialY) {
 	scriptBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
 			assistSetting.remove();
-			removeStructure();
+			structureOverlay.remove();
 			scriptEditor.toggle();
 		}
 	});
@@ -206,8 +223,33 @@ public This AssistButton(int initialX, int initialY) {
 	settingBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
 			scriptEditor.remove();
-			removeStructure();
+			structureOverlay.remove();
 			assistSetting.toggle();
+		}
+	});
+
+	/*────────────────────────────
+	  Search Button
+	────────────────────────────*/
+	MaterialButton searchBtn = IconButton(tm.attr("mw_action_search"), false);
+	// Remove at first;
+	container.removeView(searchBtn);
+	searchBtn.setOnClickListener(new View.OnClickListener() {
+		onClick(View view) {
+			showToast("Search is not yet implemented");
+		}
+	});
+
+	/*────────────────────────────
+	  Filter Button
+	──────────────────────────── */
+	MaterialButton filterBtn = IconButton(tm.attr("mw_content_filter_list"), false);
+	// Remove at first;
+	container.removeView(filterBtn);
+	filterBtn.setOnClickListener(new View.OnClickListener() {
+		onClick(View view) {
+			if (filterSheet == null) filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
+			filterSheet.toggle();
 		}
 	});
 
@@ -217,8 +259,6 @@ public This AssistButton(int initialX, int initialY) {
 	MaterialButton closeBtn = IconButton(tm.attr("mw_navigation_close"), false);
 	closeBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			scriptEditor.remove();
-			removeStructure();
 			remove();
 		}
 	});
@@ -264,8 +304,10 @@ public This AssistButton(int initialX, int initialY) {
 	displayStructure() {
 		try {
 			if (a11Y.useA11yStructure) remove();
-			activeStructure = StructureOverlay(a11Y.useA11yStructure);
-			activeStructure.show();
+			structureOverlay = StructureOverlay(a11Y.useA11yStructure);
+			This viewListener = createStructureOverlayListener();
+			structureOverlay.namespace.setVariable("viewListener", viewListener, false);
+			structureOverlay.show();
 			if (a11Y.useA11yStructure) show();
 		} catch (e) {
 			tasker.showToast(e.getMessage());
@@ -276,8 +318,10 @@ public This AssistButton(int initialX, int initialY) {
 		try {
 			remove();
 			scriptEditor.remove();
-			activeStructure = StructureOverlay(true);
-			activeStructure.show();
+			structureOverlay = StructureOverlay(true);
+			This viewListener = createStructureOverlayListener();
+			structureOverlay.namespace.setVariable("viewListener", viewListener, false);
+			structureOverlay.show();
 			show();
 		} catch (e) {
 			tasker.showToast(e.getMessage());
@@ -286,8 +330,8 @@ public This AssistButton(int initialX, int initialY) {
 
 	toggleStructure() {
 		try {
-			if (activeStructure != null && !activeStructure.isRemoved()) {
-				activeStructure.remove();
+			if (structureOverlay != null && !structureOverlay.isRemoved()) {
+				structureOverlay.remove();
 			} else {
 				scriptEditor.remove();
 				displayStructure();
@@ -295,6 +339,38 @@ public This AssistButton(int initialX, int initialY) {
 		} catch (e) {
 			tasker.showToast(e.getMessage());
 		}
+	}
+
+	public void replaceView(View currentView, View newView) {
+		ViewGroup parent = (ViewGroup) currentView.getParent();
+		if (parent == null) return;
+		newView.setLayoutParams(currentView.getLayoutParams());
+		final int index = parent.indexOfChild(currentView);
+		parent.removeView(currentView);
+		parent.addView(newView, index);
+		refreshSize();
+	}
+
+	switchLayout(boolean isStructureShown) {
+		if (isStructureShown) {
+			replaceView(scriptBtn, searchBtn);
+			replaceView(settingBtn, filterBtn);
+		} else {
+			replaceView(searchBtn, scriptBtn);
+			replaceView(filterBtn, settingBtn);
+		}
+	}
+
+	createStructureOverlayListener() {
+		onViewAttachedToWindow() {
+			TOP.switchLayout(true);
+		}
+		onViewDetachedFromWindow() {
+			TOP.switchLayout(false);
+			filterSheet.remove();
+			filterSheet = null;
+		}
+		return this;
 	}
 
 	/*────────────────────────────
@@ -309,7 +385,7 @@ public This AssistButton(int initialX, int initialY) {
 			toggleStructure();
 		}
 		onDoubleTap() {
-			if (activeStructure != null) activeStructure.unhideBoxes();
+			if (structureOverlay != null) structureOverlay.unhideBoxes();
 			return true;
 		}
 		onShowPress() {}
@@ -358,26 +434,29 @@ public This AssistButton(int initialX, int initialY) {
 
 	assistButton.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 		onViewAttachedToWindow(View v) {
+			hasShownOnce = true;
 			isShown = true;
+			if (isRemoved) isRemoved = false;
 			refreshSize();
 		}
 		onViewDetachedFromWindow(View v) {
 			isShown = false;
+			isRemoved = true;
 		}
 	});
 
 	return this;
 }
 
-public This AssistButton(float x, float y) {
+public This AssistBar(float x, float y) {
 	DisplayMetrics metrics = context.getResources().getDisplayMetrics();
 	int width = metrics.widthPixels;
 	int height = metrics.heightPixels;
 	int finalX = (x >=0f && x <=1f) ? (int)(x * width) : (int) x;
 	int finalY = (y >=0f && y <=1f) ? (int)(y * height) : (int) y;
-	return AssistButton(finalX, finalY);
+	return AssistBar(finalX, finalY);
 }
 
-public This AssistButton(double x, double y) {
-	return AssistButton((float) x, (float) y);
+public This AssistBar(double x, double y) {
+	return AssistBar((float) x, (float) y);
 }

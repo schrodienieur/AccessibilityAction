@@ -1,3 +1,4 @@
+boolean actionPickerAddToEditor = true;
 boolean debugInfo = true;
 boolean debugMe = false;
 boolean debugSteps = false;
@@ -11,6 +12,5 @@ boolean waitNodes = true;
 long actionPickerReminderDelay = 120000;
 long debugDelay = 1000;
 long findDelay = 100;
-long lastActionPickerReminder = 0;
 long stepDelay = 50;
 long waitNodesTimeout = 10000;

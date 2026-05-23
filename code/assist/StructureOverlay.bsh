@@ -58,8 +58,11 @@ import android.view.ViewParent;
 StructureOverlay(AccessibilityNodeInfo root, boolean useA11y) {
 	This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
+
 	boolean isRemoved;
 	boolean isShown;
+	boolean hasShownOnce;
+
 	boolean nodeBoxTouchable = true;
 	final ArrayList nodeList = new ArrayList();
 	boolean smallestFirst = true;
@@ -111,23 +114,33 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y) {
 
 	remove() {
 		if (activeBox != null) activeBox.reset();
-		windowManager.removeView(rootLayout);
+		if (!isRemoved) windowManager.removeView(rootLayout);
 	}
 
 	rootLayout.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 		public void onViewAttachedToWindow(View view) {
-			isRemoved = false;
+			hasShownOnce = true;
 			isShown = true;
-			if (tasker.getJavaVariable("structureOverlay") != null) structureOverlay.remove();
-			tasker.setJavaVariable("structureOverlay", TOP);
+			if (isRemoved) isRemoved = false;
+			if (a11Y.structureOverlay == void) a11Y.namespace.setVariable("structureOverlay", TOP, false);
 			a11Y.addOverlay(this);
+			if (TOP.viewListener != void) {
+				try {
+					TOP.viewListener.onViewAttachedToWindow();
+				} catch (e) {}
+			}
 		}
 
 		public void onViewDetachedFromWindow(View view) {
 			isRemoved = true;
 			isShown = false;
-			tasker.setJavaVariable("structureOverlay", null);
 			a11Y.removeOverlay(this);
+			a11Y.namespace.unsetVariable("structureOverlay");
+			if (TOP.viewListener != void) {
+				try {
+					TOP.viewListener.onViewDetachedFromWindow();
+				} catch (e) {}
+			}
 		}
 	});
 
@@ -364,6 +377,13 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y) {
 	}
 
 	show() {
+
+		// Reset everything
+		if (hasShownOnce) {
+			root = (AccessibilityNodeInfo) getRoot();
+			nodeList.clear();
+		}
+
 		long start = System.currentTimeMillis();
 		if (nodeList.isEmpty()) createNodeList();
 		windowManager.addView(rootLayout, rootParams);

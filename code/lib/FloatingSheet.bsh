@@ -1,0 +1,302 @@
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
+import bsh.This;
+import java.util.List;
+
+/*───────────────────────────────────────────────────────────────
+addSpacer(Context ctx, ViewGroup container)
+───────────────────────────────────────────────────────────────*/
+public void addSpacer(Context ctx, ViewGroup container) {
+	int spacerHeight = dp(8);
+	View spacer = new View(ctx);
+	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, spacerHeight);
+	spacer.setLayoutParams(params);
+	container.addView(spacer);
+}
+
+/*───────────────────────────────────────────────────────────────
+  FloatingSheet()
+  **Accessibility Overlay FloatingSheet with Draggable Handle**
+
+  Creates a draggable bottom sheet displayed as an accessibility overlay.
+  Supports custom views and vertical dragging via visual pill handle.
+
+  ─────────────────────────────────────────────────────────────── */
+
+FloatingSheet(This config) {
+	boolean viewFound = config.namespace.getMethod("getView", new Class[] { Object.class }) != null;
+	if (!viewFound) viewFound = config.namespace.getMethod("getView", new Class[] { Context.class }) != null;
+
+
+	boolean viewListFound = config.namespace.getMethod("getViewList", new Class[] { Object.class }) != null;
+	if (!viewListFound) viewListFound = config.namespace.getMethod("getViewList", new Class[] { Context.class }) != null;
+
+	if (!viewFound && !viewListFound) {
+		throw new Exception("No view found");
+	}
+
+
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
+	Handler mainHandler = new Handler(Looper.getMainLooper());
+	Context ctx = getContext(true);
+	Object a11yService = getService();
+	WindowManager windowManager = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
+	boolean isRemoved = true;
+	boolean hasShown = false;
+	FrameLayout baseRoot = null;
+	WindowManager.LayoutParams wmParams = null;
+	int maxHeightPx = 0;
+
+	/* Drag constants */
+	final int DRAG_HANDLE_HEIGHT = dp(30);
+	final int PILL_WIDTH = dp(60);
+	final int PILL_HEIGHT = dp(5);
+	final int PILL_COLOR = 0xFFB0B0B0;
+
+	/* Drag tracking */
+	float initialTouchY;
+	int initialWinY;
+
+	remove() {
+		if (baseRoot != null && windowManager != null && !isRemoved) {
+			try {
+				windowManager.removeView(baseRoot);
+			} catch (Throwable e) {}
+			isRemoved = true;
+			hasShown = false;
+		}
+	}
+
+	layout() {
+		float density = ctx.getResources().getDisplayMetrics().density;
+
+		if (ENV == void || ENV == null) ENV = Environment();
+		This tm = ThemeManager(ctx);
+		tm.setThemeDark();
+		baseRoot = new FrameLayout(ctx);
+		baseRoot.setVisibility(View.INVISIBLE);
+
+		/* Applying requested shape to baseRoot */
+		GradientDrawable shape = new GradientDrawable();
+		shape.setCornerRadius(28 * density);
+		shape.setColor((int) tm.color("colorSurfaceContainer"));
+		baseRoot.setBackground(shape);
+		baseRoot.setClipToOutline(true);
+
+		FloatingToolbarLayout root = new FloatingToolbarLayout(ctx);
+		root.setBackgroundColor(Color.TRANSPARENT);
+
+		final LinearLayout main = new LinearLayout(ctx);
+		main.setOrientation(LinearLayout.VERTICAL);
+
+		FrameLayout.LayoutParams mainParams = new FrameLayout.LayoutParams(
+			ViewGroup.LayoutParams.MATCH_PARENT,
+			ViewGroup.LayoutParams.WRAP_CONTENT
+		);
+		mainParams.gravity = Gravity.BOTTOM;
+		main.setLayoutParams(mainParams);
+
+		/* ─────────────────────────────────────────────────────────
+		   DRAG HANDLE WITH VISUAL PILL
+		   ───────────────────────────────────────────────────────── */
+		final RelativeLayout dragHandle = new RelativeLayout(ctx);
+		dragHandle.setLayoutParams(new LinearLayout.LayoutParams(
+			ViewGroup.LayoutParams.MATCH_PARENT,
+			DRAG_HANDLE_HEIGHT
+		));
+
+		View visualPill = new View(ctx);
+		RelativeLayout.LayoutParams pillParams = new RelativeLayout.LayoutParams(PILL_WIDTH, PILL_HEIGHT);
+		pillParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+		visualPill.setLayoutParams(pillParams);
+
+		GradientDrawable pillBg = new GradientDrawable();
+		pillBg.setColor(PILL_COLOR);
+		pillBg.setCornerRadius(PILL_HEIGHT / 2);
+		visualPill.setBackground(pillBg);
+		dragHandle.addView(visualPill);
+		main.addView(dragHandle);
+
+		MaterialToolbar toolbar = new MaterialToolbar(ctx);
+		if (config.title != void) {
+			toolbar.setTitle(config.title);
+			toolbar.setTitleCentered(true);
+			main.addView(toolbar);
+		}
+
+		float maxHeight = config.maxHeight == void ? 0.75f: config.maxHeight;
+		if (config.maxHeight != void) {
+			try {
+				Object v = config.maxHeight;
+				if (v instanceof Number) {
+					maxHeight = ((Number) v).floatValue();
+				} else if (v instanceof String) {
+					maxHeight = Float.parseFloat((String) v);
+				}
+			} catch (Throwable e) {}
+		}
+		if (maxHeight <=0f) maxHeight = 0.1f;
+		if (maxHeight > 0.95f) maxHeight = 0.95f;
+
+		int screenHeight = ctx.getResources().getDisplayMetrics().heightPixels;
+		maxHeightPx = (int)(screenHeight * maxHeight);
+
+		ScrollView scroller = new ScrollView(ctx);
+		scroller.setVerticalScrollBarEnabled(false);
+
+		LinearLayout content = new LinearLayout(ctx);
+		content.setOrientation(LinearLayout.VERTICAL);
+		scroller.addView(content);
+		main.addView(scroller);
+
+
+		if (viewFound) {
+			View view = config.getView(ctx);
+			content.addView(view);
+		} else if (viewListFound) {
+			List views = config.getViewList(ctx);
+			for (int i = 0; i < views.size(); i++) {
+				View view = (View) views.get(i);
+				if (i > 0) {
+					addSpacer(ctx, content);
+				}
+				content.addView(view);
+			}
+		}
+
+		root.addView(main);
+		baseRoot.addView(root);
+
+		/* ─────────────────────────────────────────────────────────
+		   DRAG HANDLING & VERTICAL MOVEMENT
+		   ───────────────────────────────────────────────────────── */
+		dragHandle.setOnTouchListener(new View.OnTouchListener() {
+			onTouch(View v, MotionEvent event) {
+				switch (event.getAction()) {
+					case MotionEvent.ACTION_DOWN: 
+						initialTouchY = event.getRawY();
+						initialWinY = wmParams != null ? wmParams.y : 0;
+						return true;
+					case MotionEvent.ACTION_MOVE: 
+						float deltaY = event.getRawY() - initialTouchY;
+						int newY = initialWinY + (int) deltaY;
+
+						/* Clamp within screen bounds */
+						int screenHeight = ctx.getResources().getDisplayMetrics().heightPixels;
+						if (newY < 0) newY = 0;
+						if (newY + baseRoot.getHeight() > screenHeight) {
+							newY = screenHeight - baseRoot.getHeight();
+						}
+
+						if (wmParams != null) {
+							wmParams.y = newY;
+							try {
+								windowManager.updateViewLayout(baseRoot, wmParams);
+							} catch (Throwable e) {}
+						}
+						return true;
+				}
+				return false;
+			}
+		});
+
+		/* ─────────────────────────────────────────────────────────
+		   CLICK OUTSIDE TO DESTROY
+		   ───────────────────────────────────────────────────────── */
+		baseRoot.setOnTouchListener(new View.OnTouchListener() {
+			onTouch(View v, MotionEvent event) {
+				if (event.getAction() != 0) return false; /* Only handle ACTION_DOWN */
+
+				/* Get root (sheet) bounds */
+				int[] rootLoc = new int[2];
+				root.getLocationOnScreen(rootLoc);
+				int rootLeft = rootLoc[0];
+				int rootTop = rootLoc[1];
+				int rootRight = rootLeft + root.getWidth();
+				int rootBottom = rootTop + root.getHeight();
+
+				float touchX = event.getRawX();
+				float touchY = event.getRawY();
+
+				/* Close only if click is outside the sheet */
+				if (touchX < rootLeft || touchX > rootRight || touchY < rootTop || touchY > rootBottom) {
+					remove();
+					return true;
+				}
+				return false;
+			}
+		});
+	}
+
+	show() {
+		if (!hasShown) {
+			layout();
+			isRemoved = false;
+			hasShown = true;
+
+			wmParams = new WindowManager.LayoutParams();
+			wmParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+			wmParams.format = PixelFormat.TRANSLUCENT;
+			wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+			wmParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+			wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+			wmParams.gravity = Gravity.TOP;
+			wmParams.y = 0;
+			mainHandler.post(new Runnable() {
+				run() {
+					try {
+						windowManager.addView(baseRoot, wmParams);
+
+						/* After layout, move to bottom */
+						mainHandler.post(new Runnable() {
+							run() {
+								int screenHeight = ctx.getResources().getDisplayMetrics().heightPixels;
+								int sheetHeight = baseRoot.getHeight();
+								if (sheetHeight > maxHeightPx) {
+									sheetHeight = maxHeightPx;
+									wmParams.height = maxHeightPx;
+								}
+								wmParams.y = screenHeight - sheetHeight;
+								windowManager.updateViewLayout(baseRoot, wmParams);
+								baseRoot.setVisibility(View.VISIBLE);
+							}
+						});
+					} catch (Throwable e) {
+						tasker.showToast("Error adding overlay: " + e.getMessage());
+					}
+				}
+			});
+
+		}
+	}
+
+	toggle() {
+		if (!hasShown) {
+			show();
+		} else {
+			remove();
+		}
+	}
+
+	return this;
+
+
+
+}

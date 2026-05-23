@@ -4,8 +4,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
 import android.graphics.Color;
 
-This NodeFilter(This structure) {
-	if (!(structure.namespace.name.equals("StructureOverlay") || structure.namespace.name.equals("NodeFilter") )) {
+This NodeInfo(This structure) {
+	if (!(structure.namespace.name.equals("StructureOverlay") || structure.namespace.name.equals("NodeInfo") )) {
 		throw new JavaCodeException("Can't be called from " + structure.namespace.name + ". " + "Please call from StructureOverlay");
 	}
 
@@ -16,6 +16,8 @@ This NodeFilter(This structure) {
         themeManager = structure.themeManager;
         strokeColor = themeManager.color("colorPrimary");
     }
+
+    This highlight;
     
     // Properties from https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/accessibility/AccessibilityNodeInfo.java
 	final int CHECKABLE = 1 /* << 0 */;
@@ -47,51 +49,60 @@ This NodeFilter(This structure) {
     final int SUPPORTS_GRANULAR_SCROLLING = 1 << 26;
     final int FIELD_REQUIRED = 1 << 27;
 
-
+    // Custom properties
     final int HAS_VIEW_ID_RESOURCE_NAME = 1 << 32;
     final int HAS_TEXT = 1 << 33;
 
     Object[][] constantsObject = new Object[][] {
-        {"Checkable", CHECKABLE},
-        {"Checked", CHECKED},
-        {"Focusable", FOCUSABLE},
-        {"Focused", FOCUSED},
-        {"Selected", SELECTED},
-        {"Clickable", CLICKABLE},
-        {"LongClickable", LONG_CLICKABLE},
-        {"Enabled", ENABLED},
-        {"Password", PASSWORD},
-        {"Scrollable", SCROLLABLE},
-        {"AccessibilityFocused", ACCESSIBILITY_FOCUSED},
-        {"VisibleToUser", VISIBLE_TO_USER},
-        {"Editable", EDITABLE},
-        {"OpensPopup", OPENS_POPUP},
-        {"Dismissable", DISMISSABLE},
-        {"MultiLine", MULTI_LINE},
-        {"ContentInvalid", CONTENT_INVALID},
-        {"ContextClickable", CONTEXT_CLICKABLE},
-        {"Importance", IMPORTANCE},
-        {"ScreenReaderFocusable", SCREEN_READER_FOCUSABLE},
-        {"ShowingHint", IS_SHOWING_HINT},
-        {"Heading", IS_HEADING},
-        {"TextEntryKey", IS_TEXT_ENTRY_KEY},
-        {"TextSelectable", IS_TEXT_SELECTABLE},
-        {"RequestInitialAccessibilityFocus", REQUEST_INITIAL_ACCESSIBILITY_FOCUS},
-        {"DataSensitive", ACCESSIBILITY_DATA_SENSITIVE},
-        {"SupportsGranularScrolling", SUPPORTS_GRANULAR_SCROLLING},
-        {"FieldRequired", FIELD_REQUIRED},
-        {"Has View Id", HAS_VIEW_ID_RESOURCE_NAME},
-        {"Has Text", HAS_TEXT}
+        {"Checkable", CHECKABLE, "Action"},
+        {"Checked", CHECKED,"State"},
+        {"Focusable", FOCUSABLE, "Action"},
+        {"Focused", FOCUSED,"State"},
+        {"Selected", SELECTED,"State"},
+        {"Clickable", CLICKABLE, "Action"},
+        {"LongClickable", LONG_CLICKABLE, "Action"},
+        {"Enabled", ENABLED,"State"},
+        {"Password", PASSWORD,"Other"},
+        {"Scrollable", SCROLLABLE, "Action"},
+        {"AccessibilityFocused", ACCESSIBILITY_FOCUSED,"State"},
+        {"VisibleToUser", VISIBLE_TO_USER,"State"},
+        {"Editable", EDITABLE, "Action"},
+        {"OpensPopup", OPENS_POPUP, "Other"},
+        {"Dismissable", DISMISSABLE, "Action"},
+        {"MultiLine", MULTI_LINE,"State"},
+        {"ContentInvalid", CONTENT_INVALID, "State"},
+        {"ContextClickable", CONTEXT_CLICKABLE, "Action"},
+        {"Importance", IMPORTANCE,"Other"},
+        {"ScreenReaderFocusable", SCREEN_READER_FOCUSABLE, "Action"},
+        {"ShowingHint", IS_SHOWING_HINT,"State"},
+        {"Heading", IS_HEADING,"Other"},
+        {"TextEntryKey", IS_TEXT_ENTRY_KEY,"Other"},
+        {"TextSelectable", IS_TEXT_SELECTABLE, "Action"},
+        {"RequestInitialAccessibilityFocus", REQUEST_INITIAL_ACCESSIBILITY_FOCUS,"Other"},
+        {"DataSensitive", ACCESSIBILITY_DATA_SENSITIVE,"Other"},
+        {"SupportsGranularScrolling", SUPPORTS_GRANULAR_SCROLLING,"Other"},
+        {"FieldRequired", FIELD_REQUIRED,"Other"},
+        {"Has View Id", HAS_VIEW_ID_RESOURCE_NAME, "Node"},
+        {"Has Text", HAS_TEXT, "Node"}
     };
 
     Map map = new HashMap();
+    Map group = new HashMap();
     for (Object[] constant: constantsObject) {
         String name = constant[0];
-        map.put(name, constant[1]);
+        int value = constant[1];
+        String groupName = constant[2];
+        map.put(name, value);
+        List constants = (List) group.get(groupName);
+        if (constants == null) {
+            constants = new ArrayList();
+            group.put(groupName, constants);
+        }
+        constants.add(name);
     }
 
     getConstantNames() {
-        List names = Arrays.asList(map.keySet());
+        List names = Arrays.asList(map.keySet().toArray());
         return names;
     }
 
@@ -99,6 +110,16 @@ This NodeFilter(This structure) {
         Object value = map.get(name);
         if (value != null) return value;
         return 0;
+    }
+
+    getGroupList(String groupName) {
+        List names = (List) group.get(groupName);
+        return names;
+    }
+
+    getGroupNames() {
+        List names = Arrays.asList(group.keySet().toArray());
+        return names;
     }
 
     private boolean getBooleanProperty(int property) {
@@ -110,7 +131,7 @@ This NodeFilter(This structure) {
         List nodeBoxes = new ArrayList();
         for (Object key: keySet) {
             This nodeBox = (This) structure.map.get(key);
-            boolean hasProperty = nodeBox.getProperty(properties);
+            boolean hasProperty = nodeBox.hasAllProperties(properties);
             if (hasProperty) {
                 nodeBoxes.add(nodeBox);
             }
@@ -119,14 +140,20 @@ This NodeFilter(This structure) {
     }
 
     highlight(int properties) {
+        if (highlight != null) highlight.reset();
+        if (properties == 0) {
+            structure.unhideBoxes();
+            return this;
+        }
+        structure.hideBoxes();
         List nodeBoxes = filter(properties);
-        This highlight = structure.highlightNodeBoxes(nodeBoxes, strokeColor, fillColor);
+        highlight = structure.highlightNodeBoxes(nodeBoxes, strokeColor, fillColor);
         return highlight;
     }
 
 	return this;
 }
 
-NodeFilter() {
-    return NodeFilter(this);
+NodeInfo() {
+    return NodeInfo(this);
 }

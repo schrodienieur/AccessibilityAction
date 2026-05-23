@@ -60,19 +60,23 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	int properties = propertiesField.getInt(node);
 
 	// Has viewIdResourceName
-	if (NodeFilter != void) {
+	if (NodeInfo != void) {
 		if (node.viewIdResourceName != null) {
-			properties |= NodeFilter.HAS_VIEW_ID_RESOURCE_NAME;
+			properties |= NodeInfo.HAS_VIEW_ID_RESOURCE_NAME;
 		}
 
 		// Has content description
 		if (node.contentDescription != null || node.text != null) {
-			properties |= NodeFilter.HAS_TEXT;
+			properties |= NodeInfo.HAS_TEXT;
 		}
 	}
 	
 	private boolean getProperty(int property) {
         return (properties & property) != 0;
+    }
+
+    private boolean hasAllProperties(int combinedProperties) {
+        return (properties & combinedProperties) == combinedProperties;
     }
 
 	int getStatusBarHeight() {
@@ -94,6 +98,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 			}
 		}
 	}
+
 	WindowManager WINDOW_MANAGER;
 	Context displayContext;
 	boolean isRemoved;

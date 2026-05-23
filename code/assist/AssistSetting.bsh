@@ -17,6 +17,7 @@ import android.graphics.drawable.GradientDrawable;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
@@ -28,25 +29,36 @@ import bsh.This;
 /*───────────────────────────────────────────────────────────────
   addSpacer(Context ctx, ViewGroup container)
   ───────────────────────────────────────────────────────────────*/
-public void addSpacer(Context ctx, ViewGroup container) {
+public addSpacer(Context ctx, ViewGroup container) {
 	int spacerHeight = dp(8);
 	View spacer = new View(ctx);
 	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, spacerHeight);
 	spacer.setLayoutParams(params);
 	container.addView(spacer);
+	return spacer;
 }
 
 /*───────────────────────────────────────────────────────────────
   AssistSetting()
   ───────────────────────────────────────────────────────────────*/
 AssistSetting() {
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = a11Y.TYPE_SETTINGS;
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
 
 	Activity activity;
-	boolean isRemoved = true;
-	boolean hasShown = false;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	boolean isRemoved;
+	boolean isShown;
+	boolean hasShownOnce;
+
+	save() {
+		// Save config to file
+		if (a11Y.config != void) {
+			a11Y.config.loadFrom(a11Y);
+			a11Y.config.save();
+		}
+	}
 
 	remove() {
 		if (activity != null) {
@@ -54,6 +66,7 @@ AssistSetting() {
 			activity = null;
 		}
 		isRemoved = true;
+		save();
 	}
 
 	layout(Activity act) {
@@ -184,18 +197,34 @@ AssistSetting() {
 			return textLayout;
 		}
 
-		createSwitch("Enable debug mode", "debugMe");
-		MaterialSwitch debugStepsSwitch = createSwitch("Control debug steps", "debugSteps");
-		debugStepsSwitch.setEnabled(false);
-		createSwitch("Show debugging information on a toast", "debugInfo");
-		createSwitch("Use offset for normal overlay", "useOffset");
-		createSwitch("Use offset for Accessibility", "useA11yOffset");
-		createSwitch("Waiting nodes will timeout if not found", "waitNodes");
-		createSwitch("Use accessibility for structure overlay", "useA11yStructure");
-		createSwitch("Long press a box enter quick mode instead of opening copy dialog", "quickAddMode");
-		createSwitch("Include all methods for quick mode", "includeAllMethods");
-		createInput("Find hint duration (ms)", "findDelay", 100);
-		createInput("Debug highlight duration (ms)", "debugDelay", 1000);
+		Map settings = a11Y.config.getSettings();
+		Object[] keys = settings.keySet().toArray();
+
+		for (int i = 0; i < keys.length; i++) {
+			String groupName = keys[i];
+			List settingRows = (List) settings.get(groupName);
+			MaterialTextView groupTitle = new MaterialTextView(activity);
+			groupTitle.setText(groupName);
+			groupTitle.setTypeface(null, 1);
+			groupTitle.setTextSize(18);
+			content.addView(groupTitle);
+			addSpacer(activity, content);
+			for (Object settingRow: settingRows) {
+				if (!settingRow.showInSettings) continue;
+				This inputPreset = settingRow;
+				Object value = a11Y.namespace.getVariable(inputPreset.key);
+				if (value instanceof Boolean) {
+					createSwitch(inputPreset.description, inputPreset.key);
+				} else {
+					createInput(inputPreset.description, inputPreset.key, value);
+				}
+			}
+			if (i != keys.length - 1) {
+				addSpacer(activity, content);
+				addSpacer(activity, content);
+			} 
+		}
+
 		TextInputLayout envInput = createInput("Project Path", "ENV_PATH", a11Y.ENV_PATH);
 		envInput.setEnabled(false);
 
@@ -212,13 +241,15 @@ AssistSetting() {
 
 		activity.getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 			onViewAttachedToWindow(View v) {
-				hasShown = true;
-				isRemoved = false;
+				hasShownOnce = true;
+				isShown = true;
+				if (isRemoved) isRemoved = false;
 			}
 			onViewDetachedFromWindow(View v) {
 				isRemoved = true;
-				hasShown = false;
+				isShown = false;
 				activity = null;
+				save();
 			}
 		});
 		baseRoot.addView(root);
@@ -234,15 +265,15 @@ AssistSetting() {
 	};
 
 	show() {
-		if (!hasShown) {
+		if (!isShown) {
 			isRemoved = false;
-			hasShown = true;
+			isShown = true;
 			tasker.doWithActivity(uiLogic);
 		}
 	}
 
 	toggle() {
-		if (!hasShown) {
+		if (!isShown) {
 			show();
 		} else {
 			remove();
