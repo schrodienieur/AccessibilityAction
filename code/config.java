@@ -2,6 +2,7 @@ boolean actionPickerAddToEditor = true;
 boolean debugInfo = true;
 boolean debugMe = false;
 boolean debugSteps = false;
+boolean findFirstForRecursive = false;
 boolean includeAllMethods = false;
 boolean quickAddMode = true;
 boolean updatePreRelease = false;

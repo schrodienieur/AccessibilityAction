@@ -16,10 +16,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.view.Display;
 
 import com.google.android.material.button.MaterialButton;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import android.accessibilityservice.AccessibilityService;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,13 +53,24 @@ public This AssistBar(int initialX, int initialY) {
 	boolean useA11y = true;
 	This structureOverlay;
 	This filterSheet;
+	This displayMenu = DisplayMenu();
 	This scriptEditor = ScriptEditor();
 	This assistSetting = AssistSetting();
 	boolean isRemoved;
 	boolean isShown;
 	boolean hasShownOnce;	
-	boolean useA11yStructure;
-	
+	int selectedDisplayId;
+
+	listener() {
+		onClick(Object display) {
+			TOP.namespace.setVariable("selectedDisplayId", display.getDisplayId(), false);
+			showToast("Selected Display: " + display.getName());
+			TOP.displayStructure();
+		}
+		return this;
+	}
+
+	displayMenu.onClickListener = listener();
 
 	isRemoved() {
 		return structureOverlay != null && structureOverlay.isRemoved();
@@ -84,6 +97,10 @@ public This AssistBar(int initialX, int initialY) {
 	/* THEME */
 	This tm = ThemeManager(assistContext);
 	tm.setThemeDark();
+	
+	DisplayMetrics displayMetrics = getDisplayMetrics();
+	int screenheight = displayMetrics.heightPixels;
+	tasker.showToast("Screen height: " + screenheight);
 
 	/* ROOT & CONTAINER SETUP */
 	FrameLayout assistButton = new FrameLayout(assistContext);
@@ -249,8 +266,14 @@ public This AssistBar(int initialX, int initialY) {
 	container.removeView(filterBtn);
 	filterBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			if (filterSheet == null) filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
+			if (filterSheet == null) {
+				filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
+				int filterY = ( 1 - filterSheet.config.maxHeight) * screenheight;
+				int assistY = assistParams.y + assistParams.height;
+				if (assistY > filterY ) moveHandle(assistParams.x, filterY - assistParams.height);
+			} 
 			filterSheet.toggle();
+
 		}
 	});
 
@@ -304,28 +327,17 @@ public This AssistBar(int initialX, int initialY) {
 
 	displayStructure() {
 		try {
-			if (a11Y.useA11yStructure) remove();
-			structureOverlay = StructureOverlay(a11Y.useA11yStructure);
-			This viewListener = createStructureOverlayListener();
-			structureOverlay.namespace.setVariable("viewListener", viewListener, false);
+			removeStructure();
+			AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
+			boolean useA11yStructure = focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
+			if (useA11yStructure) remove();
+			structureOverlay = StructureOverlay(useA11yStructure, focusedWindow);
+			This stateChangeListener = createStructureOverlayListener();
+			structureOverlay.namespace.setVariable("stateChangeListener", stateChangeListener, false);
 			structureOverlay.show();
-			if (a11Y.useA11yStructure) show();
+			if (useA11yStructure) show();
 		} catch (e) {
-			tasker.showToast(e.getMessage());
-		}
-	}
-
-	displayStructureWithA11y() {
-		try {
-			remove();
-			scriptEditor.remove();
-			structureOverlay = StructureOverlay(true);
-			This viewListener = createStructureOverlayListener();
-			structureOverlay.namespace.setVariable("viewListener", viewListener, false);
-			structureOverlay.show();
-			show();
-		} catch (e) {
-			tasker.showToast(e.getMessage());
+			tasker.showToast(selectedDisplayId + ": " + e.getMessage());
 		}
 	}
 
@@ -342,6 +354,9 @@ public This AssistBar(int initialX, int initialY) {
 		}
 	}
 
+	/*────────────────────────────
+	  Layout Utils
+	────────────────────────────*/
 	public void replaceView(View currentView, View newView) {
 		ViewGroup parent = (ViewGroup) currentView.getParent();
 		if (parent == null) return;
@@ -362,11 +377,12 @@ public This AssistBar(int initialX, int initialY) {
 		}
 	}
 
+	// Listener for Structure Overlay to switch layout
 	createStructureOverlayListener() {
-		onViewAttachedToWindow() {
+		onViewAttachedToWindow(View view) {
 			TOP.switchLayout(true);
 		}
-		onViewDetachedFromWindow() {
+		onViewDetachedFromWindow(View view) {
 			TOP.switchLayout(false);
 			filterSheet.remove();
 			filterSheet = null;
@@ -380,7 +396,13 @@ public This AssistBar(int initialX, int initialY) {
 	handleListener() {
 		onLongPress() {
 			vibrate(assistButton);
-			displayStructureWithA11y();
+			// TODO: Make changes on FloatingSheet so its height can be retrieved
+			// Use placeholder as of now
+			int displayMenuY = ( 1.0 - 0.5) * screenheight;
+			int assistY = assistParams.y + assistParams.height;
+			if (assistY > displayMenuY ) moveHandle(assistParams.x, displayMenuY);
+			tasker.showToast("" + displayMenuY);
+			displayMenu.show();		
 		}
 		onSingleTapConfirmed() {
 			toggleStructure();
@@ -395,7 +417,15 @@ public This AssistBar(int initialX, int initialY) {
 
 	This handleGesture = SimpleGesture(handle, handleListener());
 
-	move(View view, MotionEvent event) {
+	moveHandle(int x, int y) {
+		assistParams.x = x;
+		assistParams.y = y;
+		try {
+			windowManager.updateViewLayout(assistButton, assistParams);
+		} catch (e) {}
+	}
+
+	onMove(View view, MotionEvent event) {
 		switch (event.getAction()) {
 			case 0: // ACTION_DOWN
 				int[] loc = new int[2];
@@ -408,11 +438,9 @@ public This AssistBar(int initialX, int initialY) {
 				initialTouchY = event.getRawY();
 				return false;
 			case 2: // ACTION_MOVE
-				assistParams.x = initialWinX + (int)(event.getRawX() - initialTouchX);
-				assistParams.y = initialWinY + (int)(event.getRawY() - initialTouchY);
-				try {
-					windowManager.updateViewLayout(assistButton, assistParams);
-				} catch (e) {}
+				int x = initialWinX + (int)(event.getRawX() - initialTouchX);
+				int y = initialWinY + (int)(event.getRawY() - initialTouchY);
+				moveHandle(x, y);
 				return false;
 		}
 		return false;
@@ -421,14 +449,14 @@ public This AssistBar(int initialX, int initialY) {
 	handle.setOnTouchListener(new View.OnTouchListener() {
 		onTouch(View view, MotionEvent event) {
 			detector.onTouchEvent(event);
-			move(view, event);
+			onMove(view, event);
 			return false;
 		}
 	});
 
 	assistButton.setOnTouchListener(new View.OnTouchListener() {
 		onTouch(View view, MotionEvent event) {
-			move(view, event);
+			onMove(view, event);
 			return false;
 		}
 	});

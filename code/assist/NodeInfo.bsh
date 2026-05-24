@@ -3,6 +3,7 @@ import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
 import android.graphics.Color;
+import java.lang.reflect.Field;
 
 This NodeInfo(This structure) {
 	if (!(structure.namespace.name.equals("StructureOverlay") || structure.namespace.name.equals("NodeInfo") )) {
@@ -101,6 +102,9 @@ This NodeInfo(This structure) {
         constants.add(name);
     }
 
+    Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
+	propertiesField.setAccessible(true);
+
     getConstantNames() {
         List names = Arrays.asList(map.keySet().toArray());
         return names;
@@ -131,7 +135,7 @@ This NodeInfo(This structure) {
         List nodeBoxes = new ArrayList();
         for (Object key: keySet) {
             This nodeBox = (This) structure.map.get(key);
-            boolean hasProperty = nodeBox.hasAllProperties(properties);
+            boolean hasProperty = hasAllProperties(nodeBox, properties);
             if (hasProperty) {
                 nodeBoxes.add(nodeBox);
             }
@@ -150,6 +154,29 @@ This NodeInfo(This structure) {
         highlight = structure.highlightNodeBoxes(nodeBoxes, strokeColor, fillColor);
         return highlight;
     }
+
+    getProperties(AccessibilityNodeInfo node) {
+        return propertiesField.getInt(node);
+    }
+    
+    hasAllProperties(AccessibilityNodeInfo node, int properties) {
+        int nodeProperties = getProperties(node);
+		
+		// Custom flags has to be checked later
+		if (node.viewIdResourceName != null) {
+			properties |= HAS_VIEW_ID_RESOURCE_NAME;
+		}
+		// Has content description
+		if (node.contentDescription != null || node.text != null) {
+			properties |= HAS_TEXT;
+		}
+        return (nodeProperties & properties) == properties;
+    }
+
+	hasAllProperties(This nodeBox, int properties) {
+		int nodeProperties = nodeBox.properties;
+		return (nodeProperties & properties) == properties;
+	}
 
 	return this;
 }

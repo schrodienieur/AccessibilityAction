@@ -1,0 +1,112 @@
+/*───────────────────────────────────────────────────────────────
+EXAMPLE: Creating a draggable FloatingSheet overlay
+───────────────────────────────────────────────────────────────*/
+import com.google.android.material.textview.MaterialTextView;
+import bsh.This;
+import android.content.Context;
+import java.util.List;
+import java.util.ArrayList;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.CompoundButton;
+
+import android.view.Display;
+import android.hardware.display.DisplayManager;
+import android.content.Context;
+import io.reactivex.subjects.SingleSubject;
+import java.util.concurrent.TimeUnit;
+import android.graphics.Typeface;
+
+
+/*───────────────────────────────────────────────────────────────
+config()
+**Configuration Preset with Dynamic Material Chip Groups**
+───────────────────────────────────────────────────────────────*/
+DisplayMenu() {
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final This TOP = this;
+	This displayInfos = DisplayInfos();
+	long timeout = 30000;
+	float maxHeight = 0.5f;
+
+	config() {
+		String title = "Display Menu";
+		float maxHeight = maxHeight;
+		getViewList(Context ctx) {	
+			Display[] displays = displayInfos.displays;
+			List views = new ArrayList();
+			float density = ctx.getResources().getDisplayMetrics().density;
+			dp(int value) {
+				return (int) density * value;
+			}
+			for (int i = 0; i < displays.length; i++) {
+				Display display = displays[i];
+				LinearLayout itemLayout = new LinearLayout(ctx);
+				itemLayout.setOrientation(LinearLayout.VERTICAL);
+				itemLayout.setPadding(dp(16), dp(16), dp(16), dp(16));
+
+				MaterialTextView nameView = new MaterialTextView(ctx);
+				nameView.setText(display.getName());
+				nameView.setTextSize(dp(8));
+				Typeface currentTypeface = nameView.getTypeface();
+				nameView.setTypeface(Typeface.create(currentTypeface, 600, false));
+				itemLayout.addView(nameView);
+
+				MaterialTextView idView = new MaterialTextView(ctx);
+				idView.setText("" + display.getDisplayId());
+				idView.setTextSize(dp(6));
+				idView.setPadding(0, 0, 0, 0);
+				itemLayout.addView(idView);
+
+				MaterialTextView sizeView = new MaterialTextView(ctx);
+				sizeView.setText(display.getWidth() + "x" + display.getHeight());
+				sizeView.setTextSize(dp(6));
+				itemLayout.addView(sizeView);
+				views.add(itemLayout);
+
+				itemLayout.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View view) {
+						if (onClickListener != null) {
+							try {
+								TOP.remove();
+								if (TOP.namespace.getVariable("onClickListener") != null) {
+									TOP.onClickListener.onClick(display);
+								}
+							} catch (Exception e) {
+								resultSignal.onError(e);
+							}
+						}
+					}
+				});
+				
+			}
+			return views;
+		}
+
+		return this;
+	}
+	
+	This config;
+	This floatingSheet;
+	
+	load() {
+		config = config();
+		floatingSheet = FloatingSheet(config);
+	}
+
+	show() {
+		load();
+		floatingSheet.show();
+	}
+
+	remove() {
+		floatingSheet.remove();
+	}
+
+	toggle() {
+		floatingSheet.toggle();
+	}
+
+	return this;
+}

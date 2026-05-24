@@ -51,13 +51,11 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	setAlpha(int color, int alpha) {
 		return (alpha << 24) | (color & 0x00ffffff);
 	}
+	int displayId = nodeContext.display.displayId;
 	boolean useA11y = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY == overlayType ? true : false;
 	Runnable displayOverlay;
-
-	// Get properties
-	Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
-    propertiesField.setAccessible(true);
-	int properties = propertiesField.getInt(node);
+	
+	int properties = NodeInfo.getProperties(node);
 
 	// Has viewIdResourceName
 	if (NodeInfo != void) {
@@ -70,17 +68,9 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 			properties |= NodeInfo.HAS_TEXT;
 		}
 	}
-	
-	private boolean getProperty(int property) {
-        return (properties & property) != 0;
-    }
-
-    private boolean hasAllProperties(int combinedProperties) {
-        return (properties & combinedProperties) == combinedProperties;
-    }
 
 	int getStatusBarHeight() {
-		if (DISPLAY_ID != 0) return 0;
+		if (displayId != 0) return 0;
 		int result = 0;
 		int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
 		if (resourceId > 0) result = context.getResources().getDimensionPixelSize(resourceId);
@@ -100,7 +90,6 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	WindowManager WINDOW_MANAGER;
-	Context displayContext;
 	boolean isRemoved;
 	boolean isShown;
 	int DEFAULT_COLOR = Color.TRANSPARENT;
@@ -113,16 +102,17 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	if (this.caller.nodeBoxColor != void) DEFAULT_COLOR = this.caller.nodeBoxColor;
 	if (this.caller.nodeBoxStrokeColor != void) DEFAULT_STROKE_COLOR = this.caller.nodeBoxStrokeColor;
 	if (this.caller.nodeBoxStrokeWidth != void) DEFAULT_STROKE_WIDTH = this.caller.nodeBoxStrokeWidth;
-
-	displayContext = getContext(overlayType);
-
-	View view = new View(displayContext);
+	
+	View view = new View(nodeContext);
 	Rect bounds = new Rect();
 	WindowManager.LayoutParams params;
 	FrameLayout.LayoutParams frameParams;
 
-	updateParams() {
-		node.refresh();
+	updateParams(boolean refreshNode) {
+		if (refreshNode) { 
+			node.refresh();
+			properties = NodeInfo.getProperties(node);
+		}
 		node.getBoundsInScreen(bounds);
 		params = new WindowManager.LayoutParams(
 			bounds.width(),
@@ -140,7 +130,12 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		frameParams.topMargin = bounds.top - getStatusBarHeight();
 	}
 
-	updateParams();
+	updateParams() {
+		updateParams(true);
+	}
+
+	// For initiatation
+	updateParams(false);
 
 	setColor(int strokeWidth, int strokeColor, int fillColor) {
 		unhide();
@@ -181,7 +176,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	showInfo() {
-		infoToast = InfoToast(node, displayContext, overlayType);
+		infoToast = InfoToast(node, nodeContext, overlayType);
 	}
 
 	removeInfo() {
@@ -189,7 +184,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	showDialog() {
-		infoDialog = InfoDialog(node, displayContext, overlayType);
+		infoDialog = InfoDialog(node, nodeContext, overlayType);
 	}
 
 	removeDialog() {
@@ -232,7 +227,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	});
 
 	getWindowManager() {
-		if (WINDOW_MANAGER == null) WINDOW_MANAGER = (WindowManager) displayContext.getSystemService(Context.WINDOW_SERVICE);
+		if (WINDOW_MANAGER == null) WINDOW_MANAGER = (WindowManager) nodeContext.getSystemService(Context.WINDOW_SERVICE);
 		return WINDOW_MANAGER;
 	}
 

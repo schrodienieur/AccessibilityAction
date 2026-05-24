@@ -148,23 +148,19 @@ FilterSheet(This structure) {
 	}
 	
 	This config = config();
-	This sheet = FloatingSheet(config);
+	This floatingSheet = FloatingSheet(config);
 	
 	show() {
-		sheet.show();
+		floatingSheet.show();
 	}
 	
 	remove() {
-		sheet.remove();
+		floatingSheet.remove();
 	}
 
 	toggle() {
-		sheet.toggle();
+		floatingSheet.toggle();
 	}
 	
 	return this;
 }
-
-// sheet = FilterSheet(structureOverlay);
-// sheet.show();
-// a11Y.namespace.setVariable("filterSheet", sheet, false);

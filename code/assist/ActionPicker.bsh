@@ -4,6 +4,12 @@ import bsh.This;
 
 
 ActionPicker(This nodeData) {
+	
+	if (isLocked()) {
+		showToast("Can't use action picker while locked.");
+		return null;
+	}
+
 	if (includeAllMethods == void) includeAllMethods = false;
 	This a11Y = tasker.getJavaVariable("a11Y");
 	This inspector = a11Y.inspector;

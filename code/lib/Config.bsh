@@ -10,6 +10,7 @@ Config(String filePath) {
 		{ "Action", "waitNodes", "Waiting nodes will timeout if not found", true },
 		{ "Action", "stepDelay", "Step delay (ms)", true },
 		{ "Action", "waitNodesTimeout", "Waiting nodes timeout (ms)", true },
+		{ "Action", "findFirstForRecursive", "Return first node for recursive search", true },
 		{ "Debugging", "debugMe", "Enable debug mode", true },
 		{ "Debugging", "debugSteps", "Show debugging information on a toast", false },
 		{ "Debugging", "debugInfo", "Show debugging information on a toast", true },
@@ -80,6 +81,12 @@ Config(String filePath) {
 		writer.write(text);
 		writer.flush();
 		writer.close();
+	}
+
+	setTo(This source, This target) {
+		for (String key: keys) {
+			target.namespace.setVariable(key, source.namespace.getVariable(key), false);
+		}
 	}
 
 	setTo(This target) {

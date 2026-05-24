@@ -34,30 +34,12 @@ a11Y() {
 	final int TYPE_ASSIST_BAR = 1 << 6;
 	final This TOP = this;
 
-	// About to remove, superseded by config
-	boolean debugSteps = false;
-	boolean debugMe = false;
-	boolean debugInfo = true;
-	long findDelay = 100;
-	long debugDelay = 1000;
-	long stepDelay = 50;
-	long waitNodesTimeout = 10000;
-	boolean useOffset = true;
-	boolean useA11yOffset = true;
-	boolean waitNodes = true;
-	boolean useA11yStructure = false;
-	boolean includeAllMethods = false;
-	boolean quickAddMode = true;
-	boolean updatePreRelease = false;
-	long lastActionPickerReminder = 0;
-	long actionPickerReminderDelay = 120000;
-	boolean actionPickerAddToEditor = true;
-
 	// Variables
 	List assistOverlays = new ArrayList();
 	This ENV;
 	String ENV_PATH;
 	String LOG_FILE;
+	long lastActionPickerReminder = 0;
 	
 	This assistBar;
 	This updateManager;
@@ -104,20 +86,7 @@ a11Y() {
 	}
 
 	set(This THIS) {
-		THIS.namespace.setVariable("debugMe", debugMe, false);
-		THIS.namespace.setVariable("debugSteps", debugSteps, false);
-		THIS.namespace.setVariable("debugInfo", debugInfo, false);
-		THIS.namespace.setVariable("findDelay", findDelay, false);
-		THIS.namespace.setVariable("debugDelay", debugDelay, false);
-		THIS.namespace.setVariable("useOffset", useOffset, false);
-		THIS.namespace.setVariable("useA11yOffset", useA11yOffset, false);
-		THIS.namespace.setVariable("waitNodes", waitNodes, false);
-		THIS.namespace.setVariable("useA11yStructure", useA11yStructure, false);
-		THIS.namespace.setVariable("includeAllMethods", includeAllMethods, false);
-		THIS.namespace.setVariable("quickAddMode", quickAddMode, false);
-		THIS.namespace.setVariable("stepDelay", stepDelay, false);
-		THIS.namespace.setVariable("waitNodesTimeout", waitNodesTimeout, false);
-		THIS.namespace.setVariable("actionPickerAddToEditor", actionPickerAddToEditor, false);
+		config.setTo(TOP, THIS);
 		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
 		if (NodeInfo != null) THIS.namespace.setVariable("NodeInfo", NodeInfo, false);
 		if (ENV_PATH == null) {

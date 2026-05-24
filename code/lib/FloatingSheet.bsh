@@ -50,6 +50,8 @@ FloatingSheet(This config) {
 		throw new Exception("No view found");
 	}
 
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final This TOP = this;
 
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
@@ -84,7 +86,7 @@ FloatingSheet(This config) {
 		}
 	}
 
-	layout() {
+	// layout() {
 		float density = ctx.getResources().getDisplayMetrics().density;
 
 		if (ENV == void || ENV == null) ENV = Environment();
@@ -243,11 +245,11 @@ FloatingSheet(This config) {
 				return false;
 			}
 		});
-	}
+	// }
 
 	show() {
 		if (!hasShown) {
-			layout();
+			// layout();
 			isRemoved = false;
 			hasShown = true;
 
@@ -276,6 +278,8 @@ FloatingSheet(This config) {
 								wmParams.y = screenHeight - sheetHeight;
 								windowManager.updateViewLayout(baseRoot, wmParams);
 								baseRoot.setVisibility(View.VISIBLE);
+								a11Y.addOverlay(TOP);
+								
 							}
 						});
 					} catch (Throwable e) {
