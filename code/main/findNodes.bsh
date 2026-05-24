@@ -97,6 +97,10 @@ ArrayList findNodes(AccessibilityNodeInfo root, String key, String value) {
 			nodes.add(focused);
 			focused.recycle();
 		}
+	} else if ("flags".equals(key)) {
+		nodes = findNodesRecursive(root, key, value);
+	} else {
+		throw new IllegalArgumentException("Invalid key: " + key);
 	}
 	if (!nodes.isEmpty()) {
 		debugMe(nodes);
