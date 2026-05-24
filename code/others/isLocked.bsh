@@ -1,0 +1,5 @@
+import android.content.Context;
+
+isLocked() {
+	return context.getSystemService(Context.KEYGUARD_SERVICE).isKeyguardLocked();
+}
