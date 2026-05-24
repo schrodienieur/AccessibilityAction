@@ -1,4 +1,3 @@
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.content.Context;
 import android.view.accessibility.AccessibilityWindowInfo;
 import android.accessibilityservice.AccessibilityService;
@@ -21,37 +20,22 @@ Arguments:
 Example:
 AccessibilityNodeInfo root = getRoot();
 ───────────────────────────────────────────────────────────────*/
-AccessibilityNodeInfo getRoot() {
+AccessibilityNodeInfo getRoot(int displayId) {
 	AccessibilityService service = getService();
-	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
 	if (displayId == 0) {
 		return service.getRootInActiveWindow();
 	} else {
-		SparseArray allDisplaysWindows = service.getWindowsOnAllDisplays();
-		if (allDisplaysWindows == null) {
-			return null;
-		}
-
-		List windows = (List) allDisplaysWindows.get(displayId);
-		if (windows == null) {
-			return null;
-		}
-
-		Iterator iterator = windows.iterator();
-		while (iterator.hasNext()) {
-			AccessibilityWindowInfo window = (AccessibilityWindowInfo) iterator.next();
-			if (window == null) {
-				continue;
-			}
-
-			if (window.isFocused()) {
-				AccessibilityNodeInfo rootNode = window.getRoot();
-				if (rootNode != null) {
-					return rootNode;
-				}
-			}
-		}
+		AccessibilityWindowInfo focusedWindow = getFocusedWindow(displayId);
+		if (focusedWindow != null) return focusedWindow.getRoot();
 		return null;
 	}
+}
 
+AccessibilityNodeInfo getRoot() {
+	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+	return getRoot(displayId);
+}
+
+AccessibilityNodeInfo getRoot(AccessibilityWindowInfo window) {
+	return window.getRoot();
 }

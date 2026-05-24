@@ -6,7 +6,7 @@ import android.hardware.display.DisplayManager;
 import android.view.Display;
 import android.view.WindowManager;
 
-Context getContext(int overlayType) {
+Context getContext(int overlayType, int displayId) {
 	Context myContext;
 	if (overlayType == WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY) {
 		myContext = getService();
@@ -14,7 +14,6 @@ Context getContext(int overlayType) {
 		myContext = context;
 	}
 
-	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
 	DisplayManager dm = (DisplayManager) myContext.getSystemService(Context.DISPLAY_SERVICE);
 	if (dm != null) {
 		Display targetDisplay = dm.getDisplay(displayId);
@@ -22,18 +21,32 @@ Context getContext(int overlayType) {
 			myContext = myContext.createDisplayContext(targetDisplay);
 		}
 	}
-
 	return myContext;
 }
 
-Context getContext() {
-	return getContext(0);
-}
-
-Context getContext(boolean useAccessibilityService) {
+Context getContext(boolean useAccessibilityService, int displayId) {
 	if (useAccessibilityService) {
-		return getContext(WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY);
+		return getContext(WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, displayId);
 	} else {
-		return getContext(0);
+		return getContext(0, displayId);
 	}
 }
+
+Context getContext(int overlayType) {
+	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+	return getContext(overlayType, displayId);
+}
+
+getContext(boolean useAccessibilityService) {
+	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+	return getContext(useAccessibilityService, displayId);
+}
+
+Context getContext() {
+	int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+	return getContext(0, displayId);
+}
+
+
+
+
