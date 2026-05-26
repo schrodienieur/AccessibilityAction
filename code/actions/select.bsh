@@ -28,11 +28,11 @@ select(AccessibilityNodeInfo node) {
 	if (node == null) return null;
 
 	showOnScreen(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_SELECT);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SELECT);
 
 	if (stepDelay > 0) wait(stepDelay);
 
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 }
 

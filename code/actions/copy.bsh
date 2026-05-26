@@ -32,10 +32,10 @@ copy(AccessibilityNodeInfo node) {
 
 	showOnScreen(node);
 	debugMe(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_COPY);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_COPY);
 
 	if (stepDelay > 0) wait(stepDelay);
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 
 }

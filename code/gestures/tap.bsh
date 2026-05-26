@@ -93,9 +93,7 @@ public boolean tap(double x, double y, long duration) {
 
 		signal.blockingAwait();
 		handlerThread.quitSafely();
-
 		return true;
-
 	} catch (Exception e) {
 		return false;
 	}

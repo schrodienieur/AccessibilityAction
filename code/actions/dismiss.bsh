@@ -20,15 +20,19 @@ This code was primarily generated using AI with minimal human editing.
  * dismiss("text", "New Update Available");
  * ───────────────────────────────────────────────────────────────*/
 dismiss(AccessibilityNodeInfo node) {
-	node.performAction(AccessibilityNodeInfo.ACTION_DISMISS);
+	while (node != null && !node.isDismissable()) {
+		node = node.getParent();
+	} 
+	if (node == null) return null;
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_DISMISS);
 	if (stepDelay > 0) wait(stepDelay);
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 }
 
 dismiss(ArrayList nodes) {
 	AccessibilityNodeInfo node = toNode(nodes);
-	if (node == null) return;
+	if (node == null) return null;
 	return dismiss(node);
 }
 
@@ -38,13 +42,13 @@ dismiss(ArrayList nodes, int index) {
 
 dismiss(HashMap nodesMap) {
 	AccessibilityNodeInfo node = toNode(nodesMap);
-	if (node == null) return;
+	if (node == null) return null;
 	return dismiss(node);
 }
 
 dismiss(HashMap nodesMap, String key) {
 	AccessibilityNodeInfo node = toNode(nodesMap, key);
-	if (node == null) return;
+	if (node == null) return null;
 	return dismiss(node);
 }
 

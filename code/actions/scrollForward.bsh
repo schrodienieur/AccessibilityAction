@@ -19,8 +19,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
  * ───────────────────────────────────────────────────────────────*/
 scrollForward(AccessibilityNodeInfo node) {
 	while (!node.isScrollable() && node.getParent() != null) node = node.getParent();
-	node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-	node.refresh();
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+	if (success) node.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return node;
 }
@@ -34,13 +34,13 @@ scrollForward() {
 	AccessibilityNodeInfo root = getRoot();
 	if (root == null) {
 		tasker.log("No active root window found.", LOG_FILE);
-		return false;
+		return null;
 	}
 
 	AccessibilityNodeInfo scrollNode = findScrollableNode(root);
 	if (scrollNode == null) {
 		tasker.log("No scrollable node found on screen.", LOG_FILE);
-		return false;
+		return null;
 	}
 
 	return scrollForward(scrollNode);

@@ -28,13 +28,16 @@ Returns:
 
 /* Base Context Click Logic */
 contextClick(AccessibilityNodeInfo node) {
+	while (node != null && !node.isContextClickable()) {
+		node = node.getParent();
+	}
 	if (node == null) return null;
 
 	showOnScreen(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_CONTEXT_CLICK);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_CONTEXT_CLICK);
 
 	if (stepDelay > 0) wait(stepDelay);
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 
 }

@@ -30,11 +30,11 @@ Returns:
 paste(AccessibilityNodeInfo node) {
 	if (node == null) return null;
 	showOnScreen(node);
-	if (!node.isFocusable()) return;
+	if (!node.isFocusable()) return null;
 	focus(node);
 	debugMe(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_PASTE);
-	node.refresh();
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_PASTE);
+	if (success) node.refresh();
 
 	if (stepDelay > 0) wait(stepDelay);
 

@@ -4,7 +4,6 @@ This code was generated using AI.
 
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
-
 /*───────────────────────────────────────────────────────────────
  * clearFocus()
  * **Clear Focus**
@@ -16,14 +15,56 @@ import java.util.ArrayList;
  * Example:
  * clearFocus();
  * ───────────────────────────────────────────────────────────────*/
-clearFocus() {
-	List nodes = findRelevantNodesForClear("focus");
-	for (i = 0; i < nodes.size(); i++) {
-		AccessibilityNodeInfo node = nodes.get(i);
-		node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS);
+clearFocus(AccessibilityNodeInfo node) {
+	boolean success;
+	success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS);
+	if (!success) success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_SELECTION);
+	if (!success) success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
+	if (success) {
+		if (stepDelay > 0) wait(stepDelay);
 		node.refresh();
+		return node;
+	} else {
+		return null;
 	}
-	
+}
+
+clearFocus() {
+	ArrayList nodes = new ArrayList();
+	AccessibilityNodeInfo root = getRoot();
+	if (root == null) return nodes;
+
+	List stack = new ArrayList();
+	stack.add(root);
+	while (!stack.isEmpty()) {
+		AccessibilityNodeInfo node = (AccessibilityNodeInfo) stack.remove(0);
+		if (node == null) continue;
+		for (int j = 0; j < node.getChildCount(); j++) {
+			AccessibilityNodeInfo child = node.getChild(j);
+			if (c != null) stack.add(child);
+		}
+		if (node.isFocused()) {
+			boolean success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS);
+			if (success) {
+				node.refresh();
+				nodes.add(node);
+			}
+		}
+		else if (node.isSelected()) {
+			boolean success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_SELECTION);
+			if (success) {
+				node.refresh();
+				nodes.add(node);
+			}
+		}
+		else if (node.isAccessibilityFocused()) {
+			boolean success = node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
+			if (success) {
+				node.refresh();
+				nodes.add(node);				
+			}
+		}
+	}
 	if (stepDelay > 0) wait(stepDelay);
-	return "clear";
+	return nodes;
 }

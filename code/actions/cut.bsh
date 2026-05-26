@@ -32,10 +32,10 @@ cut(AccessibilityNodeInfo node) {
 
 	showOnScreen(node);
 	debugMe(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_CUT);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_CUT);
 
 	if (stepDelay > 0) wait(stepDelay);
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 
 }
@@ -120,8 +120,6 @@ cut(String key, String value, int parentLevel, String nearbyKey, String nearbyVa
 cut(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
 	return cut(getNode(root, key, value, index, timeout));
 }
-
-import android.view.accessibility.AccessibilityNodeInfo;
 
 /*───────────────────────────────────────────────────────────────
 copy(AccessibilityNodeInfo root, ...)

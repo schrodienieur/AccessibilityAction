@@ -34,8 +34,8 @@ setText(AccessibilityNodeInfo node, String setText) {
 	args.putCharSequence("ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE", setText);
 	showOnScreen(node);
 	debugMe(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args);
-	node.refresh();
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args);
+	if (success) node.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return node;
 

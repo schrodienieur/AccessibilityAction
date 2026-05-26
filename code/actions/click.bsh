@@ -29,27 +29,28 @@ Returns:
 /* Base Click Logic */
 click(AccessibilityNodeInfo node) {
 	if (node == null) return null;
-
-
-	AccessibilityNodeInfo n = node;
+	boolean success;
+	AccessibilityNodeInfo firstNode = node;
 	/* Traverse up to find a clickable parent if the current node isn't */
 	while (node != null && !node.isClickable()) {
 		node = node.getParent();
 	}
 
-	if (node == null && n.isEnabled()) {
-		node = n;
+	if (node != null) {
+		showOnScreen(node);
+		debugMe(node);
+		success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+	}
+
+	if (!success) {
+		node = firstNode;
 		showOnScreen(node);
 		Point coor = getCoordinates(node);
 		debugMe(node);
-		tap(coor.x, coor.y);
+		success = tap(coor.x, coor.y);
+	} 
 
-	} else if (node != null) {
-		showOnScreen(node);
-		debugMe(node);
-		node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-	}
-
+	if (success) node.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return node;
 

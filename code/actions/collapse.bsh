@@ -21,9 +21,9 @@ import java.util.HashMap;
  * collapse("text", "Details", 0, true);
  * ───────────────────────────────────────────────────────────────*/
 collapse(AccessibilityNodeInfo node, int index, boolean checkparent) {
-	if (node == null) return;
+	if (node == null) return null;
 	AccessibilityNodeInfo node = getNode(key, value, index);
-	if (node == null) return;
+	if (node == null) return null;
 
 	AccessibilityNodeInfo candidate = node;
 
@@ -44,8 +44,8 @@ collapse(AccessibilityNodeInfo node, int index, boolean checkparent) {
 
 	if (candidate == null) return null;
 	showOnScreen(candidate);
-	candidate.performAction(AccessibilityNodeInfo.ACTION_COLLAPSE);
-	candidate.refresh();
+	boolean success = candidate.performAction(AccessibilityNodeInfo.ACTION_COLLAPSE);
+	if (success) candidate.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return candidate;
 }
@@ -58,18 +58,18 @@ collapse(String key, String value, int index, boolean checkparent) {
 
 collapse(ArrayList nodes, int index, boolean checkparent) {
 	AccessibilityNodeInfo node = toNode(nodes);
-	if (node == null) return;
+	if (node == null) return null;
 	return collapse(node, index, checkparent);
 }
 
 collapse(HashMap nodesMap, int index, boolean checkparent) {
 	AccessibilityNodeInfo node = toNode(nodesMap);
-	if (node == null) return;
+	if (node == null) return null;
 	return collapse(node, index, checkparent);
 }
 
 collapse(HashMap nodesMap, String mapKey, int index, boolean checkparent) {
 	AccessibilityNodeInfo node = toNode(nodesMap, mapKey);
-	if (node == null) return;
+	if (node == null) return null;
 	return collapse(node, index, checkparent);
 }

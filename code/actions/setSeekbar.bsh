@@ -36,7 +36,7 @@ setSeekbar(AccessibilityNodeInfo node, value) {
 	if (!success) return null;
     if (stepDelay > 0) wait(stepDelay);
 
-    node.refresh();
+    if (success) node.refresh();
     return node;
 
 }

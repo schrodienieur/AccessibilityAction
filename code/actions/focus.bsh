@@ -22,18 +22,21 @@ import java.util.HashMap;
  
  
 focus(AccessibilityNodeInfo node) {
-	if (node == null) return;
+	while (node != null && !node.isFocusable()) {
+		node = node.getParent();
+	}
+	if (node == null) return null;
 	showOnScreen(node);
 	debugMe(node);
-	node.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
 	if (stepDelay > 0) wait(stepDelay);
-	node.refresh();
+	if (success) node.refresh();
 	return node;
 }
 
 focus(ArrayList nodes) {
 	AccessibilityNodeInfo node = toNode(nodes);
-	if (node == null) return;
+	if (node == null) return null;
 	return focus(node);
 }
 
@@ -44,13 +47,13 @@ focus(ArrayList nodes, int index) {
 
 focus(HashMap nodes) {
 	AccessibilityNodeInfo node = toNode(nodes);
-	if (node == null) return;
+	if (node == null) return null;
 	return focus(node);
 }
 
 focus(HashMap nodes, key) {
 	AccessibilityNodeInfo node = toNode(nodes);
-	if (node == null) return;
+	if (node == null) return null;
 	return focus(node);
 }
 

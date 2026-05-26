@@ -34,6 +34,7 @@ longClick(AccessibilityNodeInfo node) {
 
 	/* Search upward for a node that explicitly supports ACTION_LONG_CLICK */
 	AccessibilityNodeInfo currentNode = node;
+	boolean success;
 	while (currentNode != null) {
 		List actions = currentNode.getActionList();
 		/* Manually check the action list for the long click constant */
@@ -41,10 +42,9 @@ longClick(AccessibilityNodeInfo node) {
 		if (currentNode.isLongClickable()) {
 			showOnScreen(currentNode);
 			debugMe(currentNode);
-			currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
-			currentNode.refresh();
-			if (stepDelay > 0) wait(stepDelay);
-			return currentNode;
+			success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+			if (success) currentNode.refresh();
+			break;
 		}
 
 		/* Move up to parent if currentNodeent node can't be long-clicked */
@@ -52,16 +52,21 @@ longClick(AccessibilityNodeInfo node) {
 	}
 
 	// Fallback to using gesture
-	if (currentNode == null) {
+	if (!success) {
 		showOnScreen(node);
 		Point coor = getCoordinates(node);
 		debugMe(node);
-		tap(coor.x, coor.y, LONG_CLICK_FALLBACK_DURATION);
-		return node;
+		success = tap(coor.x, coor.y, LONG_CLICK_FALLBACK_DURATION);
 	}
 
-	tasker.log("No long-clickable ancestor found.", LOG_FILE);
-	return null;
+	if (success) {
+		node.refresh();
+		if (stepDelay > 0) wait(stepDelay);
+		return node;
+	} else {
+		tasker.log("No long-clickable ancestor found.", LOG_FILE);
+		return null;
+	}
 }
 
 // Using coordinates and percentages will return boolean instead!

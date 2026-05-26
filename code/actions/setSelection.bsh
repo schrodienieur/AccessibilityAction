@@ -52,8 +52,8 @@ setSelection(AccessibilityNodeInfo node, int start, int end) {
 	Bundle args = new Bundle();
 	args.putInt("ACTION_ARGUMENT_SELECTION_START_INT", start);
 	args.putInt("ACTION_ARGUMENT_SELECTION_END_INT", end);
-	node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, args);
-	node.refresh();
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, args);
+	if (success) node.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return node;
 }
