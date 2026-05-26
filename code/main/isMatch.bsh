@@ -1,0 +1,93 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.lang.CharSequence;
+import android.text.Spanned;
+
+isMatch(AccessibilityNodeInfo node, String key, Object value, boolean strict) {
+	boolean isMatch;
+	switch (key) {
+		case "id":
+			String viewId = node.getViewIdResourceName();
+			if (viewId != null && viewId.equals(value)) {
+				isMatch = true;
+			}
+			break;
+
+			/* Class Match */
+		case "class":
+			CharSequence className = node.getClassName();
+			if (className != null && className.toString().equals(value)) {
+				isMatch = true;
+			}
+			break;
+
+			/* Text/Description Match (Containment & Case-Insensitive) */
+		case "text":
+			CharSequence text = node.getText();
+			CharSequence desc = node.getContentDescription();
+			if (text == null && desc == null) break;
+			if (strict) {
+				if (text != null && value.toLowerCase().equals(text.toString().toLowerCase())) {
+					exactTextMatches.add(node);
+				} else if (desc != null && value.toLowerCase().equals(desc.toString().toLowerCase())) {
+					exactDescMatches.add(node);
+				}
+			} else {
+				if (text != null && text.toString().toLowerCase().indexOf(value) >= 0) {
+					isMatch = true;
+				} else if (desc != null && desc.toString().toLowerCase().indexOf(value) >= 0) {
+					isMatch = true;
+				}
+			}
+			break;
+
+			/* Regex Match */
+		case "regex":
+			CharSequence text = node.getText();
+			CharSequence desc = node.getContentDescription();
+			if (text == null && desc == null) break;
+			if (value instanceof Pattern) {
+				if ((text != null && value.matcher(text).find()) ||
+					(desc != null && value.matcher(desc).find())) {
+					isMatch = true;
+				}
+				break;
+			} else {
+				throw new IllegalArgumentException("Must pass value with java.util.regex.Pattern");
+			}
+
+			/* Focus Match (Input or Accessibility) */
+		case "focus":
+			if (node.isFocused() || node.isAccessibilityFocused()) {
+				isMatch = true;
+			}
+			break;
+
+		case "flags":
+			int flags = NodeInfo.getProperties(node);
+			int includedFlags = value instanceof String ? Integer.parseInt(value) : value;
+			if ((flags & includedFlags) == includedFlags) {
+				isMatch = true;
+			}
+			break;
+	}
+
+	return isMatch;
+}
+
+isMatch(AccessibilityNodeInfo node, String key, Object value) {
+	return isMatch(node, key, value, false);
+}
+
+isMatch(AccessibilityNodeInfo node, Pattern value) {
+	return isMatch(node, "regex", value, true);
+}
+
+isMatch(AccessibilityNodeInfo node, String value) {
+	return isMatch(node, "text", value, false);
+}
+
+isMatch(AccessibilityNodeInfo node, int value) {
+	return isMatch(node, "flags", value, false);
+}

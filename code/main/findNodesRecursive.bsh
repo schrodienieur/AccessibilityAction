@@ -37,83 +37,31 @@ List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
 	List hasTextNodes = new ArrayList();
 	stack.add(root);
 
-	/* Pre-process values for performance */
-	String lowerValue = (value != null) ? value.toLowerCase() : "";
-	Pattern regexPattern = null;
-	if ("regex".equals(key)) {
-		regexPattern = Pattern.compile(value);
-	}
+	/* Pre-process values for performance */	
+	Object targetVal;
 
+	switch (key) {
+		case "text":
+			targetVal = value.toLowerCase();
+			break;
+		case "regex":
+			targetVal = Pattern.compile(value);
+			break;
+		case "flags":
+			targetVal = Integer.parseInt(value);
+			break;
+		default:
+			targetVal = value;
+	}
+			
 	while (!stack.isEmpty()) {
 		/* Pop the first element from our manual stack */
 		AccessibilityNodeInfo node = (AccessibilityNodeInfo) stack.remove(0);
 		if (node == null) {
 			continue;
 		}
-
-		boolean isMatch = false;
-		boolean hasText;
-
-		// TODO: Separate this to its own function e.g isMatching(AccessibilityNodeInfo node, String key, String value)
-		switch (key) {
-
-			case "id":
-				String viewId = node.getViewIdResourceName();
-				if (viewId != null && viewId.equals(value)) {
-					isMatch = true;
-				}
-				break;
-
-			/* Class Match */
-			case "class":
-				CharSequence className = node.getClassName();
-				if (className != null && className.toString().equals(value)) {
-					isMatch = true;
-				}
-				break;
-
-			/* Text/Description Match (Containment & Case-Insensitive) */
-			case "text":
-				CharSequence text = node.getText();
-				CharSequence desc = node.getContentDescription();
-				if (text == null && desc == null) break;
-
-				CharSequence target = text;
-				if (target == null) target = desc;
-				String targetLower = target.toString().toLowerCase();
-				if (targetLower.indexOf(lowerValue) >= 0) isMatch = true;
-				break;
-
-			/* Regex Match */
-			case "regex":
-				CharSequence text = node.getText();
-				CharSequence desc = node.getContentDescription();
-				if (text == null && desc == null) break;
-				hasText = true;
-				CharSequence target = text;
-				if (target == null) target = desc;
-				String targetLower = target.toString();
-
-				if (regexPattern.matcher(targetLower).find()) {
-					isMatch = true;
-				}
-				break;
-
-			/* Focus Match (Input or Accessibility) */
-			case "focus":
-				if (node.isFocused() || node.isAccessibilityFocused()) {
-					isMatch = true;
-				}
-				break;
-
-			case "flags":
-				int flags = NodeInfo.getProperties(node);
-				int includedFlags = Integer.parseInt(value);
-				if ((flags & includedFlags) == includedFlags) {
-					isMatch = true;
-				}
-				break;
-		}
+		
+		boolean isMatch = isMatch(node, key, targetVal);
 
 		/* If we found a match, add to list. 
 		   Note: Recycle does nothing since SDK 33
@@ -122,44 +70,13 @@ List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
 		if (isMatch) {
 			nodes.add(node);
 			if (findFirstForRecursive != void && findFirstForRecursive) return nodes;
-		} else {
-			// Cache nodes that has text to be checked later with getText
-			if (key.equals("text") || key.equals("regex")) {
-				if (hasText) hasTextNodes.add(node);
-			}
-		}
+		} 
 
 		/* Add children to the stack to continue recursion */
 		for (int i = 0; i < node.getChildCount(); i++) {
 			AccessibilityNodeInfo child = node.getChild(i);
 			if (child != null) {
 				stack.add(child);
-			}
-		}
-	}
-
-	if (nodes.isEmpty() && !hasTextNodes.isEmpty()) {
-		for (AccessibilityNodeInfo node : hasTextNodes) {
-			boolean isMatch;
-			String target = getText(node, "text", "text");
-			if (target == null || target.length() == 0) target = getText(node, "text", "contentDescription");
-			if (target == null || target.length() == 0) continue;
-			switch (key) {
-				case "text":
-					if (target.toLowerCase().indexOf(lowerValue) >= 0) {
-						isMatch = true;
-					}
-					break;
-				case "regex":
-					if (regexPattern.matcher(target).find()) {
-						isMatch = true;
-					}
-					break;
-			}
-
-			if (isMatch) {
-				nodes.add(node);
-				if (findFirstForRecursive != void && findFirstForRecursive) return nodes;
 			}
 		}
 	}

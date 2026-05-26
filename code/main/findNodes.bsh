@@ -31,18 +31,12 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 		case "id":
 			List found = root.findAccessibilityNodeInfosByViewId(value);
 			if (found.isEmpty()) found = findNodesRecursive(root, key, value);
-			
 			if (!found.isEmpty()) {
 				for (AccessibilityNodeInfo node : found) {
 						nodes.add(node);
 						node.recycle();
 				};
 			}
-
-			break;
-
-		case "class":
-			nodes = findNodesRecursive(root, key, value);
 			break;
 
 		case "text":
@@ -51,28 +45,16 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 			if (found != null && !found.isEmpty()) {
 				// Prioritize exact matches
 				String target = value.toLowerCase();
-				List exactTextMatches = new ArrayList();
-				List exactDescMatches = new ArrayList();
 
 				for (int i = 0; i < found.size(); i++) {
 					AccessibilityNodeInfo node = (AccessibilityNodeInfo) found.get(i);
-					CharSequence text = node.getText();
-					CharSequence desc = node.getContentDescription();
-					if (text != null && target.equals(text.toString().toLowerCase())) {
-						exactTextMatches.add(node);
-					} else if (desc != null && target.equals(desc.toString().toLowerCase())) {
-						exactDescMatches.add(node);
+					if (isMatch(node, "text", target, true)) {
+						found.add(node);
 					}
 					node.recycle();
 				}
 				
-				if (!exactTextMatches.isEmpty()) {
-					nodes.addAll(exactTextMatches);
-					
-				} else if (!exactDescMatches.isEmpty()) {
-					nodes.addAll(exactDescMatches);
-					
-				} else nodes.addAll(found);
+				nodes.addAll(found);
 				
 			} else {
 				// FALLBACK 1: System search failed. Perform robust manual recursive search.
@@ -98,6 +80,7 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 
 		case "flags":
 		case "regex":
+		case "class":
 			nodes = findNodesRecursive(root, key, value);
 			break;
 
