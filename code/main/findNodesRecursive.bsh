@@ -3,13 +3,14 @@ This code was primarily generated using AI with minimal human editing.
 ───────────────────────────────────────────────────────────────*/
 
 import android.view.accessibility.AccessibilityNodeInfo;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.xml.soap.Node;
 
 import java.lang.CharSequence;
+import android.text.Spanned;
 
 /*───────────────────────────────────────────────────────────────
   findNodesRecursive(AccessibilityNodeInfo root, String key, String value)
@@ -24,16 +25,16 @@ import java.lang.CharSequence;
    - value → Selector value to match.
  
   Example:
-  ArrayList buttons = findNodesRecursive(getRoot(), "text", "Save");
+  List buttons = findNodesRecursive(getRoot(), "text", "Save");
   ───────────────────────────────────────────────────────────────*/
-ArrayList findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
-	ArrayList nodes = new ArrayList();
+List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
+	List nodes = new ArrayList();
 	if (root == null) {
 		return nodes;
 	}
-
 	/* Use a stack for manual recursion to avoid deep nesting and handle the tree efficiently */
-	ArrayList stack = new ArrayList();
+	List stack = new ArrayList();
+	List hasTextNodes = new ArrayList();
 	stack.add(root);
 
 	/* Pre-process values for performance */
@@ -51,62 +52,81 @@ ArrayList findNodesRecursive(AccessibilityNodeInfo root, String key, String valu
 		}
 
 		boolean isMatch = false;
+		boolean hasText;
 
-		/* ID Match */
-		if ("id".equals(key)) {
-			String viewId = node.getViewIdResourceName();
-			if (viewId != null && viewId.equals(value)) {
-				isMatch = true;
-			}
-		}
-		/* Class Match */
-		else if ("class".equals(key)) {
-			CharSequence className = node.getClassName();
-			if (className != null && className.toString().equals(value)) {
-				isMatch = true;
-			}
-		}
-		/* Text/Description Match (Containment & Case-Insensitive) */
-		else if ("text".equals(key)) {
-			CharSequence txt = node.getText();
-			CharSequence desc = node.getContentDescription();
+		// TODO: Separate this to its own function e.g isMatching(AccessibilityNodeInfo node, String key, String value)
+		switch (key) {
 
-			if (txt != null && txt.toString().toLowerCase().indexOf(lowerValue) >= 0) {
-				isMatch = true;
-			} else if (desc != null && desc.toString().toLowerCase().indexOf(lowerValue) >= 0) {
-				isMatch = true;
-			}
-		}
-		/* Regex Match */
-		else if ("regex".equals(key)) {
-			CharSequence txt = node.getText();
-			CharSequence desc = node.getContentDescription();
-			if ((txt != null && regexPattern.matcher(txt).find()) ||
-				(desc != null && regexPattern.matcher(desc).find())) {
-				isMatch = true;
-			}
-		}
-		/* Focus Match (Input or Accessibility) */
-		else if ("focus".equals(key)) {
-			if (node.isFocused() || node.isAccessibilityFocused()) {
-				isMatch = true;
-			}
-		}
+			case "id":
+				String viewId = node.getViewIdResourceName();
+				if (viewId != null && viewId.equals(value)) {
+					isMatch = true;
+				}
+				break;
 
-		else if ("flags".equals(key)) {
-			int flags = NodeInfo.getProperties(node);
-			int includedFlags = Integer.parseInt(value);
-			if ((flags & includedFlags) == includedFlags) {
-				isMatch = true;
-			}
+			/* Class Match */
+			case "class":
+				CharSequence className = node.getClassName();
+				if (className != null && className.toString().equals(value)) {
+					isMatch = true;
+				}
+				break;
+
+			/* Text/Description Match (Containment & Case-Insensitive) */
+			case "text":
+				CharSequence text = node.getText();
+				CharSequence desc = node.getContentDescription();
+				if (text == null && desc == null) break;
+
+				CharSequence target = text;
+				if (target == null) target = desc;
+				String targetLower = target.toString().toLowerCase();
+				if (targetLower.indexOf(lowerValue) >= 0) isMatch = true;
+				break;
+
+			/* Regex Match */
+			case "regex":
+				CharSequence text = node.getText();
+				CharSequence desc = node.getContentDescription();
+				if (text == null && desc == null) break;
+				hasText = true;
+				CharSequence target = text;
+				if (target == null) target = desc;
+				String targetLower = target.toString();
+
+				if (regexPattern.matcher(targetLower).find()) {
+					isMatch = true;
+				}
+				break;
+
+			/* Focus Match (Input or Accessibility) */
+			case "focus":
+				if (node.isFocused() || node.isAccessibilityFocused()) {
+					isMatch = true;
+				}
+				break;
+
+			case "flags":
+				int flags = NodeInfo.getProperties(node);
+				int includedFlags = Integer.parseInt(value);
+				if ((flags & includedFlags) == includedFlags) {
+					isMatch = true;
+				}
+				break;
 		}
 
 		/* If we found a match, add to list. 
-		   Note: We do not recycle here if we are returning the node to the user,
-		   as they might need to perform actions on it. */
+		   Note: Recycle does nothing since SDK 33
+		   link: https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeInfo#recycle()		
+		*/
 		if (isMatch) {
 			nodes.add(node);
 			if (findFirstForRecursive != void && findFirstForRecursive) return nodes;
+		} else {
+			// Cache nodes that has text to be checked later with getText
+			if (key.equals("text") || key.equals("regex")) {
+				if (hasText) hasTextNodes.add(node);
+			}
 		}
 
 		/* Add children to the stack to continue recursion */
@@ -118,5 +138,35 @@ ArrayList findNodesRecursive(AccessibilityNodeInfo root, String key, String valu
 		}
 	}
 
+	if (nodes.isEmpty() && !hasTextNodes.isEmpty()) {
+		for (AccessibilityNodeInfo node : hasTextNodes) {
+			boolean isMatch;
+			String target = getText(node, "text", "text");
+			if (target == null || target.length() == 0) target = getText(node, "text", "contentDescription");
+			if (target == null || target.length() == 0) continue;
+			switch (key) {
+				case "text":
+					if (target.toLowerCase().indexOf(lowerValue) >= 0) {
+						isMatch = true;
+					}
+					break;
+				case "regex":
+					if (regexPattern.matcher(target).find()) {
+						isMatch = true;
+					}
+					break;
+			}
+
+			if (isMatch) {
+				nodes.add(node);
+				if (findFirstForRecursive != void && findFirstForRecursive) return nodes;
+			}
+		}
+	}
+
 	return nodes;
+}
+
+List findNodesRecursive(key, value) {
+	return findNodesRecursive(getRoot(), key, value);
 }
