@@ -233,6 +233,26 @@ Object[][] DIRECTORIES_OBJECT = new Object[][] {
 	{
 		"gestures",
 		"Gestures"
+	},
+
+	{
+		"assist",
+		"Assist"
+	},
+
+	{
+		"lib",
+		"Other Utils"
+	},
+
+	{
+		"event",
+		"Events"
+	},
+
+	{
+		"other",
+		"Others"
 	}
 };
 

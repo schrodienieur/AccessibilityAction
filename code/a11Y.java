@@ -24,14 +24,14 @@ a11Y() {
 	}
 
 	// Constants
+	final int TYPE_ASSIST_BAR = 0;
 	final int TYPE_STRUCTURE_OVERLAY = 1;
-	final int TYPE_SETTINGS = 1 << 0;
-	final int TYPE_NODE_SEARCH = 1 << 1;
-	final int TYPE_FILTER_SHEET = 1 << 2;
-	final int TYPE_SCRIPT_EDITOR = 1 << 3;
-	final int TYPE_ACTION_PICKER = 1 << 4;
-	final int TYPE_INFO_SHEET = 1 << 5;
-	final int TYPE_ASSIST_BAR = 1 << 6;
+	final int TYPE_SETTINGS = 2;
+	final int TYPE_NODE_SEARCH = 3;
+	final int TYPE_FILTER_SHEET = 4;
+	final int TYPE_SCRIPT_EDITOR = 5;
+	final int TYPE_ACTION_PICKER = 6;
+	final int TYPE_INFO_SHEET = 7;
 	final This TOP = this;
 
 	// Variables
@@ -75,7 +75,7 @@ a11Y() {
 				try {
 					if (ENV_PATH != null) source(ENV_PATH + "/a11Y.java");
 				} catch (e) {
-					tasker.logAndToast(e.getMessage(), LOG_FILE);
+					tasker.log(e.getMessage(), LOG_FILE);
 				}
 			}
 		});
@@ -126,7 +126,6 @@ a11Y() {
 	reset() {
 		config.setTo(TOP);
 	}
-
 
 	addOverlay(This overlay) {
 		assistOverlays.add(overlay);

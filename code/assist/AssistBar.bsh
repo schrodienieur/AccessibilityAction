@@ -100,7 +100,6 @@ public This AssistBar(int initialX, int initialY) {
 	
 	DisplayMetrics displayMetrics = getDisplayMetrics();
 	int screenheight = displayMetrics.heightPixels;
-	tasker.showToast("Screen height: " + screenheight);
 
 	/* ROOT & CONTAINER SETUP */
 	FrameLayout assistButton = new FrameLayout(assistContext);

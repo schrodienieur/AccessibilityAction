@@ -2,6 +2,9 @@ import bsh.This;
 import android.content.Context;
 import android.content.res.Resources;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import java.lang.reflect.Field;
+import bsh.NameSpace;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 Environment()
@@ -32,6 +35,14 @@ Environment() {
 	final int TYPE_TASKER = 1;
 	final int TYPE_MACRODROID = 2;
 	final int TYPE_KID_APP = 3;
+
+	final int TYPE_ACTION = 0;
+	final int TYPE_ACTION_OVERLOAD = 1;
+	final int TYPE_UTILS = 2;
+	final int TYPE_UTILS_OVERLOAD = 3;
+	final int TYPE_ASSIST = 4;
+	final int TYPE_OTHER = 5;
+	final int TYPE_OTHER_OVERLOAD = 6;
 
 	/* Initialize Defaults */
 	int currentType = TYPE_UNKNOWN;
@@ -155,6 +166,21 @@ Environment() {
 	checkMaterialColorAndFallback(This object) {
 		checkMaterialColor(object);
 		checkMaterialFallback(object);
+	}
+
+	Field isMethod = bsh.NameSpace.class.getDeclaredField("isMethod");
+	isMethod.setAccessible(true);
+
+	isMethod(NameSpace target) {
+		return isMethod.get(target);
+	}
+
+	isMethod(This target) {
+		return isMethod.get(target.namespace);
+	}
+
+	test() {
+		return isMethod(this.namespace);
 	}
 
 	return this;
