@@ -13,7 +13,7 @@ Accessibility related actions and events for android automation app called [Task
 [![Beta](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?include_prereleases&sort=semver&display_name=tag&style=for-the-badge&label=beta
 )](https://github.com/mqwec43as/AccessibilityAction/releases)
 
-_Requires Java Code action available on v6.6_
+_**Requires Java Code** action available on **v6.6** for actions **and Material Library** available on **v6.7** for assist features_
 
 </div>
 
@@ -68,6 +68,11 @@ a11Y.addEvent(eventName, myEvent);
 ```
 
 &nbsp;
+
+>[!WARNING] 
+>**Below features require v6.7**
+&nbsp;
+
 ### 2. Debug highlighter & UI inspector
 
 Highlight certain actions and maps the entire UI.
