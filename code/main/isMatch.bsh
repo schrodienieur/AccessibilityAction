@@ -29,9 +29,9 @@ isMatch(AccessibilityNodeInfo node, String key, Object value, boolean strict) {
 			if (text == null && desc == null) break;
 			if (strict) {
 				if (text != null && value.toLowerCase().equals(text.toString().toLowerCase())) {
-					exactTextMatches.add(node);
+					isMatch = true;
 				} else if (desc != null && value.toLowerCase().equals(desc.toString().toLowerCase())) {
-					exactDescMatches.add(node);
+					isMatch = true;
 				}
 			} else {
 				if (text != null && text.toString().toLowerCase().indexOf(value) >= 0) {
