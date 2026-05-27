@@ -1,5 +1,5 @@
 import android.view.accessibility.AccessibilityNodeInfo;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -20,91 +20,100 @@ This code was primarily generated using AI with minimal human editing.
  * * - value → Selector value.
  *
  * Example:
- * List buttons = findNodes(getRoot(), "text", "Save");
+ * ArrayList buttons = findNodes(getRoot(), "text", "Save");
  * ───────────────────────────────────────────────────────────────*/
-List findNodes(AccessibilityNodeInfo root, String key, String value) {
+ArrayList findNodes(AccessibilityNodeInfo root, String key, String value) {
 
-	List nodes = new ArrayList();
+	ArrayList nodes = new ArrayList();
 	if (root == null) return nodes;
-	
-	switch (key) {
-		case "id":
-			List found = root.findAccessibilityNodeInfosByViewId(value);
-			if (found.isEmpty()) found = findNodesRecursive(root, key, value);
-			if (!found.isEmpty()) {
-				for (AccessibilityNodeInfo node : found) {
-						nodes.add(node);
-						node.recycle();
-				};
-			}
-			break;
+	List found;
+	AccessibilityNodeInfo n, c, focused;
+	CharSequence cs, desc;
+	Pattern pattern;
+	ArrayList stack;
+	if ("id".equals(key)) {
 
-		case "text":
-			// 1. Try system-level search
-			List found = root.findAccessibilityNodeInfosByText(value);
-			if (found != null && !found.isEmpty()) {
-				// Prioritize exact matches
-				String target = value.toLowerCase();
+		found = root.findAccessibilityNodeInfosByViewId(value);
+		if (found != null) {
+			for (int i = 0; i < found.size(); i++) {
+				n = found.get(i);
+				nodes.add(n);
+				n.recycle();
+			};
+		}
 
-				for (int i = 0; i < found.size(); i++) {
-					AccessibilityNodeInfo node = (AccessibilityNodeInfo) found.get(i);
-					if (isMatch(node, "text", target, true)) {
-						found.add(node);
-					}
-					node.recycle();
-				}
-				
-				nodes.addAll(found);
-				
-			} else {
-				// FALLBACK 1: System search failed. Perform robust manual recursive search.
-				tasker.log("System findByText failed. Attempting manual recursive text search for: ", LOG_FILE);
-				nodes = findNodesRecursive(root, key, value);
-				if (nodes.isEmpty()) {
-					// FALLBACK 2: Manual search failed. Attempt Spanned nodes search.
-					tasker.log("Manual recursive search failed. Attempting Spanned nodes search for: ", LOG_FILE);
-					nodes = findSpannedNodes(root, "TextSpan", value);
-				}
-			}
-
-			break;
-
-		case "focus":
-			AccessibilityNodeInfo focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
-			if (focused == null) focused = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
-			if (focused != null) {
-				nodes.add(focused);
-				focused.recycle();
-			}
-			break;
-
-		case "flags":
-		case "regex":
-		case "class":
+		if (nodes.size() == 0) {
 			nodes = findNodesRecursive(root, key, value);
-			break;
+		}
 
-		default:
-			if (key.endsWith("Span")) {
-				nodes = findSpannedNodes(root, key, value);
-			} else {
-				throw new IllegalArgumentException("Invalid key: " + key);
+	} else if ("class".equals(key)) {
+		nodes = findNodesRecursive(root, key, value);
+	} else if ("text".equals(key)) {
+
+		// 1. Try system-level search
+
+		found = root.findAccessibilityNodeInfosByText(value);
+
+		if (found != null && !found.isEmpty()) {
+			// Prioritize exact matches
+			String target = value.toLowerCase();
+			ArrayList exactTextMatches = new ArrayList();
+			ArrayList exactDescMatches = new ArrayList();
+			for (int i = 0; i < found.size(); i++) {
+				n = (AccessibilityNodeInfo) found.get(i);
+				cs = n.getText();
+				desc = n.getContentDescription();
+				if (cs != null && target.equals(cs.toString().toLowerCase())) {
+					exactTextMatches.add(n);
+				} else if (desc != null && target.equals(desc.toString().toLowerCase())) {
+					exactDescMatches.add(n);
+				}
+				n.recycle();
 			}
-			break;
-	}
+			if (!exactTextMatches.isEmpty()) nodes.addAll(exactTextMatches);
+			else if (!exactDescMatches.isEmpty()) nodes.addAll(exactDescMatches);
+			else nodes.addAll(found);
 
+		} else {
+			// FALLBACK 1: System search failed. Perform robust manual recursive search.
+			tasker.log("System findByText failed. Attempting manual recursive text search for: ", LOG_FILE);
+			nodes = findNodesRecursive(root, key, value);
+
+			if (nodes.isEmpty()) {
+				// FALLBACK 2: Manual search failed. Attempt Spanned nodes search.
+
+				tasker.log("Manual recursive search failed. Attempting Spanned nodes search for: ", LOG_FILE);
+				nodes = findSpannedNodes(root, "TextSpan", value);
+			}
+		}
+	} else if (key.endsWith("Span")) {
+		nodes = findSpannedNodes(root, key, value);
+	} else if ("regex".equals(key)) {
+		nodes = findNodesRecursive(root, key, value);
+	} else if ("focus".equals(key)) {
+		focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+		if (focused == null) focused = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+		if (focused != null) {
+			nodes.add(focused);
+			focused.recycle();
+		}
+	} else if ("flags".equals(key)) {
+		nodes = findNodesRecursive(root, key, value);
+	} else {
+		throw new IllegalArgumentException("Invalid key: " + key);
+	}
 	if (!nodes.isEmpty()) {
 		debugMe(nodes);
 	}
-
 	return nodes;
 }
 
-List findNodes(String key, String value) {
+ArrayList findNodes(String key, String value) {
+
 	return findNodes(getRoot(), key, value);
 }
 
-List findNodes(String text) {
+ArrayList findNodes(String text) {
 	return findNodes(getRoot(), "text", text);
 }
 
@@ -137,7 +146,6 @@ findNodes(AccessibilityNodeInfo root, Object[][] argsConfigs, boolean allFound) 
 		for (int k = 1; k < config.length; k++) {
 			searchArgs[k - 1] = config[k];
 		}
-
 		int len = searchArgs.length;
 		List nodes = new ArrayList();
 		if (len == 1) {
@@ -155,7 +163,6 @@ findNodes(AccessibilityNodeInfo root, Object[][] argsConfigs, boolean allFound) 
 			}
 
 		}
-
 	}
 	if (allFound && nodesMap.keySet().size() == totalMap) {
 		return nodesMap;
@@ -185,48 +192,48 @@ Example:
 args = new Object[][] { { "Label" }, { 2, "text", "Status", false } };
 results = findNodes(root, "id", "my_btn", args);
 ───────────────────────────────────────────────────────────────*/
-List findNodes(AccessibilityNodeInfo root, String key, String value, Object[][] argsConfigs) {
+ArrayList findNodes(AccessibilityNodeInfo root, String key, String value, Object[][] argsConfigs) {
 	if (root == null) { root = getRoot(); }
 	List foundNodes = findNodes(root, key, value);
 	return findNodesNearby(foundNodes, argsConfigs);
 }
 
 
-List findNodes(String key, String value, Object[][] argsConfigs) {
+ArrayList findNodes(String key, String value, Object[][] argsConfigs) {
 	return findNodes(getRoot(), key, value, argsConfigs);
 }
 
-List findNodes(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
+ArrayList findNodes(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
 	Object[][] config = new Object[][] {
 		{ parentLevel, nearbyKey, nearbyValue }
 	};
 	return findNodes(root, key, value, config);
 }
 
-List findNodes(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyKey, String nearbyValue) {
+ArrayList findNodes(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyKey, String nearbyValue) {
 	return findNodes(root, "text", text, parentLevel, nearbyKey, nearbyValue);
 }
 
-List findNodes(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyText) {
+ArrayList findNodes(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyText) {
 	return findNodes(root, key, value, parentLevel, "text", nearbyText);
 }
 
-List findNodes(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyText) {
+ArrayList findNodes(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyText) {
 	return findNodes(root, "text", text, parentLevel, "text", nearbyText);
 }
 
-List findNodes(String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
+ArrayList findNodes(String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
 	return findNodes(getRoot(), key, value, parentLevel, nearbyKey, nearbyValue);
 }
 
-List findNodes(String text, int parentLevel, String nearbyKey, String nearbyValue) {
+ArrayList findNodes(String text, int parentLevel, String nearbyKey, String nearbyValue) {
 	return findNodes("text", text, parentLevel, nearbyKey, nearbyValue);
 }
 
-List findNodes(String key, String value, int parentLevel, String nearbyText) {
+ArrayList findNodes(String key, String value, int parentLevel, String nearbyText) {
 	return findNodes(key, value, parentLevel, "text", nearbyText);
 }
 
-List findNodes(String text, int parentLevel, String nearbyText) {
+ArrayList findNodes(String text, int parentLevel, String nearbyText) {
 	return findNodes("text", text, parentLevel, "text", nearbyText);
 }
