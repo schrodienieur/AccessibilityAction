@@ -1,0 +1,87 @@
+import bsh.This;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.graphics.Point;
+
+/*───────────────────────────────────────────────────────────────
+  NodeSearch()
+  ───────────────────────────────────────────────────────────────*/
+NodeSearch(This structureOverlay) {
+    final This TOP = this;
+    This a11Y = tasker.getJavaVariable("a11Y");
+    Map map = structureOverlay.map;
+    List itemList = new ArrayList();
+	config(This THIS) {
+        List itemList = TOP.itemList;
+		String title = "Nodes";
+		boolean showFilter = true;
+		long timeout = 150000;
+        This structure = TOP.structureOverlay;
+		onSuccess(Map map) {
+            This nodeBox = map.get("nodeBox");
+            structure.unhide();
+            structure.activeHighlight(nodeBox);
+		}
+
+		onCancel() {
+            structure.unhide();
+        }
+
+		onTimeout() {
+            structure.unhide();
+        }
+		return this;
+	}
+
+    This config = config(this);
+    This listDialog = ListDialog(config);
+
+    loadList() {
+        for (AccessibilityNodeInfo node: map.keySet()) {
+			This nodeBox = map.get(node);
+            if (nodeBox.isHidden()) continue;
+            String id = node.viewIdResourceName;
+            String text = getText(node);
+            if (id == null && (text == null || text.isEmpty())) continue;
+
+            // Add title
+			Map item = new HashMap();
+			item.put("title", id != null ? id : "[No id]");
+            
+            // Add contents
+            List contents = new ArrayList();
+            contents.add("Class: " + node.className);
+            if (text != null && !text.isEmpty()) contents.add("Text: " + text);
+            Point coor = getCoordinates(node);
+            contents.add("Coor: " + coor.x + "," + coor.y);
+            String content = String.join("\n", contents);
+			item.put("subtitle", content);
+
+            // Attach nodeBox
+            item.put("nodeBox", nodeBox);
+
+			itemList.add(item);
+		}
+    }
+
+    show() {
+        listDialog.show();
+    }
+
+    remove() {
+        listDialog.remove();
+    }
+
+    toggle() {
+        listDialog.toggle();
+    }
+
+    loadList();
+	return this;
+}
+
+/* Auto-start if called directly */
+// if (MAIN_DIRECTORY == void) {
+// 	a11Y.set();
+// 	NodeSearch = NodeSearch();
+// 	NodeSearch.show();
+// }

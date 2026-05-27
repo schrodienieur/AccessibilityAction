@@ -200,6 +200,10 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		view.setVisibility(View.VISIBLE);
 	}
 
+	isHidden() {
+		return view.getVisibility() == View.GONE;
+	}
+
 	reset() {
 		unhide();
 		setDefault();

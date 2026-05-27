@@ -53,6 +53,7 @@ public This AssistBar(int initialX, int initialY) {
 	boolean useA11y = true;
 	This structureOverlay;
 	This filterSheet;
+	This nodeSearch;
 	This displayMenu = DisplayMenu();
 	This scriptEditor = ScriptEditor();
 	This assistSetting = AssistSetting();
@@ -248,12 +249,34 @@ public This AssistBar(int initialX, int initialY) {
 	/*────────────────────────────
 	  Search Button
 	────────────────────────────*/
+			toggleSearch()	{
+				Runnable runMe = new Runnable() {
+					run() {
+						try {
+							if (nodeSearch != null) {
+								structureOverlay.unhide();
+								nodeSearch.remove();
+								nodeSearch = null;
+							} else {
+								if (filterSheet != null) filterSheet.remove();
+								nodeSearch = NodeSearch(structureOverlay);
+								structureOverlay.hide();
+								nodeSearch.show();
+							}
+						} catch (e) {
+							tasker.showToast(e.getMessage());
+						}
+					}
+				};
+				runMe(runMe);
+			}
+
 	MaterialButton searchBtn = IconButton(tm.attr("mw_action_search"), false);
 	// Remove at first;
 	container.removeView(searchBtn);
 	searchBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			showToast("Search is not yet implemented");
+			toggleSearch();
 		}
 	});
 
@@ -271,8 +294,9 @@ public This AssistBar(int initialX, int initialY) {
 				int assistY = assistParams.y + assistParams.height;
 				if (assistY > filterY ) moveHandle(assistParams.x, filterY - assistParams.height);
 			} 
-			filterSheet.toggle();
-
+			structureOverlay.unhide();
+			if (filterSheet != null) filterSheet.toggle();
+			if (nodeSearch != null) nodeSearch.remove();
 		}
 	});
 
@@ -383,8 +407,14 @@ public This AssistBar(int initialX, int initialY) {
 		}
 		onViewDetachedFromWindow(View view) {
 			TOP.switchLayout(false);
-			filterSheet.remove();
-			filterSheet = null;
+			try {
+				filterSheet.remove();
+				filterSheet = null;
+				nodeSearch.remove();
+				nodeSearch = null;
+			} catch (e) {
+
+			}
 		}
 		return this;
 	}
@@ -395,6 +425,7 @@ public This AssistBar(int initialX, int initialY) {
 	handleListener() {
 		onLongPress() {
 			vibrate(assistButton);
+			
 			// TODO: Make changes on FloatingSheet so its height can be retrieved
 			// Use placeholder as of now
 			int displayMenuY = ( 1.0 - 0.5) * screenheight;

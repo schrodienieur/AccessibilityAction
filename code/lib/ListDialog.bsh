@@ -384,6 +384,11 @@ ListDialog(This config) {
 		}
 	}
 
+	toggle() {
+		if (isRemoved) show();
+		else remove();
+	}
+
 	return this;
 }
 

@@ -409,6 +409,32 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		post(showRun);
 	}
 
+	hide() {
+		Runnable hideRun = new Runnable() {
+			run() {
+				rootLayout.setVisibility(View.GONE);
+			}
+		};
+		post(hideRun);
+	}
+
+	unhide() {
+		Runnable unhideRun = new Runnable() {
+			run() {
+				rootLayout.setVisibility(View.VISIBLE);
+			}
+		};
+		post(unhideRun);
+	}
+
+	toggleHide() {
+		if (rootLayout.getVisibility() == View.VISIBLE) {
+			hide();
+		} else {
+			unhide();
+		}
+	}
+
 	show(String key, String value) {
 		List nodes = findNodes(key, value);
 		show(nodes);

@@ -8,7 +8,7 @@ NodeData(AccessibilityNodeInfo node) {
 	String viewId = node.getViewIdResourceName();
 	Rect bounds = new Rect();
 	Point coor = getCoordinates(node);
-	text = getText(node);
+	String text = getText(node);
 	boolean isClickable = node.isClickable();
 	boolean isEnabled = node.isEnabled();
 	boolean isFocusable = node.isFocusable();
