@@ -1,0 +1,186 @@
+import android.view.View;
+import bsh.This;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.Iterator;
+
+/*───────────────────────────────────────────────────────────────
+ViewControl()
+**Manages Window Views via Bitwise Operations**
+Handles visibility states (show, hide, remove) for multiple view containers.
+
+Returns:
+
+* Object → The BeanShell 'this' reference representing the constructor instance.
+───────────────────────────────────────────────────────────────*/
+ViewControl() {
+	int visibleViews = 0;
+	int removedViews = 0;
+	// Stores view bsh.This containing show(), hide(), remove() and isShown, isRemoved, isHidden
+	Map viewMap = new HashMap();
+	// Get a11Y to use stored flag constants
+	This a11Y = tasker.getJavaVariable("a11Y");
+	Object[][] showRules = new Object[][] {
+	
+		/* * view, int mustHideViews, mustRemoveViews
+		 * view = ENV.Layout.TYPE_* that must be shown
+		 * mustHideViews = ENV.Layout.TYPE_* that must be hidden before showing view
+		 * mustRemoveViews = ENV.Layout.TYPE_* that must be removed before showing view
+		 */
+
+		// Structure overlay must be shown alone
+		{
+			ENV.Layout.TYPE_STRUCTURE_OVERLAY, 0, ENV.Layout.TYPE_ALL_ASSIST
+		},
+
+		// Settings must be shown alone
+		{
+			ENV.Layout.TYPE_SETTINGS,
+			0,
+			ENV.Layout.TYPE_ALL_ASSIST
+		},
+
+		// Script editor must be shown alone
+		{
+			ENV.Layout.TYPE_SCRIPT_EDITOR,
+			0,
+			ENV.Layout.TYPE_ALL_ASSIST
+		},
+
+		// Action picker must be shown alone
+		{
+			ENV.Layout.TYPE_ACTION_PICKER,
+			0,
+			ENV.Layout.TYPE_ALL_ASSIST
+		},
+
+		// Filter sheet must be shown alongside structure overlay
+		{
+			ENV.Layout.TYPE_FILTER_SHEET,
+			0,
+			ENV.Layout.TYPE_ALL_ASSIST & ~(ENV.Layout.TYPE_FILTER_SHEET | ENV.Layout.TYPE_STRUCTURE_OVERLAY)
+		},
+
+		// Node search must be shown alone
+		{
+			ENV.Layout.TYPE_NODE_SEARCH,
+			ENV.Layout.TYPE_STRUCTURE_OVERLAY,
+			ENV.Layout.TYPE_ALL_ASSIST & ~(ENV.Layout.TYPE_NODE_SEARCH | ENV.Layout.TYPE_STRUCTURE_OVERLAY)
+		},
+
+		// Display menu must be shown alone
+		{
+			ENV.Layout.TYPE_DISPLAY_MENU,
+			0,
+			ENV.Layout.TYPE_ALL_ASSIST
+		}
+
+
+
+	};
+
+	addView(This myViewThis) {
+		int windowType = myViewThis.WINDOW_TYPE;
+		viewMap.put(windowType, myViewThis);
+	}
+    
+	removeView(This myViewThis) {
+		int windowType = myViewThis.WINDOW_TYPE;
+		viewMap.remove(windowType);
+	}
+
+	getView(int windowType) {
+		return viewMap.get(windowType);
+	}
+
+    isHidden(int myView) {
+        This myViewThis = (This) viewMap.get(myView);
+        return myViewThis.isHidden();
+    }
+
+	isVisible(int myView) {
+        This myViewThis = (This) viewMap.get(myView);
+		return myViewThis.isShown();
+	}
+
+	isRemoved(int myView) {
+        This myViewThis = (This) viewMap.get(myView);
+        return myViewThis.isRemoved();
+	}
+
+	hide(int targetViewsBit) {
+		Set viewSet = viewMap.keySet();
+		Iterator it = viewSet.iterator();
+		while (it.hasNext()) {
+			Integer currentKey = (Integer) it.next();
+			int myView = currentKey.intValue();
+
+            // Skip if this view is not to be hidden
+			if ((targetViewsBit & myView) != myView) continue;
+			if (!isVisible(myView)) continue;
+
+			This myViewThis = (This) viewMap.get(currentKey);
+			myViewThis.hide();
+			visibleViews &= ~myView;
+		}
+	}
+
+	remove(int targetViewsBit) {
+		Set viewSet = viewMap.keySet();
+		Iterator it = viewSet.iterator();
+		while (it.hasNext()) {
+			Integer currentKey = (Integer) it.next();
+			int myView = currentKey.intValue();
+
+            // Skip if this view is not to be removed
+			if ((targetViewsBit & myView) != myView) continue;
+			if (isRemoved(myView)) continue;
+
+			This myViewThis = (This) viewMap.get(currentKey);
+			myViewThis.remove();
+			removedViews |= myView;
+			visibleViews &= ~myView;
+		}
+
+
+	}
+	show(int targetViewsBit) {
+		/* Process dependent rule alterations prior to performing the display actions */
+		for (int i = 0; i < showRules.length; i++) {
+			int ruleView = showRules[i][0];
+
+			/* If the view matching this row configuration is requested inside targetViewsBit */
+			if ((targetViewsBit & ruleView) == ruleView) {
+				int mustHide = showRules[i][1];
+				int mustRemove = showRules[i][2];
+
+				if (mustHide != 0) {
+					hide(mustHide);
+				}
+				if (mustRemove != 0) {
+					remove(mustRemove);
+				}
+			}
+		}
+
+		/* Commit visual display transformations */
+		Set viewSet = viewMap.keySet();
+		Iterator it = viewSet.iterator();
+		while (it.hasNext()) {
+			Integer currentKey = (Integer) it.next();
+			int myView = currentKey.intValue();
+			if ((targetViewsBit & myView) != myView) continue;
+			if (isVisible(myView)) continue;
+
+			This myViewThis = (This) viewMap.get(currentKey);
+			myViewThis.show();
+			visibleViews |= myView;
+			removedViews &= ~myView;
+		}
+
+	}
+
+	return this;
+
+}
