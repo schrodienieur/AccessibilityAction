@@ -51,8 +51,8 @@ This NodeInfo(This structure) {
     final int FIELD_REQUIRED = 1 << 27;
 
     // Custom properties
-    final int HAS_VIEW_ID_RESOURCE_NAME = 1 << 32;
-    final int HAS_TEXT = 1 << 33;
+    final int HAS_VIEW_ID_RESOURCE_NAME = 1 << 30;
+    final int HAS_TEXT = 1 << 31;
 
     Object[][] constantsObject = new Object[][] {
         {"Checkable", CHECKABLE, "Action"},

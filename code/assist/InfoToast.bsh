@@ -47,8 +47,12 @@ import java.util.HashMap;
   ─────────────────────────────────────────────────────────────── */
 InfoToast(AccessibilityNodeInfo node, Context overlayContext, int overlayType) {
 	if (node == null) return null;
+
 	This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_INFO_TOAST;
+	a11Y.viewControl.addView(TOP);
+	
 	WindowManager windowManager = (WindowManager) overlayContext.getSystemService(Context.WINDOW_SERVICE);
 	final Handler mainHandler = new Handler(Looper.getMainLooper());
 

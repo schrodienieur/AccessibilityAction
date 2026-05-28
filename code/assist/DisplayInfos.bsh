@@ -22,6 +22,9 @@ import android.view.ViewParent;
 DisplayInfos() {
 	final This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_DISPLAY_INFO;
+	a11Y.viewControl.addView(TOP);
+	
 	String LOG_FILE = a11Y.LOG_FILE;
 	List displayInfos = new ArrayList();
 	Context baseContext = context;

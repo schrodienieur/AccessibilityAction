@@ -299,6 +299,22 @@ FloatingSheet(This config) {
 		}
 	}
 
+	isAdded() {
+		return baseRoot.isAttachedToWindow();
+	}
+
+	isHidden() {
+		return baseRoot.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		return baseRoot.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		return !isAdded();
+	}
+
 	return this;
 
 

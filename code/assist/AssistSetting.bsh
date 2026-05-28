@@ -42,12 +42,17 @@ public addSpacer(Context ctx, ViewGroup container) {
   AssistSetting()
   ───────────────────────────────────────────────────────────────*/
 AssistSetting() {
-	This a11Y = tasker.getJavaVariable("a11Y");
-	final int WINDOW_TYPE = a11Y.TYPE_SETTINGS;
+
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
+	
+	final This TOP = this;
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_SETTINGS;
+	a11Y.viewControl.addView(TOP);
 
 	Activity activity;
+	FrameLayout baseRoot;
 	boolean isRemoved;
 	boolean isShown;
 	boolean hasShownOnce;
@@ -278,6 +283,26 @@ AssistSetting() {
 		} else {
 			remove();
 		}
+	}
+
+	isAdded() {
+		if (baseRoot == null) return false;
+		return baseRoot.getParent() != null && baseRoot.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (baseRoot == null) return false;
+		return !isAdded();
 	}
 
 	return this;

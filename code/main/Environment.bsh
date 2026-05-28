@@ -44,6 +44,29 @@ Environment() {
 	final int TYPE_OTHER = 5;
 	final int TYPE_OTHER_OVERLOAD = 6;
 
+	// Layout constants
+	Layout() {
+		final int TYPE_NONE = 1;
+		final int TYPE_ASSIST_BAR = 1 << 0;
+		final int TYPE_STRUCTURE_OVERLAY = 1 << 1;
+		final int TYPE_SETTINGS = 1 << 2;
+		final int TYPE_NODE_SEARCH = 1 << 3;
+		final int TYPE_FILTER_SHEET = 1 << 4;
+		final int TYPE_SCRIPT_EDITOR = 1 << 5;
+		final int TYPE_ACTION_PICKER = 1 << 6;
+		final int TYPE_INFO_SHEET = 1 << 7;
+		final int TYPE_INFO_TOAST = 1 << 8;
+		final int TYPE_DISPLAY_MENU = 1 << 9;
+		final int TYPE_DISPLAY_INFO = 1 << 10;
+		final int TYPE_NODE_BOX = 1 << 11;
+
+		// Besides TYPE_NONE and TYPE_ASSIST_BAR
+		final int TYPE_ALL_ASSIST = TYPE_ACTION_PICKER | TYPE_STRUCTURE_OVERLAY | TYPE_SETTINGS | TYPE_NODE_SEARCH | TYPE_FILTER_SHEET | TYPE_SCRIPT_EDITOR | TYPE_INFO_SHEET | TYPE_DISPLAY_MENU;
+		return this;
+	}
+
+	This Layout = Layout();
+
 	/* Initialize Defaults */
 	int currentType = TYPE_UNKNOWN;
 	boolean hasMaterialColor;
@@ -82,12 +105,12 @@ Environment() {
 		}
 	}
 
-	
+
 	try {
 		Class.forName("com.google.android.material.textview.MaterialTextView", false, context.getClass().getClassLoader());
 		hasMaterialLib = true;
-	} catch(e) {}
-	
+	} catch (e) {}
+
 	String themeIdentifier = "Theme.Material3.DynamicColors.Dark";
 	Resources baseRes = context.getResources();
 	String pkg = context.getPackageName();
@@ -105,19 +128,19 @@ Environment() {
 			hasMaterialFallback = true;
 		} catch (Exception e) {}
 	}
-	
+
 	isTasker() {
 		return currentType == TYPE_TASKER;
 	}
-	
+
 	isMacrodroid() {
 		return currentType == TYPE_MACRODROID;
 	}
-	
+
 	isUnknown() {
 		return currentType == TYPE_UNKNOWN;
 	}
-	
+
 	isKidApp() {
 		return currentType == TYPE_KID_APP;
 	}
@@ -134,11 +157,11 @@ Environment() {
 	hasMaterialColor() {
 		return HAS_MATERIAL_COLOR;
 	}
-	
+
 	hasMaterialLib() {
 		return HAS_MATERIAL_LIB;
 	}
-	
+
 	hasMaterialFallback() {
 		return HAS_MATERIAL_COLOR_FALLBACK;
 	}
@@ -184,5 +207,5 @@ Environment() {
 	}
 
 	return this;
-	
+
 }

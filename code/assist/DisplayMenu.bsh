@@ -24,8 +24,12 @@ config()
 **Configuration Preset with Dynamic Material Chip Groups**
 ───────────────────────────────────────────────────────────────*/
 DisplayMenu() {
+
 	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_DISPLAY_MENU;
 	final This TOP = this;
+	a11Y.viewControl.addView(TOP);
+
 	This displayInfos = DisplayInfos();
 	long timeout = 30000;
 	float maxHeight = 0.5f;
@@ -101,11 +105,33 @@ DisplayMenu() {
 	}
 
 	remove() {
+		if (floatingSheet == null) return;
 		floatingSheet.remove();
 	}
 
 	toggle() {
+		if (floatingSheet == null) return;
 		floatingSheet.toggle();
+	}
+
+	isAdded() {
+		if (floatingSheet == null) return false;
+		return floatingSheet.isAdded();
+	}
+
+	isHidden() {
+		if (floatingSheet == null) return false;
+		return floatingSheet.isHidden();
+	}
+
+	isShown() {
+		if (floatingSheet == null) return false;
+		return floatingSheet.isShown();
+	}
+
+	isRemoved() {
+		if (floatingSheet == null) return false;
+		return floatingSheet.isRemoved();
 	}
 
 	return this;

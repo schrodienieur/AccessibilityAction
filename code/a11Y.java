@@ -6,6 +6,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
+import android.os.Handler;
+import android.os.Looper;
 
 a11Y() {
 	// Retrieve the previous instance from Tasker's memory
@@ -23,15 +25,7 @@ a11Y() {
 
 	}
 
-	// Constants
-	final int TYPE_ASSIST_BAR = 0;
-	final int TYPE_STRUCTURE_OVERLAY = 1;
-	final int TYPE_SETTINGS = 2;
-	final int TYPE_NODE_SEARCH = 3;
-	final int TYPE_FILTER_SHEET = 4;
-	final int TYPE_SCRIPT_EDITOR = 5;
-	final int TYPE_ACTION_PICKER = 6;
-	final int TYPE_INFO_SHEET = 7;
+	
 	final This TOP = this;
 
 	// Variables
@@ -49,6 +43,7 @@ a11Y() {
 	This inspector;
 	This NodeInfo;
 	This config;
+	Handler mainHandler = new Handler(Looper.getMainLooper());
 
 	ThreadFactory customThreadFactory = new ThreadFactory() {
 		private AtomicInteger count = new AtomicInteger(0);
@@ -255,6 +250,9 @@ a11Y() {
 		displayInfos.show(6000);
 	}
 
+	post(Runnable run) {
+		mainHandler.post(run);
+	}
 	long startTime = System.currentTimeMillis();
 	return this;
 
@@ -265,13 +263,19 @@ addClassPath(ENV_PATH);
 importCommands("lib");
 importCommands("main");
 This a11Y = a11Y();
+
 a11Y.setEnvPath(ENV_PATH);
 
-This Env = Environment();
-a11Y.setEnv(Env);
+This ENV = Environment();
+a11Y.setEnv(ENV);
+
+
+This viewControl = ViewControl();
+a11Y.namespace.setVariable("viewControl", viewControl, false);
 
 This config = Config(ENV_PATH + "/config.java");
 config.setTo(a11Y);
+
 a11Y.namespace.setVariable("config", config, false);
 a11Y.set();
 
@@ -280,13 +284,14 @@ inspector.read();
 a11Y.inspector = inspector;
 tasker.setJavaVariable("a11Y", a11Y);
 
+
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
 This NodeInfo = NodeInfo();
 a11Y.namespace.setVariable("NodeInfo", NodeInfo, false);
 // Limit following methods and scripted objects to Tasker app
-if (!Env.HAS_MATERIAL_LIB) return;
+if (!ENV.HAS_MATERIAL_LIB) return;
 
 This assistBar = AssistBar(0.8, 0.8);
 a11Y.namespace.setVariable("assistBar", assistBar, false);
@@ -298,7 +303,8 @@ a11Y.namespace.setVariable("updateManager", updateManager, false);
 This packageManager = PackageManager();
 a11Y.namespace.setVariable("packageManager", packageManager, false);
 
-if (!Env.HAS_MATERIAL_COLOR && Env.HAS_MATERIAL_COLOR_FALLBACK) {
+
+if (!ENV.HAS_MATERIAL_COLOR && ENV.HAS_MATERIAL_COLOR_FALLBACK) {
 	This mcf = MaterialColorFallback();
 	mcf.load();
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");

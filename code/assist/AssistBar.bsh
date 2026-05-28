@@ -43,9 +43,12 @@ public int dp(int value) {
 	AssistBar(int initialX, int initialY)
   ───────────────────────────────────────────────────────────────*/
 public This AssistBar(int initialX, int initialY) {
+
 	final This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
-	final int WINDOW_TYPE = a11Y.TYPE_ASSIST_BAR;
+	final int WINDOW_TYPE = ENV.Layout.TYPE_ASSIST_BAR;
+	a11Y.viewControl.addView(TOP);
+
 	final AccessibilityService accessibilityService = getService();
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
@@ -59,7 +62,7 @@ public This AssistBar(int initialX, int initialY) {
 	This assistSetting = AssistSetting();
 	boolean isRemoved;
 	boolean isShown;
-	boolean hasShownOnce;	
+	boolean hasShownOnce;
 	int selectedDisplayId;
 
 	listener() {
@@ -98,7 +101,7 @@ public This AssistBar(int initialX, int initialY) {
 	/* THEME */
 	This tm = ThemeManager(assistContext);
 	tm.setThemeDark();
-	
+
 	DisplayMetrics displayMetrics = getDisplayMetrics();
 	int screenheight = displayMetrics.heightPixels;
 
@@ -240,8 +243,8 @@ public This AssistBar(int initialX, int initialY) {
 	MaterialButton settingBtn = IconButton(tm.attr("mw_action_settings"), false);
 	settingBtn.setOnClickListener(new View.OnClickListener() {
 		onClick(View view) {
-			if (scriptEditor != null) scriptEditor.remove();
-			if (structureOverlay != null) structureOverlay.remove();
+			// if (scriptEditor != null) scriptEditor.remove();
+			// if (structureOverlay != null) structureOverlay.remove();
 			if (assistSetting != null) assistSetting.toggle();
 		}
 	});
@@ -249,27 +252,35 @@ public This AssistBar(int initialX, int initialY) {
 	/*────────────────────────────
 	  Search Button
 	────────────────────────────*/
-			toggleSearch()	{
-				Runnable runMe = new Runnable() {
-					run() {
-						try {
-							if (nodeSearch != null) {
-								structureOverlay.unhide();
-								nodeSearch.remove();
-								nodeSearch = null;
-							} else {
-								if (filterSheet != null) filterSheet.remove();
-								nodeSearch = NodeSearch(structureOverlay);
-								structureOverlay.hide();
-								nodeSearch.show();
-							}
-						} catch (e) {
-							tasker.showToast(e.getMessage());
+	showSearch() {
+		if (filterSheet != null) filterSheet.remove();
+		nodeSearch = NodeSearch(structureOverlay);
+		structureOverlay.hide();
+		nodeSearch.show();
+	}
+	toggleSearch() {
+		Runnable runMe = new Runnable() {
+			run() {
+				try {
+
+					if (nodeSearch != null) {
+						if (structureOverlay != null && structureOverlay.isShown()) {
+							showSearch();
+						} else {
+							nodeSearch.remove();
+							nodeSearch = null;
+							structureOverlay.unhide();
 						}
+					} else {
+						showSearch();
 					}
-				};
-				runMe(runMe);
+				} catch (e) {
+					tasker.showToast(e.getMessage());
+				}
 			}
+		};
+		runMe(runMe);
+	}
 
 	MaterialButton searchBtn = IconButton(tm.attr("mw_action_search"), false);
 	// Remove at first;
@@ -290,10 +301,10 @@ public This AssistBar(int initialX, int initialY) {
 		onClick(View view) {
 			if (filterSheet == null) {
 				filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
-				int filterY = ( 1 - filterSheet.config.maxHeight) * screenheight;
+				int filterY = (1 - filterSheet.config.maxHeight) * screenheight;
 				int assistY = assistParams.y + assistParams.height;
-				if (assistY > filterY ) moveHandle(assistParams.x, filterY - assistParams.height);
-			} 
+				if (assistY > filterY) moveHandle(assistParams.x, filterY - assistParams.height);
+			}
 			structureOverlay.unhide();
 			if (filterSheet != null) filterSheet.toggle();
 			if (nodeSearch != null) nodeSearch.remove();
@@ -425,14 +436,13 @@ public This AssistBar(int initialX, int initialY) {
 	handleListener() {
 		onLongPress() {
 			vibrate(assistButton);
-			
+
 			// TODO: Make changes on FloatingSheet so its height can be retrieved
 			// Use placeholder as of now
-			int displayMenuY = ( 1.0 - 0.5) * screenheight;
+			int displayMenuY = (1.0 - 0.5) * screenheight;
 			int assistY = assistParams.y + assistParams.height;
-			if (assistY > displayMenuY ) moveHandle(assistParams.x, displayMenuY);
-			tasker.showToast("" + displayMenuY);
-			displayMenu.show();		
+			if (assistY > displayMenuY) moveHandle(assistParams.x, displayMenuY);
+			displayMenu.show();
 		}
 		onSingleTapConfirmed() {
 			toggleStructure();

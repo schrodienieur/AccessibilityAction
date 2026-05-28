@@ -59,6 +59,8 @@ import android.view.accessibility.AccessibilityWindowInfo;
 StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	final This TOP = this;
 	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_STRUCTURE_OVERLAY;
+	a11Y.viewControl.addView(TOP);
 	// Always uses accessibility service for non main screen
 	// if (displayId > 0) useA11y = true;
 	boolean isRemoved;
@@ -119,7 +121,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	}
 
 	isRemoved() {
-		return isRemoved;
+		return rootLayout.getParent() == null;
 	}
 
 	post(Runnable run) {
@@ -197,6 +199,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	}
 
 	hideBoxes() {
+		removeActiveHighlight();
 		for (This nodeBox: map.values()) {
 			This hidden = hideBox(nodeBox);
 			hiddenBoxes.add(hidden);
@@ -214,8 +217,13 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		hiddenBoxes.clear();
 	}
 
+	removeActiveHighlight() {
+		if (activeBox == null) return;
+		activeBox.reset();
+	}
+
 	activeHighlight(This nodeBox) {
-		if (activeBox != null) activeBox.reset();
+		removeActiveHighlight();
 		activeBox = this;
 		AccessibilityNodeInfo node = nodeBox.node;
 		int fillColor = setAlpha(themeManager.color("colorPrimary"), 150);
@@ -235,6 +243,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		return this;
 	}
 
+
 	addHistory(This nodeBox) {
 		if (nodeBox == null) return;
 		if (!boxHistory.isEmpty()) {
@@ -247,11 +256,9 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		onSingleTapConfirmed(This nodeBox) {
 			addHistory(nodeBox);
 			if (activeBox != null && activeBox.node.equals(nodeBox.node)) {
-				// 				removeHelper();
-				activeBox.reset();
+				removeActiveHighlight();
 			} else {
-				// 				removeHelper();
-				if (activeBox != null) activeBox.reset();
+				removeActiveHighlight();
 				activeHighlight(nodeBox);
 			}
 			return true;
@@ -349,7 +356,6 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	}
 
 	show() {
-
 		// Reset everything
 		if (hasShownOnce) {
 			root = (AccessibilityNodeInfo) getRoot(displayId);
@@ -370,7 +376,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 				}
 				
 				float end = System.currentTimeMillis() - start;
-				tasker.showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
+				showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
 			}
 		};
 		post(showRun);
@@ -378,7 +384,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 
 	show(List nodes) {
 		if (nodes.isEmpty()) {
-			tasker.showToast("Not found");
+			showToast("Not found");
 			return;
 		}
 		if (listener == null) listener = getDefaultListener();
@@ -409,9 +415,14 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		post(showRun);
 	}
 
+	/*
+	* Visibility and State Control
+	*/
+
 	hide() {
 		Runnable hideRun = new Runnable() {
 			run() {
+				removeActiveHighlight();
 				rootLayout.setVisibility(View.GONE);
 			}
 		};
@@ -427,8 +438,16 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 		post(unhideRun);
 	}
 
+	isVisible() {
+		return rootLayout.getVisibility() == View.VISIBLE;
+	}
+
+	isHidden() {
+		return rootLayout.getVisibility() == View.GONE;
+	}
+
 	toggleHide() {
-		if (rootLayout.getVisibility() == View.VISIBLE) {
+		if (isVisible()) {
 			hide();
 		} else {
 			unhide();
@@ -438,6 +457,10 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	show(String key, String value) {
 		List nodes = findNodes(key, value);
 		show(nodes);
+	}
+
+	isShown() {
+		return rootLayout.getParent() != null &&  isVisible();
 	}
 
 	showText() {
@@ -484,8 +507,9 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 			hasShownOnce = true;
 			isShown = true;
 			if (isRemoved) isRemoved = false;
+
 			if (a11Y.structureOverlay == void) a11Y.namespace.setVariable("structureOverlay", TOP, false);
-			a11Y.addOverlay(this);
+			a11Y.addOverlay(TOP);
 			if (TOP.stateChangeListener != void) {
 				try {
 					TOP.stateChangeListener.onViewAttachedToWindow(view);
@@ -498,6 +522,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 			isShown = false;
 			a11Y.removeOverlay(this);
 			a11Y.namespace.unsetVariable("structureOverlay");
+			removeActiveHighlight();
 			if (TOP.stateChangeListener != void) {
 				try {
 					TOP.stateChangeListener.onViewDetachedFromWindow(view);

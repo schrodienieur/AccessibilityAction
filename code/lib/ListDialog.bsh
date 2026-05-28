@@ -42,6 +42,7 @@ import android.content.res.ColorStateList;
 import androidx.appcompat.content.res.AppCompatResources;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.android.material.card.MaterialCardView;
+import bsh.BshMethod;
 /*───────────────────────────────────────────────────────────────
   ListDialog Component
   ───────────────────────────────────────────────────────────────*/
@@ -81,6 +82,9 @@ ListDialog(This config) {
 	boolean hasSuccessMulti = hasMethod("onSuccess", new Class[] { ArrayList.class });
 	boolean hasCancel = hasMethod("onCancel", null);
 	boolean hasTimeout = hasMethod("onTimeout", null);
+	boolean hasDismiss = hasMethod("onDismiss", null);
+	boolean hasAttach = hasMethod("onAttach", null);
+	boolean hasDetach = hasMethod("onDetach", null);
 
 	CompletableSubject waitTimeout = CompletableSubject.create();
 
@@ -361,9 +365,11 @@ ListDialog(This config) {
 			onViewAttachedToWindow(View v) {
 				hasShown = true;
 				isRemoved = false;
+				if (hasAttach) config.onAttach();
 			}
 			onViewDetachedFromWindow(View v) {
 				remove();
+				if (hasDetach) config.onDetach();
 			}
 		});
 	}
@@ -387,6 +393,22 @@ ListDialog(This config) {
 	toggle() {
 		if (isRemoved) show();
 		else remove();
+	}
+
+	isAdded() {
+		return root.isAttachedToWindow();
+	}
+
+	isShown() {
+		return hasShown && !isRemoved;
+	}
+
+	isHidden() {
+		return !hasShown || isRemoved;
+	}
+
+	isRemoved() {
+		return isRemoved;
 	}
 
 	return this;

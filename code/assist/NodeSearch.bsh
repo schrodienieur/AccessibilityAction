@@ -6,8 +6,12 @@ import android.graphics.Point;
   NodeSearch()
   ───────────────────────────────────────────────────────────────*/
 NodeSearch(This structureOverlay) {
+    
     final This TOP = this;
     This a11Y = tasker.getJavaVariable("a11Y");
+    final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_SEARCH;
+    a11Y.viewControl.addView(TOP);
+
     Map map = structureOverlay.map;
     List itemList = new ArrayList();
 	config(This THIS) {
@@ -29,6 +33,15 @@ NodeSearch(This structureOverlay) {
 		onTimeout() {
             structure.unhide();
         }
+
+        onAttach() {
+            structure.hide();
+        }
+
+        onDetach() {
+            structure.unhide();
+        }
+        
 		return this;
 	}
 
@@ -74,6 +87,22 @@ NodeSearch(This structureOverlay) {
     toggle() {
         listDialog.toggle();
     }
+
+    isAdded() {
+		return listDialog.isAdded();
+	}
+
+	isHidden() {
+		return listDialog.isHidden();
+	}
+
+	isShown() {
+		return listDialog.isShown();
+	}
+
+	isRemoved() {
+		return listDialog.isRemoved();
+	}
 
     loadList();
 	return this;

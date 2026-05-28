@@ -141,6 +141,11 @@ public This InfoDialog(AccessibilityNodeInfo targetNode, Context ctx, int overla
 	final WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
 	final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+	final This TOP = this;
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_INFO_SHEET;
+	a11Y.viewControl.addView(TOP);
+
 	tm = ThemeManager(ctx);
 	tm.setThemeDark();
 	info = getNodeData(targetNode);
@@ -287,6 +292,22 @@ public This InfoDialog(AccessibilityNodeInfo targetNode, Context ctx, int overla
 			wm.addView(root, params);
 		}
 	});
+
+	isAdded() {
+		return root.getParent() != null && root.isAttachedToWindow();
+	}
+
+	isHidden() {
+		return root.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		return root.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		return !isAdded();
+	}
 
 	return this;
 }

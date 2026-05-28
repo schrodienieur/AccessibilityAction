@@ -19,6 +19,12 @@ config()
 **Configuration Preset with Dynamic Material Chip Groups**
 ───────────────────────────────────────────────────────────────*/
 FilterSheet(This structure) {
+
+	final This TOP = this;
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_FILTER_SHEET;
+	a11Y.viewControl.addView(TOP);
+	
 	This nodeInfo = NodeInfo(structure);
 	config() {
 		maxHeight = 0.30f;
@@ -162,5 +168,21 @@ FilterSheet(This structure) {
 		floatingSheet.toggle();
 	}
 	
+	isAdded() {
+		return floatingSheet.isAdded();
+	}
+
+	isHidden() {
+		return floatingSheet.isHidden();
+	}
+
+	isShown() {
+		return floatingSheet.isShown();
+	}
+
+	isRemoved() {
+		return floatingSheet.isRemoved();
+	}
+
 	return this;
 }

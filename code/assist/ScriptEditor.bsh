@@ -67,8 +67,14 @@ ScriptEditor() {
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
 
+	final This TOP = this;
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_SCRIPT_EDITOR;
+	a11Y.viewControl.addView(TOP);
+
 	Activity activity;
 	TextInputEditText editText;
+	FrameLayout baseRoot;
 	boolean isRemoved;
 	boolean hasShown;
 	boolean isActionEdit;
@@ -99,7 +105,7 @@ ScriptEditor() {
 				return;
 			}
 		}
-		tasker.showToast("Not in Java code action" + getUsageEvents() { "className" });
+		showToast("Not in Java code action" + getUsageEvents() { "className" });
 
 	}
 
@@ -109,7 +115,7 @@ ScriptEditor() {
 			editText.setText(codeText);
 			return;
 		}
-		tasker.showToast("Not in Java code action" + getUsageEvents() { "className" });
+		showToast("Not in Java code action" + getUsageEvents() { "className" });
 	}
 
 	remove() {
@@ -330,6 +336,27 @@ ScriptEditor() {
 			remove();
 		}
 	}
+
+	isAdded() {
+		if (baseRoot == null) return false;
+		return baseRoot.getParent() != null && baseRoot.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (baseRoot == null) return false;
+		return !isAdded();
+	}
+
 
 	return this;
 }
