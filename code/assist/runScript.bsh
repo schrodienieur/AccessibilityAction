@@ -6,12 +6,15 @@ import java.util.concurrent.Executors;
   Runs the provided BeanShell script on a background thread.
  ───────────────────────────────────────────────────────────────*/
 public void runScript(String script, long delayMs) {
-	wait(delayMs);
+
 	String header ="""tasker.getJavaVariable("a11Y").set();
 """;
 	This a11Y = tasker.getJavaVariable("a11Y");
 	a11Y.executor.submit(new Runnable() {
         run() {
+            if (delayMs > 0) {
+                wait(delayMs);
+            }
             /* Ensure the accessibility object exists in this scope. */
             if (a11Y != null && a11Y != void) {
                 a11Y.muteEvents();
