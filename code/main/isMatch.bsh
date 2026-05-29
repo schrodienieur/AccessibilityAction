@@ -27,6 +27,10 @@ isMatch(AccessibilityNodeInfo node, String key, Object value, boolean strict) {
 			CharSequence text = node.getText();
 			CharSequence desc = node.getContentDescription();
 			if (text == null && desc == null) break;
+
+			// If not string then turn to string
+			if (!(value instanceof String)) value = value.toString();
+			
 			if (strict) {
 				if (text != null && value.equalsIgnoreCase(text)) {
 					isMatch = true;
