@@ -76,10 +76,6 @@ public This AssistBar(int initialX, int initialY) {
 
 	displayMenu.onClickListener = listener();
 
-	isRemoved() {
-		return structureOverlay != null && structureOverlay.isRemoved();
-	}
-
 	setButtonColorState(MaterialButton btn, boolean isActive) {
 		int backgroundColor = tm.color("colorPrimary");
 		int iconColor = tm.color("colorOnPrimary");
@@ -442,6 +438,7 @@ public This AssistBar(int initialX, int initialY) {
 			int displayMenuY = (1.0 - 0.5) * screenheight;
 			int assistY = assistParams.y + assistParams.height;
 			if (assistY > displayMenuY) moveHandle(assistParams.x, displayMenuY);
+			displayMenu.load();
 			displayMenu.show();
 		}
 		onSingleTapConfirmed() {
@@ -513,6 +510,26 @@ public This AssistBar(int initialX, int initialY) {
 			isRemoved = true;
 		}
 	});
+
+	isAdded() {
+		if (assistButton == null) return false;
+		return assistButton.getParent() != null && assistButton.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (assistButton == null) return false;
+		return assistButton.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (assistButton == null) return false;
+		return assistButton.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (assistButton == null) return false;
+		return !isAdded();
+	}
 
 	return this;
 }

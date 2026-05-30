@@ -81,7 +81,11 @@ debugMe(List nodes) {
 				nodeBoxes.add(nodeBox);
 			}
 			if (!isAction) {
-				structure = StructureOverlay(true);
+				// Adjust if in assist mode
+				boolean inAssistMode = a11Y.assistBar.isShown();
+				int displayId = inAssistMode ? a11Y.assistBar.selectedDisplayId : 0;
+				structure = StructureOverlay(true, displayId);	
+				
 				structure.setTouchable(true);
 				structure.setNodeBoxTouchable(false);
 				structure.show(nodeBoxes);

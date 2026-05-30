@@ -219,6 +219,10 @@ ScriptEditor() {
 		lineChip.setText("Run Line");
 		lineChip.setOnClickListener(new View.OnClickListener() {
 			onClick(View v) {
+				if (a11Y.assistBar.selectedDisplayId != 0) {
+					showToast("Editor doesn't support multiple displays yet.");
+					return;
+            	}
 				String code = getLines();
 				remove();
 				runScript(code, 100);
@@ -265,6 +269,10 @@ ScriptEditor() {
 		runAllBtn.setText("RUN ALL");
 		runAllBtn.setOnClickListener(new View.OnClickListener() {
 			onClick(View v) {
+				if (a11Y.assistBar.selectedDisplayId != 0) {
+					showToast("Editor doesn't support multiple displays yet.");
+					return;
+            	}
 				String script = editText.getText().toString();
 				remove();
 				runScript(script, 100);

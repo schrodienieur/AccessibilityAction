@@ -545,7 +545,7 @@ StructureOverlay(boolean useA11y, AccessibilityWindowInfo window) {
 }
 
 StructureOverlay(boolean useA11y, int displayId) {
-	AccessibilityNodeInfo root = (AccessibilityNodeInfo) getRoot(diplayId);
+	AccessibilityNodeInfo root = (AccessibilityNodeInfo) getRoot(displayId);
 	return StructureOverlay(root, useA11y, displayId);
 }
 

@@ -30,7 +30,7 @@ DisplayMenu() {
 	final This TOP = this;
 	a11Y.viewControl.addView(TOP);
 
-	This displayInfos = DisplayInfos();
+	This displayInfos;
 	long timeout = 30000;
 	float maxHeight = 0.5f;
 
@@ -95,6 +95,7 @@ DisplayMenu() {
 	This floatingSheet;
 	
 	load() {
+		displayInfos = DisplayInfos();
 		config = config();
 		floatingSheet = FloatingSheet(config);
 	}
