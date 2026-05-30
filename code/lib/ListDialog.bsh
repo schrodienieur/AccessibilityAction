@@ -372,6 +372,8 @@ ListDialog(This config) {
 				if (hasDetach) config.onDetach();
 			}
 		});
+		
+		
 	}
 
 	show() {

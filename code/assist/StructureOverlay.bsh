@@ -146,7 +146,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	highlightNodes(List nodes, int strokeColor, int fillColor) {
 		ArrayList highlights = new ArrayList();
 		for (int i = 0; i < nodes.size(); i++) {
-			AccessibilityNodeInfo targetNode  = nodes.get(i);
+			AccessibilityNodeInfo targetNode = nodes.get(i);
 			if (activeBox == null && targetNode.equals(activeBox.node)) continue;
 			This highlight = highlightNode(targetNode, strokeColor, fillColor);
 			highlights.add(highlight);
@@ -286,16 +286,21 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 			vibrate(nodeBox.view);
 			addHistory(nodeBox);
 			if (tasker.getJavaVariable("a11Y").quickAddMode) {
-				remove();
 				This nodeData = SimilarNodes(root, map, nodeBox);
+				remove();
 				tasker.setJavaVariable("nodeData", nodeData);
 				a11Y.executor.submit(new Runnable() {
 					run() {
-						tasker.getJavaVariable("a11Y").set();
-						Map result = ActionPicker(nodeData);
-						if (result != null) {
-							a11Y.selectedAction = result;
+						try {
+							tasker.getJavaVariable("a11Y").set();
+							Map result = ActionPicker(nodeData);
+							if (result != null) {
+								a11Y.selectedAction = result;
+							}
+						} catch (e) {
+							log(e.getMessage(), "ERROR", TOP);
 						}
+
 					}
 				});
 			} else {
@@ -374,7 +379,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 					This nodeBox = wrap[2];
 					nodeBox.addViewTo(rootLayout);
 				}
-				
+
 				float end = System.currentTimeMillis() - start;
 				showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
 			}
@@ -416,8 +421,8 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	}
 
 	/*
-	* Visibility and State Control
-	*/
+	 * Visibility and State Control
+	 */
 
 	hide() {
 		Runnable hideRun = new Runnable() {
@@ -460,7 +465,7 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	}
 
 	isShown() {
-		return rootLayout.getParent() != null &&  isVisible();
+		return rootLayout.getParent() != null && isVisible();
 	}
 
 	showText() {
