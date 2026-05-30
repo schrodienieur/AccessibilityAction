@@ -6,6 +6,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import android.graphics.Point;
+import bsh.This;
 /*───────────────────────────────────────────────────────────────
 click(...)
 **Performs Click Action**
@@ -56,6 +57,9 @@ click(AccessibilityNodeInfo node) {
 
 }
 
+click(This multiKeys) {
+	return click(getNode(multiKeys));
+}
 
 click(int x, int y) {
 	return tap(x, y);

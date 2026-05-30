@@ -8,6 +8,7 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import android.graphics.Point;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 setSeekbar(...)
@@ -58,6 +59,10 @@ setSeekbar(AccessibilityNodeInfo node, int percentage) {
 }
 
 /* Collection Overloads */
+setSeekbar(This multiKeys) {
+	return setSeekbar(getNode(multiKeys), multiKeys.percentage);
+}
+
 setSeekbar(ArrayList nodes, value) {
     return setSeekbar(toNode(nodes), value);
 }

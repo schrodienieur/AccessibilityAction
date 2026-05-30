@@ -1,6 +1,7 @@
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 select(...)
@@ -37,6 +38,10 @@ select(AccessibilityNodeInfo node) {
 }
 
 /* Collection Overloads */
+select(This multiKeys) {
+	return select(getNode(multiKeys));
+}
+
 select(ArrayList nodes) {
 	AccessibilityNodeInfo node = toNode(nodes);
 	return select(node);

@@ -1,6 +1,7 @@
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*─────────────────────────────────────────────────────────────── 
 This code was primarily generated using AI with minimal human editing.
@@ -29,6 +30,10 @@ imeEnter(AccessibilityNodeInfo node) {
 	if (success) node.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return node;
+}
+
+imeEnter(This multiKeys) {
+	return imeEnter(getNode(multiKeys));
 }
 
 imeEnter(ArrayList nodes) {

@@ -6,6 +6,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 setSelection(...)
@@ -59,6 +60,12 @@ setSelection(AccessibilityNodeInfo node, int start, int end) {
 }
 
 /* Collection Overloads */
+setSelection(This multiKeys) {
+	int start = multiKeys.start == void ? 0 : multiKeys.start;
+	int end = multiKeys.end == void ? -1 : multiKeys.end;
+	return setSelection(getNode(multiKeys), start, end);
+}
+
 setSelection(ArrayList nodes, int start, int end) {
 	AccessibilityNodeInfo node = toNode(nodes);
 	return setSelection(node, start, end);

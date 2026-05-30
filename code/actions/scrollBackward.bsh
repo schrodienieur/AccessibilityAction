@@ -3,6 +3,7 @@ This code was primarily generated using AI with minimal human editing.
 ───────────────────────────────────────────────────────────────*/
 
 import android.view.accessibility.AccessibilityNodeInfo;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
  * scrollBackward(String key, String value, int index)
@@ -25,6 +26,10 @@ scrollBackward(AccessibilityNodeInfo node) {
     if (success) node.refresh();
     if (stepDelay > 0) wait(stepDelay);
     return node;
+}
+
+scrollBackward(This multiKeys) {
+	return scrollBackward(getNode(multiKeys));
 }
 
 scrollBackward(String key, String value, int index) {

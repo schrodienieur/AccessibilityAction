@@ -13,5 +13,6 @@ boolean waitNodes = true;
 long actionPickerReminderDelay = 120000;
 long debugDelay = 1000;
 long findDelay = 100;
-long stepDelay = 50;
+long stepDelay = 100;
 long waitNodesTimeout = 10000;
+long longClickFallBackDuration = 500;

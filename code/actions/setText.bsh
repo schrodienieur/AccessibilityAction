@@ -6,6 +6,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 setText(...)
@@ -42,6 +43,10 @@ setText(AccessibilityNodeInfo node, String setText) {
 }
 
 /* Collection Overloads */
+setText(This multiKeys) {
+	return setText(getNode(multiKeys), multiKeys.setText);
+}
+
 setText(ArrayList nodes, String setText) {
 	return setText(toNode(nodes), setText);
 }

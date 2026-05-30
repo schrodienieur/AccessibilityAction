@@ -5,6 +5,7 @@ This code was primarily generated using AI with minimal human editing.
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 contextClick(...)
@@ -42,7 +43,12 @@ contextClick(AccessibilityNodeInfo node) {
 
 }
 
+
 /* Collection Overloads */
+contextClick(This multiKeys) {
+	return contextClick(getNode(multiKeys));
+}
+
 contextClick(ArrayList nodes) {
 	return contextClick(toNode(nodes));
 }

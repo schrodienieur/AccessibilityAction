@@ -11,6 +11,7 @@ Config(String filePath) {
 		{ "Action", "stepDelay", "Step delay (ms)", true },
 		{ "Action", "waitNodesTimeout", "Waiting nodes timeout (ms)", true },
 		{ "Action", "findFirstForRecursive", "Return first node for recursive search", true },
+		{ "Action", "longClickFallBackDuration", "Long click fallback duration", true },
 		{ "Debugging", "debugMe", "Enable debug mode", true },
 		{ "Debugging", "debugSteps", "Show debugging information on a toast", false },
 		{ "Debugging", "debugInfo", "Show debugging information on a toast", true },

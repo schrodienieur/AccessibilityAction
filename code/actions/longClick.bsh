@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import android.graphics.Point;
+import bsh.This;
 
 /*─────────────────────────────────────────────────────────────── 
 This code was primarily generated using AI with minimal human editing.
@@ -56,7 +57,7 @@ longClick(AccessibilityNodeInfo node) {
 		showOnScreen(node);
 		Point coor = getCoordinates(node);
 		debugMe(node);
-		success = tap(coor.x, coor.y, LONG_CLICK_FALLBACK_DURATION);
+		success = tap(coor.x, coor.y, longClickFallBackDuration);
 	}
 
 	if (success) {
@@ -71,14 +72,18 @@ longClick(AccessibilityNodeInfo node) {
 
 // Using coordinates and percentages will return boolean instead!
 longClick(int x, int y) {
-	return tap(coor.x, coor.y, LONG_CLICK_FALLBACK_DURATION, true);
+	return tap(coor.x, coor.y, longClickFallBackDuration, true);
 }
 
 longClick(float x, float y) {
-	return tap(coor.x, coor.y, LONG_CLICK_FALLBACK_DURATION, true);
+	return tap(coor.x, coor.y, longClickFallBackDuration, true);
 }
 
 /* Collection Overloads */
+longClick(This multiKeys) {
+	return longClick(getNode(multiKeys));
+}
+
 longClick(ArrayList nodes) {
 	return longClick(toNode(nodes));
 }

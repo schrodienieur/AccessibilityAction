@@ -5,6 +5,7 @@ This code was generated using AI.
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
 cut(...)
@@ -41,6 +42,15 @@ cut(AccessibilityNodeInfo node) {
 }
 
 /* Collection Overloads */
+cut(This multiKeys) {
+	return cut(getNode(multiKeys));
+}
+
+cut(This multiKeys) {
+	return cut(getNode(multiKeys));
+}
+
+
 cut(ArrayList nodes) {
 	return cut(toNode(nodes));
 }

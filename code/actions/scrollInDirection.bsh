@@ -22,6 +22,7 @@ import android.os.Bundle;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 scrollInDirection(AccessibilityNodeInfo node, String direction) {
 	// interpret direction
@@ -67,6 +68,10 @@ scrollInDirection(AccessibilityNodeInfo node, String direction) {
 	if (success) scrollNode.refresh();
 	if (stepDelay > 0) wait(stepDelay);
 	return scrollNode;
+}
+
+scrollInDirection(This multiKeys) {
+	return scrollInDirection(getNode(multiKeys), multiKeys.direction);
 }
 
 scrollInDirection(ArrayList nodes, String direction) {

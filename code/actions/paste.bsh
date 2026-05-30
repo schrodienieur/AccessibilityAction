@@ -1,6 +1,7 @@
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import bsh.This;
 
 /*─────────────────────────────────────────────────────────────── 
 This code was primarily generated using AI with minimal human editing.
@@ -42,6 +43,10 @@ paste(AccessibilityNodeInfo node) {
 }
 
 /* Collection Overloads */
+paste(This multiKeys) {
+	return paste(getNode(multiKeys));
+}
+
 paste(ArrayList nodes) {
 	return paste(toNode(nodes));
 }
