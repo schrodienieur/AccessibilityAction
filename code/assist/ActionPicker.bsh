@@ -7,20 +7,27 @@ import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Arrays;
 
+/*
+ * Requires SimilarNodes which consist of node details
+ * Will prompt a series of dialog to select an action
+ */
 ActionPicker(This nodeData) {
+
+	final This TOP = this;
 
 	if (isLocked()) {
 		showToast("Can't use action picker while locked.");
 		return null;
 	}
 
+	// parameter from top variable
 	if (includeAllMethods == void) includeAllMethods = false;
 	This a11Y = tasker.getJavaVariable("a11Y");
-	This inspector = a11Y.inspector;
+	This inspector = a11Y.inspector; // instance of MethodInspector
 
 	/*───────────────────────────────────────────────────────────────
 	  selectActions(This inspector, boolean includeAllMethods)
-	  **Select Action Group**
+	  * Select Action Group
 	  Shows a dialog to pick a method action from available directories.
 	 ───────────────────────────────────────────────────────────────*/
 	public String selectActions(This inspector, boolean includeAllMethods) {
@@ -30,6 +37,8 @@ ActionPicker(This nodeData) {
 			boolean showFilter = true;
 			long timeout = defaultTimeout;
 			List itemList = new ArrayList();
+
+			// Get key map from lib.MethodInspector which has actions of the projects
 			Map config = new HashMap(inspector.DIRECTORIES_MAP);
 			inspector.removeIgnore();
 
@@ -38,6 +47,7 @@ ActionPicker(This nodeData) {
 				config.keySet().retainAll(Collections.singleton("actions"));
 			}
 
+			// Create list of actions without their overloads
 			Map methodsMap = new HashMap();
 			for (String key: config.keySet()) {
 				Map entry = (Map) config.get(key);
@@ -45,6 +55,8 @@ ActionPicker(This nodeData) {
 				methodsMap.put(key, methods);
 				This list = MethodList(methods);
 				List capitalized = list.getCapitalized();
+
+				// Add each action to viewList, which required by ListDialog
 				for (int i = 0; i < capitalized.size(); i++) {
 					Map item = new HashMap();
 					item.put("title", capitalized.get(i));
@@ -56,7 +68,7 @@ ActionPicker(This nodeData) {
 					itemList.add(item);
 				}
 			}
-
+			// On success, will update top variable selectedAction
 			onSuccess(Map map) {
 				THIS.selectedAction = (String) map.get("methodName");
 			}
@@ -67,6 +79,8 @@ ActionPicker(This nodeData) {
 		}
 		This config = dialog(this);
 		This dialog = ListDialog(config);
+
+		// show will block and wait, then it return selectedAction if set
 		if (dialog.show() && selectedAction != void) {
 			return selectedAction;
 		}
@@ -76,7 +90,8 @@ ActionPicker(This nodeData) {
 	/*───────────────────────────────────────────────────────────────
 	  selectPattern(This inspector, This nodeData)
 	  **Select Key Pattern**
-	  Shows a dialog to select the node pattern mapping.
+	  Shows a dialog to select the node pattern mapping. And return Map of selected pattern
+	  Consist of key, description title, subtitle, map, and replacement for key
 	 ───────────────────────────────────────────────────────────────*/
 	public Map selectPattern(This inspector, This nodeData) {
 		long defaultTimeout = 60000;
@@ -84,15 +99,13 @@ ActionPicker(This nodeData) {
 			String title = "Select Pattern";
 			boolean showFilter = true;
 			long timeout = defaultTimeout;
-			boolean showFilter;
 			List itemList = new ArrayList();
 			Map keys = inspector.getKeyMap();
 			List keyList = new ArrayList(keys.values());
-
 			Collections.sort(keyList, new Comparator() {
-				compare(Map m1, Map m2) {
-					String value1 = (String) m1.get("key");
-					String value2 = (String) m2.get("key");
+				public int compare(Map m1, Map m2) {
+					String value1 = m1.get("key");
+					String value2 = m2.get("key");
 					if (value1 == null) return (value2 == null) ? 0 : -1;
 					if (value2 == null) return 1;
 					return String.CASE_INSENSITIVE_ORDER.compare(value1, value2);
@@ -101,19 +114,16 @@ ActionPicker(This nodeData) {
 
 			for (int i = 0; i < keyList.size(); i++) {
 				Map item = new HashMap();
-				Map keyMap = (Map) keyList.get(i);
-				String key = (String) keyMap.get("key");
-				item.put("title", keyMap.get("description"));
-				String subtitle = (String) keyMap.get("note");
-
+				Map keyMap = keyList.get(i);
+				String key = keyMap.get("key");
+				item.put("title", keyMap { "description" });
+				String subtitle = keyMap { "note" };
 				if (nodeData != void) {
-					String replacement = null;
+					String replacement;
 					if (key.equals("text") || key.equals("regex")) {
 						if (nodeData.text != void && nodeData.text != null && nodeData.text.length() > 0) {
-							if (key.equals("text")) {
-								subtitle = nodeData.getText(50);
-								replacement = nodeData.text;
-							}
+							replacement = nodeData.text;
+							if (key.equals("text")) subtitle = nodeData.getText(50);
 						} else continue;
 					}
 
@@ -149,10 +159,11 @@ ActionPicker(This nodeData) {
 			}
 
 			onSuccess(Map map) {
-				THIS.selectedKey = (Map) map.get("map");
+				THIS.selectedKey = map.get("map");
 			}
 
 			onCancel() {}
+
 			onTimeout() {}
 			return this;
 		}
@@ -165,18 +176,21 @@ ActionPicker(This nodeData) {
 	}
 
 	/*───────────────────────────────────────────────────────────────
-	  selectOverload(This inspector, String action, Map keyMap, boolean isKeyRequired, boolean allMethods, This nodeData)
+	  OverloadDialog(This inspector, String action, Map keyMap, boolean isKeyRequired, boolean allMethods, This nodeData)
 	  **Select Method Overload**
 	  Builds and displays a dialog for picking the precise method overload.
 	 ───────────────────────────────────────────────────────────────*/
-	public Map selectOverload(This inspector, String selectedAction, Map selectedKey, boolean isKeyRequired, boolean includeAllMethods, This nodeData) {
+	public Map OverloadDialog(This inspector, String selectedAction, Map selectedKey, boolean isKeyRequired, boolean includeAllMethods, This nodeData) {
 		long defaultTimeout = 60000;
+		This TOP_THIS = this;
 		overload(This THIS) {
 			String title = "Select Method";
 			boolean showFilter = true;
 			long timeout = defaultTimeout;
 			List itemList = new ArrayList();
+			List overloads = new ArrayList();
 
+			// Required params 
 			List requiredParams = new ArrayList();
 			if (selectedKey != null && selectedKey.get("requiredParams") != null) {
 				Object rpObj = selectedKey.get("requiredParams");
@@ -189,41 +203,60 @@ ActionPicker(This nodeData) {
 				}
 			}
 
-			List overloads;
 			if (includeAllMethods || isKeyRequired == false) {
 				overloads = inspector.getMethodOverloads(selectedAction);
 			} else {
 				overloads = inspector.getMethodOverloads(selectedAction, requiredParams);
 			}
 
-			String key = selectedKey != null ? (String) selectedKey.get("key") : null;
+			String targetKey = selectedKey != null ? (String) selectedKey.get("key") : null;
+			// Replace regex to target
+			if ("regex".equals(targetKey)) targetKey = "text";
+			// Add each overload to viewList, which required by ListDialog
 			for (int i = 0; i < overloads.size(); i++) {
 				Map item = new HashMap();
 				Map method = (Map) overloads.get(i);
-				List params = (List) method.get("parameterNames");
-				List selectedParams = new ArrayList();
+				List methodParams = (List) method.get("parameterNames");
+				List updatedParams = new ArrayList();
 
-				for (int j = 0; j < params.size(); j++) {
-					String param = (String) params.get(j);
+				// Loop through each method param
+				for (int j = 0; j < methodParams.size(); j++) {
+					String param = (String) methodParams.get(j);
 					Object newParam = param;
-					if (isKeyRequired && key != null) {
-						if (param.equals("text")) {
-							if (key.equals("text")) newParam = selectedKey.get("replacement");
-						} else if (param.equals("value")) {
-							if (!params.contains("text")) newParam = selectedKey.get("replacement");
-						} else if (param.equals("key")) {
-							if (!params.contains("text")) newParam = selectedKey.get("key");
-						} else if (param.equals("index")) {
-							boolean canGetIndex = params.containsAll(requiredParams) || (key.equals("text") && params.contains("value"));
-							if (canGetIndex) {
-								Object indexVar = nodeData.namespace.getVariable(key + "Index");
-								if (indexVar != void && indexVar != null) {
-									newParam = indexVar;
-								}
+					if (isKeyRequired && targetKey != null) {
+						try {
+							switch (param) {
+								case "text":
+									// Replace only if selectedKey is text
+									if (targetKey.equals("text")) newParam = selectedKey.get("replacement");
+
+									break;
+								case "key":
+									// Skip when method has param "text"
+									if (!methodParams.contains("text")) newParam = selectedKey.get("key");
+
+									break;
+								case "value":
+									// Skip when method has param "text"
+									if (!methodParams.contains("text")) newParam = selectedKey.get("replacement");
+									break;
+
+								case "index":
+
+									int indexVar = nodeData.namespace.getVariable(targetKey + "Index");
+									if (indexVar != void && indexVar != null) {
+										newParam = indexVar;
+									}
+
+									break;
+								default:
+									break;
+
 							}
-						}
+						} catch (e) {}
+
 					}
-					selectedParams.add(newParam);
+					updatedParams.add(newParam);
 				}
 
 				public String getText(String text, int maxLength) {
@@ -237,13 +270,15 @@ ActionPicker(This nodeData) {
 				List shortReplacedParams = new ArrayList();
 				List replacedParams = new ArrayList();
 
-				for (int j = 0; j < selectedParams.size(); j++) {
+				// Loop through each updated method param to update the three above
+				for (int j = 0; j < updatedParams.size(); j++) {
 					String replaced = null;
 					String shortReplaced = null;
-					String param = (String) params.get(j);
+					String param = (String) methodParams.get(j);
 
-					if (selectedParams.get(j) != null) {
-						Object selected = selectedParams.get(j);
+					// Check if param is null
+					if (updatedParams.get(j) != null) {
+						Object selected = updatedParams.get(j);
 						if (!param.equals(selected)) {
 							String type = selected.getClass().getSimpleName();
 							if (type.equals("String")) {
@@ -253,14 +288,13 @@ ActionPicker(This nodeData) {
 								replaced = selected.toString();
 							}
 						} else {
-							notReplacedParams.add(selectedParams.get(j));
+							notReplacedParams.add(updatedParams.get(j));
 							replaced = selected.toString();
 						}
 					} else {
-						notReplacedParams.add(params);
+						notReplacedParams.add(methodParams);
 						replaced = "null";
 					}
-
 					if (replaced == null || replaced.equals("null")) replaced = param;
 					shortReplacedParams.add(shortReplaced != null ? shortReplaced : replaced);
 					replacedParams.add(replaced);
@@ -271,7 +305,7 @@ ActionPicker(This nodeData) {
 
 				method.put("shortUsage", shortUsage);
 				method.put("usage", usage);
-				method.put("selectedParams", selectedParams);
+				method.put("selectedParams", updatedParams);
 				method.put("shortReplacedParams", shortReplacedParams);
 				method.put("replacedParams", replacedParams);
 				method.put("notReplacedParams", notReplacedParams);
@@ -283,12 +317,14 @@ ActionPicker(This nodeData) {
 				itemList.add(item);
 			}
 
+
 			onSuccess(Map map) {
 				THIS.selectedMethod = (Map) map.get("method");
 			}
 
 			onCancel() {}
 			onTimeout() {}
+
 			return this;
 		}
 
@@ -353,23 +389,35 @@ ActionPicker(This nodeData) {
 	  Main Execution Logic
 	 ───────────────────────────────────────────────────────────────*/
 	String finalSelectedAction = selectActions(inspector, includeAllMethods);
-	if (finalSelectedAction == null) return null;
+	if (finalSelectedAction == null) {
+		log("No action selected", "INFO", TOP);
+		return null;
+	}
 
 	boolean isKeyRequired = inspector.isKeyRequired(finalSelectedAction);
 	Map finalSelectedKey = null;
 
 	if (isKeyRequired) {
 		finalSelectedKey = selectPattern(inspector, nodeData);
-		if (finalSelectedKey == null) return null;
+		if (finalSelectedKey == null) {
+			log("Return null immediately since key is not selected", "INFO", TOP);
+			return null;
+		}
+		log("Selected key: " + finalSelectedKey.get("key") + ", With replacement: " + finalSelectedKey.get("replacement"), "INFO", TOP);
 	} else {
 		finalSelectedKey = new HashMap();
 		finalSelectedKey.put("requiredParams", new ArrayList());
+		log("Key is not required for action: " + finalSelectedAction + ".", "INFO", TOP);
 	}
 
-	// 	wait(100);
+	log("Opening overload selections", "INFO", TOP);
+	Map finalOverload = OverloadDialog(inspector, finalSelectedAction, finalSelectedKey, isKeyRequired, includeAllMethods, nodeData);
+	if (finalOverload == null) {
+		log("No overload selected", "INFO", TOP);
+		return null;
+	}
 
-	Map finalOverload = selectOverload(inspector, finalSelectedAction, finalSelectedKey, isKeyRequired, includeAllMethods, nodeData);
-	if (finalOverload == null) return null;
+	log("Selected overload: " + finalOverload.get("shortUsage"), "INFO", TOP);
 
 	boolean appended;
 	String text = "Stored to editor.";
@@ -388,6 +436,7 @@ ActionPicker(This nodeData) {
 		setClipboard((String) finalOverload.get("usage"));
 		showToast("Copy to clipboard");
 	}
+
 	if (appended) showToast(text);
 	List notReplaced = (List) finalOverload.get("notReplacedParams");
 	if (notReplaced.isEmpty()) {
