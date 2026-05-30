@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.lang.CharSequence;
+import bsh.This;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
 
 /*─────────────────────────────────────────────────────────────── 
 This code was primarily generated using AI with minimal human editing.
@@ -26,15 +28,15 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 
 	List nodes = new ArrayList();
 	if (root == null) return nodes;
-	
+
 	switch (key) {
 		case "id":
 			List found = root.findAccessibilityNodeInfosByViewId(value);
 			if (found.isEmpty()) found = findNodesRecursive(root, key, value);
 			if (!found.isEmpty()) {
-				for (AccessibilityNodeInfo node : found) {
-						nodes.add(node);
-						node.recycle();
+				for (AccessibilityNodeInfo node: found) {
+					nodes.add(node);
+					node.recycle();
 				};
 			}
 			break;
@@ -58,9 +60,9 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 				} else {
 					nodes.addAll(found);
 				}
-				
+
 				break;
-				
+
 			} else {
 				// FALLBACK 1: System search failed. Perform robust manual recursive search.
 				tasker.log("System findByText failed. Attempting manual recursive text search for: ", LOG_FILE);
@@ -148,9 +150,21 @@ findNodes(AccessibilityNodeInfo root, Object[][] argsConfigs, boolean allFound) 
 		if (len == 1) {
 			nodes = findNodes(root, "text", (String) searchArgs[0]);
 		} else if (len == 2) {
-			nodes = findNodes(root, (String) searchArgs[0], (String) searchArgs[1]);
+			String key = searchArgs[0];
+			// multi is a special case, which it only accepts bsh.This
+			if ("multi".equals(key)) {
+				nodes = findNodes(root, searchArgs[1]);
+			} else {
+				nodes = findNodes(root, (String) searchArgs[0], (String) searchArgs[1]);
+			}
 		} else if (len == 3) {
-			nodes = findNodes(root, (String) searchArgs[0], (String) searchArgs[1], (Object[][]) searchArgs[2]);
+			String key = searchArgs[0];
+			// multi is a special case, which it only accepts bsh.This
+			if ("multi".equals(key)) {
+				nodes = findNodes(root, searchArgs[1]);
+			} else {
+				nodes = findNodes(root, (String) searchArgs[0], (String) searchArgs[1], (Object[][]) searchArgs[2]);
+			}
 		}
 		if (nodes != null && !nodes.isEmpty()) {
 			nodesMap.put(resultId, nodes);
@@ -234,4 +248,40 @@ List findNodes(String key, String value, int parentLevel, String nearbyText) {
 
 List findNodes(String text, int parentLevel, String nearbyText) {
 	return findNodes("text", text, parentLevel, "text", nearbyText);
+}
+
+List findNodes(AccessibilityNodeInfo root, This multiKeys) {
+	if (multiKeys.text == void && multiKeys.id == void) {
+		log("Multi keys requires at least 'text' or 'id' " +  multiKeys.variables, "ERROR");
+		throw new JavaCodeException("Multi keys requires at least 'text' or 'id'");
+	}
+
+	List nodes = new ArrayList();
+	boolean oldDebug = debugMe;
+	if (oldDebug == true) debugMe = false;
+	if (multiKeys.id != void) {
+		nodes = findNodes(root, "id", multiKeys.id);
+	} else if (multiKeys.text != void) {
+		nodes = findNodes(root, "text", multiKeys.text);
+	}
+	debugMe = oldDebug;
+	// Returns empty list if no nodes are found
+	if (nodes.isEmpty()) return nodes;
+
+	List matchNodes = new ArrayList();
+	for (AccessibilityNodeInfo node: nodes) {
+		if (isMatch(node, multiKeys)) {
+			matchNodes.add(node);
+		}
+	}
+
+	if (debugMe) {
+		debugMe(matchNodes);
+	}
+	
+	return matchNodes;
+}
+
+List findNodes(This multiKeys) {
+	return findNodes(getRoot(), multiKeys);
 }

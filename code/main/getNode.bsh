@@ -1,5 +1,6 @@
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
+import bsh.This;
 
 /*─────────────────────────────────────────────────────────────── 
 This code was primarily generated using AI with minimal human editing.
@@ -33,6 +34,11 @@ getNode(AccessibilityNodeInfo root, String key, String value, int index, long ti
 		{ parentLevel, nearbyKey, nearbyValue }
 	};
 	return getNode(root, key, value, index, timeout, config);
+}
+
+getNode(This multiKeys, int index, long timeout) {
+	List nodes = waitNodes(multiKeys, timeout);
+	return toNode(nodes, index);
 }
 
 /*───────────────────────────────────────────────────────────────
@@ -145,4 +151,18 @@ getNode(AccessibilityNodeInfo root, String key, String value, int index) {
 
 getNode(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
 	return getNode(root, key, value, index, timeout, null);
+}
+
+getNode(This multiKeys, int index) {
+	return getNode(multiKeys,  index, waitNodesTimeout);
+}
+
+getNode(This multiKeys, long timeout) {
+	return getNode(multiKeys,  0, timeout);
+}
+
+getNode(This multiKeys) {
+	int index = multiKeys.index != void ? multiKeys.index : 0;
+	long timeout = multiKeys.timeout != void ? multiKeys.timeout : waitNodesTimeout;
+	return getNode(multiKeys,  index, timeout);
 }

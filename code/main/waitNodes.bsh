@@ -129,3 +129,15 @@ ArrayList waitNodes(String key, String value, long timeout, int parentLevel, Str
 ArrayList waitNodes(String text, long timeout, int parentLevel, String nearbyText) {
 	return waitNodes("text", text, timeout, parentLevel, "text", nearbyText);
 }
+
+List waitNodes(This multiKeys, long timeout) {
+	Object[][] config = new Object[][] {
+		{ "default", "multi", multiKeys, null }
+	};
+	Map nodesMap = waitNodes(config, timeout, false);
+	if (nodesMap.keySet().size() > 0) {
+		return nodesMap.get("default");
+	} else {
+		return new ArrayList();
+	}
+}
