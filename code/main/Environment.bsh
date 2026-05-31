@@ -65,7 +65,16 @@ Environment() {
 		return this;
 	}
 
+	Settings() {
+		final int GROUP_TITLE_TEXT_SIZE = 24;
+		final int SPACER_HEIGHT = 0;
+		final int PADDING = 16;
+		final float TEXT_SIZE_MULTIPLIER = 1.05f;
+		return this;
+	}
+
 	This Layout = Layout();
+	This Settings = Settings();
 
 	/* Initialize Defaults */
 	int currentType = TYPE_UNKNOWN;

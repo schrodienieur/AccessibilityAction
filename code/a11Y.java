@@ -22,7 +22,7 @@ a11Y() {
 			old.removeAssist();
 			if (old.structureOverlay != void) old.structureOverlay.remove();
 		} catch (Exception e) {}
-
+		tasker.setJavaVariable("a11Y", null);
 	}
 
 	
@@ -265,6 +265,7 @@ importCommands("main");
 This a11Y = a11Y();
 
 a11Y.setEnvPath(ENV_PATH);
+LOG_FILE = ENV_PATH + "/log.txt";
 
 This ENV = Environment();
 a11Y.setEnv(ENV);
@@ -274,6 +275,7 @@ This viewControl = ViewControl();
 a11Y.namespace.setVariable("viewControl", viewControl, false);
 
 This config = Config(ENV_PATH + "/config.java");
+config.load();
 config.setTo(a11Y);
 
 a11Y.namespace.setVariable("config", config, false);

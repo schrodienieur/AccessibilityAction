@@ -102,10 +102,6 @@ validate(This criteria, Object object) {
 		isMatch = criteria.condition(object);
 	}
 
-	if (!isMatch) {
-		tasker.setJavaVariable("isMatch", values);
-	}
-
 	return isMatch;
 }
 

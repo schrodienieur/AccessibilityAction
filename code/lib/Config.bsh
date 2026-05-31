@@ -3,43 +3,49 @@ import bsh.Variable;
 
 Config(String filePath) {
 	source(filePath);
-	This TOP = this;
+	final This TOP = this;
+	List PRESET = new ArrayList();
 	
-	// { Group Name, key, description, showInSettings }
+	// { Group Name, key, default value, description, showInSettings }
 	Object[][] keysConfig = new Object[][] {
-		{ "Action", "waitNodes", "Waiting nodes will timeout if not found", true },
-		{ "Action", "stepDelay", "Step delay (ms)", true },
-		{ "Action", "waitNodesTimeout", "Waiting nodes timeout (ms)", true },
-		{ "Action", "findFirstForRecursive", "Return first node for recursive search", true },
-		{ "Action", "longClickFallBackDuration", "Long click fallback duration", true },
-		{ "Debugging", "debugMe", "Enable debug mode", true },
-		{ "Debugging", "debugSteps", "Show debugging information on a toast", false },
-		{ "Debugging", "debugInfo", "Show debugging information on a toast", true },
-		{ "Debugging", "useOffset", "Use offset for normal overlay" ,true},
-		{ "Debugging", "useA11yOffset", "Use offset for Accessibility", true},
-		{ "Debugging", "useA11yStructure", "Use accessibility for structure overlay", true },
-		{ "Debugging", "quickAddMode", "Long press a box enter quick mode instead of opening copy dialog", true },
-		{ "Debugging", "includeAllMethods", "Include all methods for quick mode", true },
-		{ "Debugging", "actionPickerAddToEditor", "Action picker append to editor or copy to clipboard", true },
-		{ "Debugging", "findDelay", "Find hint duration (ms)", true },
-		{ "Debugging", "debugDelay", "Debug highlight duration (ms)", true },
-		{ "Debugging", "actionPickerReminderDelay", "Action picker reminder delay (ms)", true },
-		{ "Other", "updatePreRelease", "Update to pre-release version", true }
+		{ "Action", "waitNodes", true, "Waiting nodes will timeout if not found", true },
+		{ "Action", "stepDelay", (long) 100, "Step delay (ms)", true },
+		{ "Action", "waitNodesTimeout", (long) 10000, "Waiting nodes timeout (ms)", true },
+		{ "Action", "findFirstForRecursive", true, "Return first node for recursive search", true },
+		{ "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration", true },
+		{ "Debugging", "debugMe", true, "Enable debug mode", true },
+		{ "Debugging", "debugSteps", true, "Show debugging information on a toast", false },
+		{ "Debugging", "debugInfo", true, "Show debugging information on a toast", true },
+		{ "Debugging", "useOffset", true, "Use offset for normal overlay" ,true},
+		{ "Debugging", "useA11yOffset", true, "Use offset for Accessibility", true},
+		{ "Debugging", "useA11yStructure", true, "Use accessibility for structure overlay", true },
+		{ "Debugging", "findDelay", (long) 100, "Find hint duration (ms)", true },
+		{ "Debugging", "debugDelay", (long) 1000, "Debug highlight duration (ms)", true },
+		{ "Assist", "quickAddMode", true, "Long press a box enter quick mode instead of opening copy dialog", true },
+		{ "Assist", "includeAllMethods", false, "Include all methods for quick mode", true },
+		{ "Assist", "actionPickerAddToEditor", true, "Action picker append to editor or copy to clipboard", true },
+		{ "Assist", "actionPickerReminderDelay", (long) 120000, "Action picker reminder delay (ms)", true },
+		{ "Other", "updatePreRelease", false, "Update to pre-release version", true },
+		{ "Other", "useDarkTheme", true, "Use dark theme or light", true }
 	};
 
-	String[] keys = new String[keysConfig.length];
-	for (int i = 0; i < keysConfig.length; i++) {
-		keys[i] = (String) keysConfig[i][1];
-	}
-	
 	
 	InputPreset(Object[] config) {
 		String groupName = config[0];
 		String key = config[1];
-		String description = config[2];
-		boolean showInSettings = config[3];
+		Object defaultValue = config[2];
+		String description = config[3];
+		boolean showInSettings = config[4];
 		return this;
 	}
+
+	String[] keys = new String[keysConfig.length];
+	for (int i = 0; i < keysConfig.length; i++) {
+		keys[i] = (String) keysConfig[i][1];
+		This inputPreset = InputPreset(keysConfig[i]);
+		PRESET.add(inputPreset);
+	}
+
 
 	Map getSettings() {
 		Map settings = new HashMap();
@@ -61,20 +67,23 @@ Config(String filePath) {
 		Variable[] vars = TOP.namespace.getDeclaredVariables();
 		Arrays.sort(vars, new java.util.Comparator() {
 			public int compare(Object a, Object b) {
+				try {
 				Variable va = (Variable) a;
 				Variable vb = (Variable) b;
 				int typeCmp = va.getType().toString().compareTo(vb.getType().toString());
 				if (typeCmp != 0) return typeCmp;
 				return va.getName().compareTo(vb.getName());
+				} catch(e) {
+					log(a + ", " + b, "ERROR");
+					return 0;
+				}
 			}
 		});
-		for (Variable
-			var: vars) {
-			String name =
-				var.getName();
+		for (Variable var: vars) {
+			String name = var.getName();
 			if (!keyList.contains(name)) continue;
-			text +=
-				var.getType() + " " + name + " = " + TOP.namespace.getVariable(var.getName()) + ";\n";
+			Object value = TOP.namespace.getVariable(var.getName());
+			text += value.getClass().getSimpleName() + " " + name + " = " + value + ";\n";
 		}
 
 		File file = new File(filePath);
@@ -86,13 +95,15 @@ Config(String filePath) {
 
 	setTo(This source, This target) {
 		for (String key: keys) {
-			target.namespace.setVariable(key, source.namespace.getVariable(key), false);
+			Object value = source.namespace.getVariable(key);
+			target.namespace.setVariable(key, value , false);
 		}
 	}
 
 	setTo(This target) {
 		for (String key: keys) {
-			target.namespace.setVariable(key, TOP.namespace.getVariable(key), false);
+			Object value = TOP.namespace.getVariable(key);
+			target.namespace.setVariable(key, value, false);
 		}
 	}
 
@@ -102,12 +113,28 @@ Config(String filePath) {
 		}
 	}
 
+	updateMissing(This source) {
+		List sourceVars = Arrays.asList(source.variables);
+		boolean found = false;
+		for (This preset: PRESET) {
+			if (sourceVars.contains(preset.key)) continue;
+			Object defaultValue = new bsh.Primitive(preset.defaultValue);
+			source.namespace.setTypedVariable(preset.key, defaultValue.getClass(), defaultValue, false);
+			if (!found) found = true;
+		}
+		return found;
+	}
+
 	load() {
 		File file = new File(filePath);
 		if (!file.exists()) {
 			return;
 		}
 		source(filePath);
+		boolean foundMissing = updateMissing(this);
+		if (foundMissing) {
+			source(filePath);
+		}
 		loadFrom(this);
 	}
 

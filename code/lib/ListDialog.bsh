@@ -91,8 +91,8 @@ ListDialog(This config) {
 	remove() {
 		if (activity != null) {
 			activity.finish();
-			activity = null;
 		}
+		
 		isRemoved = true;
 		if (timeout != 0 && !waitTimeout.hasComplete()) waitTimeout.onComplete();
 	}
@@ -393,24 +393,28 @@ ListDialog(This config) {
 	}
 
 	toggle() {
-		if (isRemoved) show();
+		if (isRemoved()) show();
 		else remove();
 	}
 
 	isAdded() {
-		return root.isAttachedToWindow();
-	}
-
-	isShown() {
-		return hasShown && !isRemoved;
+		if (root == null) return false;
+		return root.getParent() != null && root.isAttachedToWindow();
 	}
 
 	isHidden() {
-		return !hasShown || isRemoved;
+		if (root == null) return false;
+		return root.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (root == null) return false;
+		return root.getVisibility() == View.VISIBLE && isAdded();
 	}
 
 	isRemoved() {
-		return isRemoved;
+		if (root == null) return false;
+		return !isAdded();
 	}
 
 	return this;

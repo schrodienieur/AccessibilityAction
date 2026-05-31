@@ -121,7 +121,6 @@ ScriptEditor() {
 	remove() {
 		if (activity != null) {
 			activity.finish();
-			activity = null;
 		}
 		isRemoved = true;
 	}
@@ -292,7 +291,7 @@ ScriptEditor() {
 			onViewDetachedFromWindow(View v) {
 				isRemoved = true;
 				hasShown = false;
-				activity = null;
+				activity.finish();
 			}
 		});
 

@@ -27,18 +27,6 @@ import io.reactivex.subjects.SingleSubject;
 import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
-  addSpacer(Context ctx, ViewGroup container)
-  ───────────────────────────────────────────────────────────────*/
-public addSpacer(Context ctx, ViewGroup container) {
-	int spacerHeight = dp(8);
-	View spacer = new View(ctx);
-	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, spacerHeight);
-	spacer.setLayoutParams(params);
-	container.addView(spacer);
-	return spacer;
-}
-
-/*───────────────────────────────────────────────────────────────
   AssistSetting()
   ───────────────────────────────────────────────────────────────*/
 AssistSetting() {
@@ -68,7 +56,6 @@ AssistSetting() {
 	remove() {
 		if (activity != null) {
 			activity.finish();
-			activity = null;
 		}
 		isRemoved = true;
 		save();
@@ -104,8 +91,8 @@ AssistSetting() {
 
 		final LinearLayout main = new LinearLayout(activity);
 		main.setOrientation(LinearLayout.VERTICAL);
-		// 		int p = dp(16);
-		// 		main.setPadding(p, 0, p, 0);
+		int p = dp(ENV.Settings.PADDING);
+		// main.setPadding(p, 0, p, 0);
 
 		FrameLayout.LayoutParams mainParams = new FrameLayout.LayoutParams(
 			ViewGroup.LayoutParams.MATCH_PARENT,
@@ -130,6 +117,15 @@ AssistSetting() {
 		createSwitch(String text, String variableName) {
 			MaterialSwitch itemSwitch = new MaterialSwitch(activity);
 			itemSwitch.setText(text);
+			itemSwitch.setPadding(p, p, p, p);
+
+			Typeface currentTypeface = itemSwitch.getTypeface();
+			int currentStyle = currentTypeface != null ? currentTypeface.getStyle() : Typeface.NORMAL;
+			float currentSize = itemSwitch.getTextSize();
+			float newSize = currentSize * ENV.Settings.TEXT_SIZE_MULTIPLIER;
+			itemSwitch.setTypeface(currentTypeface, currentStyle);
+			itemSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
+
 			boolean state = a11Y.namespace.getVariable(variableName);
 			itemSwitch.setChecked(state);
 			itemSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -138,7 +134,6 @@ AssistSetting() {
 				}
 			});
 			content.addView(itemSwitch);
-			addSpacer(activity, content);
 			return itemSwitch;
 		}
 
@@ -146,9 +141,16 @@ AssistSetting() {
 			TextInputLayout textLayout = new TextInputLayout(activity);
 			textLayout.setHint(hintText);
 			textLayout.setBoxBackgroundMode(2);
+			textLayout.setPadding(p, p, p, p);
+			
 			Object value = a11Y.namespace.getVariable(variableName);
 			TextInputEditText editText = new TextInputEditText(textLayout.getContext());
 			editText.setText(String.valueOf(value));
+
+			float currentSizePx = editText.getTextSize();
+			float newSizePx = currentSizePx * ENV.Settings.TEXT_SIZE_MULTIPLIER;
+			editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSizePx);
+			
 
 			String inputClass = value.getClass().getSimpleName();
 			switch (inputClass) {
@@ -198,7 +200,6 @@ AssistSetting() {
 
 			textLayout.addView(editText);
 			content.addView(textLayout);
-			addSpacer(activity, content);
 			return textLayout;
 		}
 
@@ -211,9 +212,10 @@ AssistSetting() {
 			MaterialTextView groupTitle = new MaterialTextView(activity);
 			groupTitle.setText(groupName);
 			groupTitle.setTypeface(null, 1);
-			groupTitle.setTextSize(18);
+			groupTitle.setTextSize(ENV.Settings.GROUP_TITLE_TEXT_SIZE);
+			groupTitle.setTextColor(tm.color("colorPrimary"));
+			groupTitle.setPadding(p/2, p, p, p);
 			content.addView(groupTitle);
-			addSpacer(activity, content);
 			for (Object settingRow: settingRows) {
 				if (!settingRow.showInSettings) continue;
 				This inputPreset = settingRow;
@@ -224,10 +226,6 @@ AssistSetting() {
 					createInput(inputPreset.description, inputPreset.key, value);
 				}
 			}
-			if (i != keys.length - 1) {
-				addSpacer(activity, content);
-				addSpacer(activity, content);
-			} 
 		}
 
 		TextInputLayout envInput = createInput("Project Path", "ENV_PATH", a11Y.ENV_PATH);
@@ -253,7 +251,7 @@ AssistSetting() {
 			onViewDetachedFromWindow(View v) {
 				isRemoved = true;
 				isShown = false;
-				activity = null;
+				activity.finish();
 				save();
 			}
 		});

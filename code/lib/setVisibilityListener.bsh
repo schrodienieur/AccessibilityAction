@@ -1,0 +1,36 @@
+
+import android.view.View;
+import bsh.This;
+import android.view.ViewTreeObserver;
+
+setVisibilityListener(View myView, This listener) {
+	
+    boolean hasMethod(String methodName) {
+		return config.namespace.getMethod(methodName, new Class[] { View.class }) != null;
+	}
+
+	boolean hasVisible = hasMethod("onVisible");
+    boolean hasGone = hasMethod("onGone");
+    boolean hasInvisible = hasMethod("onInvisible");
+	myView.setTag(myView.getVisibility());
+	myView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+		public void onGlobalLayout() {
+			int newVis = myView.getVisibility();
+			if ((int) myView.getTag() != newVis)
+			{
+				myView.setTag(myView.getVisibility());
+				switch (newVis) {
+					case View.VISIBLE:
+						if (hasVisible) listener.onVisible(myView);
+						break;
+					case View.GONE:
+						if (hasGone) listener.onGone(myView);
+						break;
+					case View.INVISIBLE:
+						if (hasInvisible) listener.onInvisible(myView);
+						break;
+				}
+			}
+		}
+	});
+}
