@@ -11,7 +11,7 @@ None
 `wait` suspends script execution for the given number of milliseconds. In Tasker it uses RxJava timing, and in MacroDroid it uses `Thread.sleep()`.
 
 &nbsp;
-# How it use
+# How to use
 
 **Wait for half a second:**
 ```

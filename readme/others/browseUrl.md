@@ -1,5 +1,10 @@
 # [browseUrl](/code/others/browseUrl.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Opens a URL or deep link with optional package targeting.
 
 &nbsp;

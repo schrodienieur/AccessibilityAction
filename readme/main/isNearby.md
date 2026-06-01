@@ -11,7 +11,7 @@ Check whether a matching node exists near a reference node.
 `isNearby` uses `findNearbyNodes` to determine whether at least one node matching the selector is within the search radius around the source node.
 
 &nbsp;
-# How it use
+# How to use
 
 **Check if a nearby text label exists:**
 ```

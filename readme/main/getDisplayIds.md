@@ -11,7 +11,7 @@ None
 `getDisplayIds` queries the accessibility service for windows across all displays and returns the IDs of the active displays.
 
 &nbsp;
-# How it use
+# How to use
 
 **Fetch available display IDs:**
 ```

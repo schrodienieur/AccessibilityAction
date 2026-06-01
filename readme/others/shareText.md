@@ -1,5 +1,10 @@
 # [shareText](/code/others/shareText.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Share text to a specific app or system chooser.
 
 &nbsp;

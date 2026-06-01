@@ -12,7 +12,7 @@ Wait for nodes to appear on screen.
 `waitNodes` listens for accessibility events until matching nodes are found or a timeout expires. It supports bulk results keyed by IDs and standard search overloads for single selectors.
 
 &nbsp;
-# How it use
+# How to use
 
 **Wait for a node by text:**
 ```

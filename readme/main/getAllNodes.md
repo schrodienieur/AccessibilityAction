@@ -12,7 +12,7 @@ Retrieve all nodes from the active window.
 `getAllNodes` uses the accessibility service to recursively collect all nodes from the active root or from a specified node. It supports direct node inputs, lists, and maps.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get all nodes from the active window:**
 ```

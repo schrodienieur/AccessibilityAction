@@ -1,5 +1,10 @@
 # [currentPackage](/code/others/currentPackage.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Get the package name of the currently active application.
 
 &nbsp;

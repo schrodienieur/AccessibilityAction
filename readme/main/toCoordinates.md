@@ -11,7 +11,7 @@ None
 `toCoordinates` calculates the center pixel coordinates of a node's screen bounds and stores them in a reusable result object.
 
 &nbsp;
-# How it use
+# How to use
 
 **Translate a node into coordinates:**
 ```

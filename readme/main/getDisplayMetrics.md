@@ -11,7 +11,7 @@ None
 `getDisplayMetrics` retrieves the real width and height for a display ID using the Android `DisplayManager`. Without arguments, it uses the currently selected global display ID.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get metrics for display 0:**
 ```

@@ -1,5 +1,10 @@
 # [getNodeDistance](/code/main/getNodeDistance.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Calculate the straight-line distance between two nodes.
 
 &nbsp;

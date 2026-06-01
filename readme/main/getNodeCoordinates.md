@@ -11,7 +11,7 @@ None
 `getNodeCoordinates` reads a node's bounds and calculates the center pixel coordinates, storing them in a result object.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get node coordinates:**
 ```

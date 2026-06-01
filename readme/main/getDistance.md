@@ -11,7 +11,7 @@ Calculate the screen distance between two nodes.
 `getDistance` computes the Euclidean distance between the center points of two nodes using `getCoordinates`.
 
 &nbsp;
-# How it use
+# How to use
 
 **Measure distance between two nodes:**
 ```

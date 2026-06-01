@@ -11,7 +11,7 @@ None
 `isExpandable` checks the node's action list for `ACTION_EXPAND` or `ACTION_COLLAPSE` and returns `true` if either is present.
 
 &nbsp;
-# How it use
+# How to use
 
 **Check a node before collapsing:**
 ```

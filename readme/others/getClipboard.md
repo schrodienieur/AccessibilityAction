@@ -1,5 +1,10 @@
 # [getClipboard](/code/others/getClipboard.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Retrieve text from the system clipboard with hybrid access methods.
 
 &nbsp;

@@ -11,7 +11,7 @@ None
 `getCoordinates` reads a node's bounds in screen coordinates and returns the center point as an Android `Point` object.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get center coordinates for a node:**
 ```

@@ -11,7 +11,7 @@ Extract smart text from a node using a waterfall strategy.
 `getText` checks raw text, content description, and spanned metadata. It can return plain text, URL spans, locale spans, or seek bar values.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get text from a node:**
 ```

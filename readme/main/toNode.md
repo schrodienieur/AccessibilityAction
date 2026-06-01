@@ -11,7 +11,7 @@ None
 `toNode` extracts a single `AccessibilityNodeInfo` from an `ArrayList` or `HashMap`. It supports selecting by index, returning the first element by default, and can look up a node by map key.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get the first node from a list:**
 ```

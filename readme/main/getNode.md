@@ -14,7 +14,7 @@ Resolve a single matching node from the accessibility tree.
 `getNode` is the primary node lookup helper. It uses `findNodes` and `waitNodes` to discover nodes by text, id, regex, focus, and proximity rules, then returns the selected node by index.
 
 &nbsp;
-# How it use
+# How to use
 
 **Find the first node by text:**
 ```

@@ -11,7 +11,7 @@ Search for nodes containing spanned text or metadata.
 `findSpannedNodes` traverses the node tree and extracts text from normal text fields and spanned metadata such as `URLSpan` or `LocaleSpan`. It can match exact strings or regex patterns.
 
 &nbsp;
-# How it use
+# How to use
 
 **Find nodes by custom text span:**
 ```

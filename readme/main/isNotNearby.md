@@ -12,7 +12,7 @@ Check whether no matching node exists near a reference node.
 `isNotNearby` returns the inverse of `isNearby`, confirming that no matching node appears within the searched area.
 
 &nbsp;
-# How it use
+# How to use
 
 **Confirm absence of a nearby label:**
 ```

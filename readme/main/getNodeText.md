@@ -12,7 +12,7 @@ Extract smart text from a node, including spans and metadata.
 `getNodeText` tries raw text, content description, and spanned metadata in a waterfall fashion. It can extract plain text, span values such as URLs, and locale metadata.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get visible text from a node:**
 ```

@@ -11,7 +11,7 @@ None
 `hasNode` verifies that the provided `ArrayList`, `HashMap`, or keyed map entry contains at least one valid `AccessibilityNodeInfo` object.
 
 &nbsp;
-# How it use
+# How to use
 
 **Check a list of nodes:**
 ```

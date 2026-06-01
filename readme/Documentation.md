@@ -1,7 +1,6 @@
  
-
 > [!NOTE] 
-> *This code was primarily generated using AI with minimal human editing.*
+*This code was primarily generated using AI with minimal human editing.*
 
 > [!IMPORTANT]
 > This doc doesn't cover the whole functionalities and can be wrong. Please check the functions yourself by reading the function files inside the folder.
@@ -21,7 +20,6 @@
     - [copy](/readme/actions/copy.md)
     - [cut](/readme/actions/cut.md)
     - [dismiss](/readme/actions/dismiss.md)
-    - [findRelevantNodesForClear](/readme/actions/findRelevantNodesForClear.md)
     - [focus](/readme/actions/focus.md)
     - [imeEnter](/readme/actions/imeEnter.md)
     - [longClick](/readme/actions/longClick.md)
@@ -44,7 +42,7 @@
     - [tap](/readme/gestures/tap.md)
     - [tapShizuku](/readme/gestures/tapShizuku.md)
   - [Utilities](/code/main/)
-    - [checkEnv](/readme/main/checkEnv.md)
+    - [Environment](/readme/main/Environment.md)
     - [findExpandableChild](/readme/main/findExpandableChild.md)
     - [findNearbyNodes](/readme/main/findNearbyNodes.md)
     - [findNodes](/readme/main/findNodes.md)
@@ -58,6 +56,7 @@
     - [getDisplayIds](/readme/main/getDisplayIds.md)
     - [getDisplayMetrics](/readme/main/getDisplayMetrics.md)
     - [getDistance](/readme/main/getDistance.md)
+    - [getFocusedWindow](/readme/main/getFocusedWindow.md)
     - [getNode](/readme/main/getNode.md)
     - [getNodeCoordinates](/readme/main/getNodeCoordinates.md)
     - [getNodeDistance](/readme/main/getNodeDistance.md)
@@ -67,9 +66,9 @@
     - [getText](/readme/main/getText.md)
     - [hasNode](/readme/main/hasNode.md)
     - [isExpandable](/readme/main/isExpandable.md)
+    - [isMatch](/readme/main/isMatch.md)
     - [isNearby](/readme/main/isNearby.md)
     - [isNotNearby](/readme/main/isNotNearby.md)
-    - [recursiveTextSearch](/readme/main/recursiveTextSearch.md)
     - [setDisplay](/readme/main/setDisplay.md)
     - [setDisplayByPackageName](/readme/main/setDisplayByPackageName.md)
     - [setDisplayByWindowId](/readme/main/setDisplayByWindowId.md)
@@ -78,17 +77,60 @@
     - [wait](/readme/main/wait.md)
     - [waitNodes](/readme/main/waitNodes.md)
     - [waitUntilGone](/readme/main/waitUntilGone.md)
+  - [Assist](/code/assist/)
+    - [ActionPicker](/readme/assist/ActionPicker.md)
+    - [AssistBar](/readme/assist/AssistBar.md)
+    - [AssistSetting](/readme/assist/AssistSetting.md)
+    - [DisplayInfos](/readme/assist/DisplayInfos.md)
+    - [DisplayMenu](/readme/assist/DisplayMenu.md)
+    - [FilterSheet](/readme/assist/FilterSheet.md)
+    - [InfoDialog](/readme/assist/InfoDialog.md)
+    - [InfoToast](/readme/assist/InfoToast.md)
+    - [NodeBox](/readme/assist/NodeBox.md)
+    - [NodeData](/readme/assist/NodeData.md)
+    - [NodeInfo](/readme/assist/NodeInfo.md)
+    - [NodeSearch](/readme/assist/NodeSearch.md)
+    - [ScriptEditor](/readme/assist/ScriptEditor.md)
+    - [SimilarNodes](/readme/assist/SimilarNodes.md)
+    - [SimpleGesture](/readme/assist/SimpleGesture.md)
+    - [StructureOverlay](/readme/assist/StructureOverlay.md)
+    - [ThemeManager](/readme/assist/ThemeManager.md)
+    - [debugColor](/readme/assist/debugColor.md)
+    - [debugMe](/readme/assist/debugMe.md)
+    - [dp](/readme/assist/dp.md)
+    - [runScript](/readme/assist/runScript.md)
+    - [showToast](/readme/assist/showToast.md)
+    - [vibrate](/readme/assist/vibrate.md)
+  - [Library](/code/lib/)
+    - [Config](/readme/lib/Config.md)
+    - [FloatingSheet](/readme/lib/FloatingSheet.md)
+    - [ListDialog](/readme/lib/ListDialog.md)
+    - [MaterialColorFallback](/readme/lib/MaterialColorFallback.md)
+    - [MethodInspector](/readme/lib/MethodInspector.md)
+    - [MethodList](/readme/lib/MethodList.md)
+    - [ThisManager](/readme/lib/ThisManager.md)
+    - [UpdateManager](/readme/lib/UpdateManager.md)
+    - [ViewControl](/readme/lib/ViewControl.md)
+    - [log](/readme/lib/log.md)
+    - [runMe](/readme/lib/runMe.md)
+    - [setVisibilityListener](/readme/lib/setVisibilityListener.md)
+    - [textDialog](/readme/lib/textDialog.md)
+    - [validate](/readme/lib/validate.md)
   - [Others](/code/others/)
+    - [PackageManager](/readme/others/PackageManager.md)
     - [browseUrl](/readme/others/browseUrl.md)
     - [currentPackage](/readme/others/currentPackage.md)
     - [getClipboard](/readme/others/getClipboard.md)
     - [getUsageEvents](/readme/others/getUsageEvents.md)
-    - [globalAction](/code/others/globalAction.java)
+    - [globalAction](/readme/others/globalAction.md)
+    - [isLocked](/readme/others/isLocked.md)
+    - [isScreenOn](/readme/others/isScreenOn.md)
     - [openApp](/readme/others/openApp.md)
-    - [PackageManager](/readme/others/PackageManager.md)
     - [screen](/readme/others/screen.md)
     - [setClipboard](/readme/others/setClipboard.md)
     - [shareText](/readme/others/shareText.md)
+    - [takeScreenshot](/readme/others/takeScreenshot.md)
+    - [takeWindowScreenshot](/readme/others/takeWindowScreenshot.md)
 - Examples
     - [Actions](/code/examples/action/)
     - [Events](/code/examples/event/)
@@ -107,9 +149,9 @@ Key are used to find node by querying their attributes.
 | -------------------- | ---------------------------------------- | ----------------- | ---------------------------------------------- |
 | `id`                 | `ViewIdResourceName`                     | Fallback          | Uses `findAccessibilityNodeInfosByViewId`      |
 | `text`               | `Text`, `ContentDescription`, `TextSpan` | Fallback          | Uses `findAccessibilityNodeInfosByText`        |
-| `class`              | `ClassName` (e.g. `ImageView`)           | Yes               | Matches node class type                        |
+| `class`, `clazz`              | `ClassName` (e.g. `ImageView`)           | Yes               | Matches node class type                        |
 | `regex`              | `Text, ContentDesciption`                | Yes               | Applies regex matching instead of exact match  |
+| `flags`              | [`NodeInfo constants`](/code/assist/NodeInfo.bsh)                | Yes               | Filter multiple node flags stored in mBooleanProperties  |
 | `*Span`              | Span objects (e.g. `URLSpan`, etc.)      | Yes               | Matches specific text spans that contains text |
 
 *Traverse as fallback when not a single text if found.*
-

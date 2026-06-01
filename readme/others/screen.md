@@ -1,5 +1,10 @@
 # [screen](/code/others/screen.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Control screen power state via accessibility service.
 
 &nbsp;

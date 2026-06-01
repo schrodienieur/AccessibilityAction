@@ -1,9 +1,9 @@
 
 # a11Y
 
-a11Y is global java variable set by [a11Y.java](/code/a11Y.java) and avaiable accross any Java Code action once it's initiated at first.
+a11Y is a global Java variable initialized by [`a11Y.java`](/code/a11Y.java). Once it is created, it can be used across any Java Code action in Tasker.
 
-It has variables and methods that is needed for running the codes easily.
+It exposes helper variables and methods for loading imports, managing UI assist helpers, controlling debug behavior, and executing scripts.
 
 ## 1. Usage Comparison
 ### without a11Y
@@ -19,7 +19,7 @@ importCommands("main"); // Must
 importCommands("actions");
 click("Add");
 
-// or include every codes and its dependencies / other codes it uses
+// or include every code and its dependencies / other code it uses
 
 getRoot() {}
 findNodes(String text) {
@@ -33,130 +33,191 @@ click(String key, String value) {
 }
 
 click("text", "Add");
-
 ```
 
-Must be done on every Java Code action in case we want to reuse them.
-
+This must be done in every Java Code action if you want to reuse the same helpers.
 
 ### with a11Y
-
 ```java
 a11Y.set();
 click("Add");
 ```
 
-
 &nbsp;
 
 ## 2. Variables
 
+### 2.1 Environment
 
-### 2.1 Enviroment
+| Variable            | Type                 | Description                                                                                           | Default Value     |
+| :------------------ | :------------------- | :---------------------------------------------------------------------------------------------------- | :---------------- |
+| `ENV_PATH`          | `String`             | Path to the AccessibilityAction environment folder.                                                   | `null`            |
+| `LOG_FILE`          | `String`             | Log file path derived from `ENV_PATH`.                                                               | `null`            |
+| `ENV`               | `This`               | [`Environment`](/code/main/Environment.bsh) instance loaded by `a11Y.set()`.                         | `null`            |
+| `assistOverlays`    | `List`               | Stored overlays from [`StructureOverlay`](/code/assist/StructureOverlay.bsh), [`NodeBox`](/code/assist/NodeBox.bsh), [`InfoToast`](/code/assist/InfoToast.bsh), [`InfoDialog`](/code/assist/InfoDialog.bsh), etc. | `new ArrayList()` |
+| `assistButton`      | `This`               | Assist button instance created by [`AssistButton`](/code/assist/AssistButton.bsh).                    | `null`            |
+| `updateManager`     | `This`               | Update manager created by [`UpdateManager`](/code/lib/UpdateManager.bsh).                             | `null`            |
+| `packageManager`    | `This`               | Package manager created by [`PackageManager`](/code/others/PackageManager.bsh).                      | `null`            |
+| `scriptEditor`      | `String`             | Script editor content path or identifier.                                                             | `""`            |
+| `inspector`         | `This`               | Method inspector created by [`MethodInspector`](/code/lib/MethodInspector.bsh).                      | `null`            |
+| `executor`          | `ThreadPoolExecutor` | Single-thread executor used for async tasks and reloads.                                              | 1 thread          |
 
-| Variable         | Type                 | Description                                                                                       | Default Value     |
-| :--------------- | :------------------- | :------------------------------------------------------------------------------------------------ | :---------------- |
-| `assistOverlays` | `List`               | Store recently displayed views from `StructureOverlay`, `NodeBox`, `InfoToast`, and `InfoDialog`. | `new ArrayList()` |
-| `assistButton`   | `bsh.This`           | Store assist button.                                                                              | `null`            |
-| `ENV`            | `String`             | The full path location of AccessibilityAction. (e.g., `"/storage/emulated/0/Folder"`)             | `null`            |
-| `exechtor`       | `ThreadPoolExecutor` | Thread reserved to execute script in the editor                                                   | 1 thread          |
-| `scriptEditor`   | `String`             | Store script in the script editor.                                                                | ` `               |
+### 2.2 Debugging & Behavior
 
-### 2.2 Debugging
+| Variable            | Type       | Description                                                                                 | Default Value |
+| :------------------ | :--------- | :------------------------------------------------------------------------------------------ | :------------ |
+| `debugMe`           | `boolean`  | Enable debug mode.                                                                          | `false`       |
+| `debugSteps`        | `boolean`  | Enable debug step tracing.                                                                 | `false`       |
+| `debugInfo`         | `boolean`  | Show info toast for interacted nodes.                                                       | `true`        |
+| `findDelay`         | `long`     | Highlight duration for found nodes.                                                         | `100`         |
+| `debugDelay`        | `long`     | Highlight duration for generic debug actions.                                               | `1000`        |
+| `useOffset`         | `boolean`  | Use status bar offset for application overlay display.                                      | `true`        |
+| `useA11yOffset`     | `boolean`  | Use status bar offset for accessibility overlay display.                                    | `true`        |
+| `waitNodes`         | `boolean`  | Wait for node availability before performing actions.                                       | `true`        |
+| `waitNodesTimeout`  | `long`     | Maximum time to wait for nodes before timing out.                                           | `10000`       |
+| `useA11yStructure`  | `boolean`  | Use accessibility structure for node finding if available.                                  | `false`       |
+| `includeAllMethods` | `boolean`  | Include all methods when picking an action.                                                 | `false`       |
+| `quickAddMode`      | `boolean`  | Use quick add mode for long-press boxes instead of opening the copy dialog.                 | `true`        |
+| `updatePreRelease`  | `boolean`  | Use pre-release updates during `update()`.                                                   | `false`       |
 
-| Variable            | Type       | Description                                                                       | Default Value |
-| :------------------ | :--------- | :-------------------------------------------------------------------------------- | :------------ |
-| `debugMe`           | `boolean`  | Control debug mode.                                                               | `false`       |
-| `debugSteps`        | `boolean`  | Activate debug steps mode. (Not yet implemented in V3).                           | `false`       |
-| `debugInfo`         | `boolean`  | Show information toast about interacted node.                                     | `true`        |
-| `findDelay`         | `long`     | Duration for how long found nodes are highlighted.                                | `100`         |
-| `debugDelay`        | `long`     | Duration for how long generic actions are highlighted.                            | `1000`        |
-| `assistButton`      | `bsh.This` | Assist button instances if any are shown.                                         | `null`        |
-| `useOffset`         | `boolean`  | Use status bar offset to show structure overlay for `TYPE_APPLICATION_OVERLAY`.   | `true`        |
-| `useA11yOffset`     | `boolean`  | Use status bar offset to show structure overlay for `TYPE_ACCESSIBILITY_OVERLAY`. | `true`        |
-| `includeAllMethods` | `boolean`  | Show all methods when picking action.                                             | `false`       |
-| `quickAddMode`      | `boolean`  | Long press a box enter quick mode instead of opening copy dialog                  | `false`       |
-
-   
 ## 3. Methods / Functions
 
+### Initialization
 
-### Main
+1. [`set()`](/code/a11Y.java)
 
-1. `debug()`
+   Initialize `a11Y` and load imports from [`import.java`](/code/import.java).
+   If `ENV_PATH` is not set, `a11Y.set()` will attempt to load a super import from Tasker's global variable `%ImportJava` and use the `MAIN_DIRECTORY` it provides.
 
-	Turn on debug mode.
-2. `set()`
-    Set all the variables above and run [import.java](/code/import.java).
+   - If `ENV_PATH` is already set, it sources `ENV_PATH + "/import.java"`.
+   - Otherwise it falls back to the shared environment import mechanism.
 
-    if `ENV` is null, it will try to use the super import file called **mainImport.java** stored in Tasker Global Variable %ImportJava
+2. [`set(This THIS)`](/code/a11Y.java)
 
-    *mainImport.java is only included in the taskernet project.*
+   Same as `set()`, but applies the current interpreter namespace variables to the provided `THIS` instance.
 
-    Otherwise ENV need to be set with [setENV](#func-setEnv)
-3. `setEnv(String path)`
-   <a name="func-setEnv"></a>
-   
-   Set enviroment file path. Must be set after `a11Y` is available and set with [a11Y.java](/code/a11Y.java)
-4. `resetEnv()`
+3. [`setEnvPath(String path)`](/code/a11Y.java)
 
-    Set enviroment to null and will fallback to use %ImportJava variable and super import file.
-5. `reset()`
+   Set the environment folder path used by `set()` and script execution.
+   This also updates `LOG_FILE = path + "/log.txt"`.
 
-    Will set the following debugging variables to default value.
-    ```
-    debugSteps = false;
-	debugMe = false;
-	debugInfo = true;
-	findDelay = 100;
-	debugDelay = 1000;
-    ```
-6. `addOverlay(This overlay)`
-    <a name="func-addOverlay"></a>
+4. [`setEnv(This env)`](/code/a11Y.java)
 
-    Add [StructureOverlay](/code/assist/StructureOverlay.bsh), [NodeBox](/code/assist/NodeBox.bsh), [InfoToast](/code/assist/InfoToast.bsh), [InfoDialog](/code/assist/InfoDialog.bsh) to existing overlays.
+   Set the loaded [`Environment()`](/code/main/Environment.bsh) object directly.
 
-7. `removeOverlay(This overlay)`
+5. [`resetEnv()`](/code/a11Y.java)
 
-   Remove any stored overalys added with [addOverlay()](#func-addOverlay). Those 4 classes before will try to automatically run this if removed.
-    
-8. `clean()`
+   Clear `ENV_PATH` so `set()` will fall back to `%ImportJava` and the shared import path.
 
-    Clean up any displayed overlays.
+6. [`reset()`](/code/a11Y.java)
+
+   Restore default runtime flags:
+   ```java
+   debugSteps = false;
+   debugMe = false;
+   debugInfo = true;
+   findDelay = 100;
+   debugDelay = 1000;
+   useOffset = true;
+   useA11yOffset = true;
+   waitNodes = true;
+   useA11yStructure = false;
+   includeAllMethods = false;
+   quickAddMode = true;
+   waitNodesTimeout = 10000;
+   ```
+
+7. [`debug()`](/code/a11Y.java)
+
+   Enable `debugMe = true` for the current runtime.
+
+8. [`reload()`](/code/a11Y.java)
+
+   Reload the current [`a11Y.java`](/code/a11Y.java) source asynchronously using the configured `ENV_PATH`.
+
+### Overlay management
+
+1. [`addOverlay(This overlay)`](/code/a11Y.java)
+
+   Track overlay instances created by helpers such as [`StructureOverlay`](/code/assist/StructureOverlay.bsh), [`NodeBox`](/code/assist/NodeBox.bsh), [`InfoToast`](/code/assist/InfoToast.bsh), and [`InfoDialog`](/code/assist/InfoDialog.bsh).
+
+2. [`removeOverlay(This overlay)`](/code/a11Y.java)
+
+   Remove a stored overlay from the internal list.
+
+3. [`clean()`](/code/a11Y.java)
+
+   Remove and clear all tracked overlay instances.
+
+4. [`showAssist()`](/code/a11Y.java)
+
+   Show the assist overlay button created by [`AssistButton`](/code/assist/AssistButton.bsh).
+
+5. [`removeAssist()`](/code/a11Y.java)
+
+   Remove the assist button overlay.
 
 ### Events
 
-All variables and methods related to events are stored in [a11E](/code/event/a11E.bsh) global java variable.
+Event helpers delegate to the global [`a11E`](/code/event/a11E.bsh) instance stored in Tasker.
 
-1. `addEvent(String eventId, This eventListener)`
+1. [`addEvent(String eventId, This eventListener)`](/code/a11Y.java)
 
-	Add event to listen. Will [start monitoring](/code/event/startMonitor.bsh) necessary events once added.
-2. `removeEvent(String eventId)`
+   Add an event listener via [`a11E`](/code/event/a11E.bsh).
 
-	Remove added event. If empty, will stop monitoring.
-3. `removeEvents()`
+2. [`removeEvent(String eventId)`](/code/a11Y.java)
 
-	Remove all added events and stop monitoring.
+   Remove a single event listener.
 
-### Others
+3. [`removeEvents()`](/code/a11Y.java)
 
-1. `showAssist()`
+   Remove all registered event listeners.
 
-	Show overlay to assist building UI automation by running [AssistButton.bsh](/code/assist/AssistButton.bsh)
-2. `removeAssist()`
+4. [`getEvents()`](/code/a11Y.java)
 
-	Remove the assist overlay.
+   Get a list of registered event IDs from the [`a11E`](/code/event/a11E.bsh) event manager.
 
+### Execution helpers
+
+1. [`execute(Runnable postRun)`](/code/a11Y.java)
+
+   Run a `Runnable` asynchronously on the internal executor.
+
+2. [`run(String fileName)`](/code/a11Y.java)
+
+   Run a script file from the `ENV_PATH + "/scripts"` folder.
+   - If `fileName` is not found directly, the method searches the scripts folder for a matching file name.
+   - If the file cannot be found, it logs the error to `LOG_FILE`.
+
+3. [`update()`](/code/a11Y.java)
+
+   Check for updates via [`UpdateManager`](/code/lib/UpdateManager.bsh) and reload `a11Y` afterward.
+
+4. [`updatePreRelease()`](/code/a11Y.java)
+
+   Check for pre-release updates and reload `a11Y` afterward.
+
+5. [`muteEvents()`](/code/a11Y.java)
+
+   Mute event processing on the global [`a11E`](/code/event/a11E.bsh) manager.
+
+6. [`unmuteEvents()`](/code/a11Y.java)
+
+   Unmute event processing on the global [`a11E`](/code/event/a11E.bsh) manager.
 
 &nbsp;
-   
+
 # 4. Dependency & Dependant
 
-a11Y has dependency on [import.java](/code/import.java) to set up all methods.
+a11Y depends on [`import.java`](/code/import.java) to load the shared helper methods from `/code/main`, `/code/actions`, `/code/others`, and `/code/gestures`.
 
- [StructureOverlay](/code/assist/StructureOverlay.bsh), [NodeBox](/code/assist/NodeBox.bsh), [InfoToast](/code/assist/InfoToast.bsh), [InfoDialog](/code/assist/InfoDialog.bsh) is dependant on a11Y.
+The runtime also initializes:
+- [`Environment()`](/code/main/Environment.bsh)
+- [`Config(ENV_PATH + "/config.java")`](/code/config.java)
+- [`MethodInspector(this)`](/code/lib/MethodInspector.bsh)
+- [`AssistButton`](/code/assist/AssistButton.bsh), [`UpdateManager`](/code/lib/UpdateManager.bsh), and [`PackageManager`](/code/others/PackageManager.bsh)
 
- The dependants are mostly for debugging purpose.
- 
- Any methods stored in [/actions](/code/actions/), [/main](/code/main/), [/others](/code/others/), and [/gestures](/code/gestures/) are not.
+[`StructureOverlay`](/code/assist/StructureOverlay.bsh), [`NodeBox`](/code/assist/NodeBox.bsh), [`InfoToast`](/code/assist/InfoToast.bsh), and [`InfoDialog`](/code/assist/InfoDialog.bsh) depend on `a11Y` for overlay lifecycle management.
+
+Other helpers in `/code/actions`, `/code/main`, `/code/others`, and `/code/gestures` are independent and are loaded through `import.java`.
     

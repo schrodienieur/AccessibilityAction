@@ -11,7 +11,7 @@ None
 `getService` returns Tasker's accessibility service when running in the Tasker environment. It throws an exception if the service is unavailable.
 
 &nbsp;
-# How it use
+# How to use
 
 **Fetch the accessibility service:**
 ```

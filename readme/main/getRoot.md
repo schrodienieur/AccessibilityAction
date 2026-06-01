@@ -11,7 +11,7 @@ Get the root accessibility node for the active window.
 `getRoot` returns the active window root node for the current display. If a global display ID is set, it chooses the active window for that display.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get the active window root:**
 ```

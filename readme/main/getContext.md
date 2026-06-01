@@ -11,7 +11,7 @@ None
 `getContext` returns either the standard app context or the accessibility overlay context. It also adapts the returned context to the specified display ID when available.
 
 &nbsp;
-# How it use
+# How to use
 
 **Get the default context:**
 ```

@@ -1,5 +1,10 @@
 # [PackageManager](/code/others/PackageManager.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Core package resolver for finding applications by label or package name.
 
 &nbsp;

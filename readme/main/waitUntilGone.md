@@ -13,7 +13,7 @@ Wait until specified nodes disappear from the screen.
 `waitUntilGone` monitors accessibility events until matching nodes are no longer present. It supports waiting for all targets to disappear or just any one of them.
 
 &nbsp;
-# How it use
+# How to use
 
 **Wait until a button disappears:**
 ```

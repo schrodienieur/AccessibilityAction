@@ -1,5 +1,10 @@
 # [setClipboard](/code/others/setClipboard.bsh)
 
+&nbsp;
+# Dependencies
+None
+
+&nbsp;
 Copy text to the system clipboard.
 
 &nbsp;
