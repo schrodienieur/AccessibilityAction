@@ -355,7 +355,6 @@ ActionPicker(This nodeData) {
 
 			onSuccess(Map map) {
 				if (map.equals(runCode)) {
-					showToast("Running...");
 					runScript(text, 500);
 				}
 			}

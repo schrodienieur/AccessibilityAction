@@ -1,0 +1,82 @@
+import android.graphics.Rect;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.content.Context;
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+	ChildHierarchyData(AccessibilityNodeInfo node)
+	**Recursively Counts Children and Aggregates Text**
+	Traverses down the accessibility tree from the given node, counts all nested
+	descendants, and aggregates any non-empty text values found within them.
+
+	Arguments:
+
+	* node → The root AccessibilityNodeInfo node to start counting and text extraction from.
+
+	Returns:
+
+	* This object containing the count of child nodes and aggregated text.
+	───────────────────────────────────────────────────────────────*/
+public This ChildHierarchyData(AccessibilityNodeInfo node) {
+	int count = 0;
+	StringBuffer sb = new StringBuffer();
+	List childTexts = new ArrayList();
+	List childNodes = new ArrayList();
+	int childCount = node.getChildCount();
+	for (int i = 0; i < childCount; i++) {
+		AccessibilityNodeInfo child = node.getChild(i);
+		if (child == null) {
+			continue;
+		}
+
+		count++;
+
+		String text = getText(child);
+		if (text != null && text.length() > 0) {
+			String trimmed = text.toString().trim();
+			if (trimmed.length() > 0) {
+				childNodes.add(child);
+				childTexts.add(trimmed);
+				sb.append("[").append(trimmed).append("] ");
+			}
+		}
+
+		This subResult = ChildHierarchyData(child);
+		int subCount = ((Integer) subResult.count).intValue();
+		String subText = (String) subResult.text;
+		count += subCount;
+		sb.append(subText);
+	}
+
+	ChildHierarchyData() {
+		int count = count;
+		String text = sb.toString();
+		String[] texts = new String[childTexts.size()];
+		texts = childTexts.toArray(texts);
+		List nodes = childNodes;
+
+		getNodes() {
+			return nodes;
+		}
+
+		getTexts() {
+			return texts;
+		}
+
+		getText() {
+			return text;
+		}
+
+		getCount() {
+			return count;
+		}
+
+		return this;
+	}
+
+	return ChildHierarchyData();
+
+}

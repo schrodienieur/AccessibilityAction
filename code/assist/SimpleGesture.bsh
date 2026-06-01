@@ -11,6 +11,8 @@ import bsh.Namespace;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import com.joaomgcd.taskerm.action.java.ClassImplementation;
 import java.util.concurrent.Callable;
+import android.os.Handler;
+import android.os.Looper;
 
 
 /*───────────────────────────────────────────────────────────────
@@ -59,7 +61,6 @@ bsh.This SimpleGesture(View view, This eventListener, Object[] customObjects) {
 	GestureDetector detector;
 	GestureDetector.SimpleOnGestureListener listener;
 	boolean isMute;
-
 
 	getDetector() {
 		/*───────────────────────────────────────────────────────────────
@@ -181,7 +182,7 @@ bsh.This SimpleGesture(View view, This eventListener, Object[] customObjects) {
 		return detector;
 	}
 
-	listen() {
+	setListener() {
 		if (detector == null) detector = getDetector();
 		view.setOnTouchListener(new View.OnTouchListener() {
 			onTouch(View v, MotionEvent event) {
@@ -189,6 +190,19 @@ bsh.This SimpleGesture(View view, This eventListener, Object[] customObjects) {
 				return true;
 			}
 		});
+	}
+
+	listen() {
+		if (eventListener.handler != void) {
+			Runnable listenRun = new Runnable() {
+				run() {
+					setListener();
+				}
+			};
+			eventListener.handler.post(listenRun);
+		} else {
+			setListener();
+		}
 	}
 
 	remove() {

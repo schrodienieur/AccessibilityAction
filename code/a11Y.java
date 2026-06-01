@@ -22,7 +22,6 @@ a11Y() {
 			old.removeAssist();
 			if (old.structureOverlay != void) old.structureOverlay.remove();
 		} catch (Exception e) {}
-		tasker.setJavaVariable("a11Y", null);
 	}
 
 	

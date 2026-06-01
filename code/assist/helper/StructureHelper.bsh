@@ -1,0 +1,56 @@
+import bsh.This;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Field;
+import android.graphics.Color;
+import java.lang.reflect.Field;
+
+This StructureHelper(This structure) {
+    This a11Y = tasker.getJavaVariable("a11Y");
+	if (!structure.namespace.name.equals("StructureOverlay")) {
+		throw new JavaCodeException("Can't be called from " + structure.namespace.name + ". " + "Please call with StructureOverlay");
+	}
+
+    This nodeInfo = NodeInfo != void ? NodeInfo : NodeInfo();
+	This themeManager;
+	int fillColor = Color.TRANSPARENT;
+	int strokeColor;
+	This highlight;
+
+	if (structure.themeManager != void) {
+		themeManager = structure.themeManager;
+		strokeColor = themeManager.color("colorPrimary");
+	}
+
+
+	filter(int properties) {
+		Set keySet = structure.map.keySet();
+		List nodeBoxes = new ArrayList();
+		for (Object key: keySet) {
+			This nodeBox = (This) structure.map.get(key);
+			boolean hasProperty = nodeInfo.hasAllProperties(nodeBox, properties);
+			if (hasProperty) {
+				nodeBoxes.add(nodeBox);
+			}
+		}
+		return nodeBoxes;
+	}
+
+	highlight(int properties) {
+		if (highlight != null) highlight.reset();
+		if (properties == 0) {
+			structure.unhideBoxes();
+			return this;
+		}
+		structure.hideBoxes();
+		List nodeBoxes = filter(properties);
+		highlight = structure.highlightNodeBoxes(nodeBoxes, strokeColor, fillColor);
+		return highlight;
+	}
+
+    resetFilter() {
+        if (highlight != null) highlight.reset();
+    }
+
+	return this;
+}

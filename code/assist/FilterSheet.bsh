@@ -24,8 +24,7 @@ FilterSheet(This structure) {
 	This a11Y = tasker.getJavaVariable("a11Y");
 	final int WINDOW_TYPE = ENV.Layout.TYPE_FILTER_SHEET;
 	a11Y.viewControl.addView(TOP);
-	
-	This nodeInfo = NodeInfo(structure);
+	This structureHelper = StructureHelper(structure);
 	config() {
 		maxHeight = 0.30f;
 
@@ -139,7 +138,7 @@ FilterSheet(This structure) {
 							} else {
 								removeFlag(flagName);
 							}
-							nodeInfo.highlight(filteredFlags);
+							structureHelper.highlight(filteredFlags);
 						}
 					});
 

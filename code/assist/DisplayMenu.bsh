@@ -37,7 +37,7 @@ DisplayMenu() {
 	config() {
 		String title = "Display Menu";
 		float maxHeight = maxHeight;
-		getViewList(Context ctx) {	
+		getViewList(Context ctx) {
 			Display[] displays = displayInfos.displays;
 			List views = new ArrayList();
 			float density = ctx.getResources().getDisplayMetrics().density;
@@ -71,29 +71,34 @@ DisplayMenu() {
 
 				itemLayout.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View view) {
+						TOP.remove();
 						if (onClickListener != null) {
-							try {
-								TOP.remove();
-								if (TOP.namespace.getVariable("onClickListener") != null) {
-									TOP.onClickListener.onClick(display);
-								}
-							} catch (Exception e) {
-								resultSignal.onError(e);
-							}
+							Runnable runMe = new Runnable() {
+								run() {
+									try {
+										if (TOP.namespace.getVariable("onClickListener") != null) {
+											TOP.onClickListener.onClick(display);
+										}
+									} catch (Exception e) {
+										showToast(e.getMessage());
+									}
+								};
+							};
+							a11Y.post(runMe);
 						}
 					}
 				});
-				
+
 			}
 			return views;
 		}
 
 		return this;
 	}
-	
+
 	This config;
 	This floatingSheet;
-	
+
 	load() {
 		displayInfos = DisplayInfos();
 		config = config();

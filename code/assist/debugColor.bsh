@@ -63,6 +63,12 @@ DEBUG_COLOR = new Object[][] {
 		4,
 		Color.CYAN,
 		Color.TRANSPARENT
+	},
+	{
+		"parent",
+		4,
+		Color.CYAN,
+		Color.TRANSPARENT
 	}
 };
 

@@ -295,17 +295,6 @@ ScriptEditor() {
 			}
 		});
 
-		// 		Runnable showKeyboard = new Runnable() {
-		// 			run() {
-		// 				InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-		// 				if (imm != null) {
-		// 					imm.showSoftInput(editText, InputMethodManager.SHOW_FORCED);
-		// 				}
-
-		// 			}
-		// 		};
-		// 		editText.postDelayed(showKeyboard, 200);
-		// 		editText.requestFocus();
 	}
 
 	Consumer uiLogic = new Consumer() {

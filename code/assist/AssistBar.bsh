@@ -356,19 +356,23 @@ public This AssistBar(int initialX, int initialY) {
 	}
 
 	displayStructure() {
-		try {
-			removeStructure();
-			AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
-			boolean useA11yStructure = focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
-			if (useA11yStructure) remove();
-			structureOverlay = StructureOverlay(useA11yStructure, focusedWindow);
-			This stateChangeListener = createStructureOverlayListener();
-			structureOverlay.namespace.setVariable("stateChangeListener", stateChangeListener, false);
-			structureOverlay.show();
-			if (useA11yStructure) show();
-		} catch (e) {
-			tasker.showToast(selectedDisplayId + ": " + e.getMessage());
-		}
+		Runnable displayMe = new Runnable() {
+			run() {
+				try {
+					removeStructure();
+					AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
+					boolean useA11yStructure = focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
+					if (useA11yStructure) remove();
+					This listener = createStructureOverlayListener();
+					structureOverlay = StructureOverlay(listener, useA11yStructure, focusedWindow);
+					structureOverlay.show();
+					if (useA11yStructure) show();
+				} catch (e) {
+					tasker.showToast(selectedDisplayId + ": " + e.getMessage());
+				}
+			}
+		};
+		a11Y.post(displayMe);
 	}
 
 	toggleStructure() {
@@ -410,8 +414,9 @@ public This AssistBar(int initialX, int initialY) {
 	// Listener for Structure Overlay to switch layout
 	createStructureOverlayListener() {
 		onViewAttachedToWindow(View view) {
-			TOP.switchLayout(true);
+			
 		}
+		
 		onViewDetachedFromWindow(View view) {
 			TOP.switchLayout(false);
 			try {
@@ -422,6 +427,10 @@ public This AssistBar(int initialX, int initialY) {
 			} catch (e) {
 
 			}
+		}
+
+		onReady(This structureOverlay) {
+			TOP.switchLayout(true);
 		}
 		return this;
 	}

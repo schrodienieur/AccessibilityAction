@@ -88,6 +88,8 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 	
 	debugMe = oldDebugMe;
 
+	This parentBox = nodeBoxesMap.get(node.getParent());
+
 	public String getText(int maxLength) {
 		if (text == null || text.length() <= maxLength) {
 			return text;
@@ -134,6 +136,18 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 		highlightText();
 	}
 
+	highlightParent() {
+		if (parentBox != null) {
+			parentBox.setColor(4, Color.YELLOW, Color.TRANSPARENT);
+		}
+	}
+
+	resetParent() {
+		if (parentBox != null) {
+			parentBox.reset();
+		}
+	}
+
 	reset() {
 		if (!idBoxes.isEmpty()) {
 			for (This box: idBoxes) {
@@ -146,6 +160,7 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 				box.reset();
 			}
 		}
+		resetParent();
 	}
 
 	getIdCount() {
