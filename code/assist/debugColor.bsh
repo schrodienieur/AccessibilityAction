@@ -54,8 +54,8 @@ DEBUG_COLOR = new Object[][] {
 	},
 	{
 		"similarClass",
-		4,
-		Color.CYAN,
+		1,
+		Color.GREEN,
 		Color.TRANSPARENT
 	},
 	{

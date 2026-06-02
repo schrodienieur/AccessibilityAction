@@ -107,6 +107,10 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 	rootParams.gravity = Gravity.TOP | Gravity.LEFT;
 
+	getContext() {
+		return context;
+	}
+
 	removeView(View view) {
 		ViewParent parent = view.getParent();
 		if (parent == null || !(parent instanceof ViewGroup)) {
@@ -234,7 +238,6 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 		activeSimilar = SimilarNodes(root, map, nodeBox);
 		activeSimilar.highlightAll();
-		activeSimilar.highlightParent();
 		String similarText = activeSimilar.getSimilarText();
 		if (similarText != null) nodeBox.infoToast.addRow("similar", "Similar", similarText);
 

@@ -112,6 +112,10 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	WindowManager.LayoutParams params;
 	FrameLayout.LayoutParams frameParams;
 
+	getContext() {
+		return nodeContext;
+	}
+	
 	updateParams(boolean refreshNode) {
 		if (refreshNode) { 
 			node.refresh();

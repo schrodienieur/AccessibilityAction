@@ -1,0 +1,19 @@
+
+import java.io.File;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.graphics.Point;
+
+getPixelColor(int x, int y) {
+    This control = takeScreenshot(-1, 0, null);
+    int color = control.getPixelColor(x, y);
+    control.recycle();
+    return color;
+}
+
+getPixelColor(AccessibilityNodeInfo node) {
+    This control = takeScreenshot(-1, 0, node);
+    Point point = getCoordinates(node);
+    int color = control.getPixelColor(point.x, point.y);
+    control.recycle();
+    return color;
+}

@@ -57,24 +57,13 @@ public This AssistBar(int initialX, int initialY) {
 	This structureOverlay;
 	This filterSheet;
 	This nodeSearch;
-	This displayMenu = DisplayMenu();
-	This scriptEditor = ScriptEditor();
-	This assistSetting = AssistSetting();
+	This displayMenu;
+	This scriptEditor;
+	This assistSetting;
 	boolean isRemoved;
 	boolean isShown;
 	boolean hasShownOnce;
 	int selectedDisplayId;
-
-	listener() {
-		onClick(Object display) {
-			TOP.namespace.setVariable("selectedDisplayId", display.getDisplayId(), false);
-			showToast("Selected Display: " + display.getName());
-			TOP.displayStructure();
-		}
-		return this;
-	}
-
-	displayMenu.onClickListener = listener();
 
 	setButtonColorState(MaterialButton btn, boolean isActive) {
 		int backgroundColor = tm.color("colorPrimary");
@@ -153,6 +142,10 @@ public This AssistBar(int initialX, int initialY) {
 
 	}
 
+	getContext() {
+		return assistContext;
+	}
+	
 	removeStructure() {
 		if (structureOverlay != null && !structureOverlay.isRemoved()) {
 			structureOverlay.remove();
@@ -254,6 +247,7 @@ public This AssistBar(int initialX, int initialY) {
 		structureOverlay.hide();
 		nodeSearch.show();
 	}
+	
 	toggleSearch() {
 		Runnable runMe = new Runnable() {
 			run() {
@@ -436,6 +430,41 @@ public This AssistBar(int initialX, int initialY) {
 	}
 
 	/*────────────────────────────
+	  Resources Control
+	────────────────────────────*/
+	setupResources() {
+		if (displayMenu == null) {
+			displayMenu = DisplayMenu();
+			listener() {
+				onClick(Object display) {
+					TOP.namespace.setVariable("selectedDisplayId", display.getDisplayId(), false);
+					showToast("Selected Display: " + display.getName());
+					TOP.displayStructure();
+				}
+				return this;
+			}
+			displayMenu.onClickListener = listener();
+		}
+		if (scriptEditor == null) scriptEditor = ScriptEditor();
+		if (assistSetting == null) assistSetting = AssistSetting();
+	}
+
+	clearResources() {
+		if (structureOverlay != null) structureOverlay.remove();
+		structureOverlay = null;
+		if (filterSheet != null) filterSheet.remove();
+		filterSheet = null;
+		if (nodeSearch != null) nodeSearch.remove();
+		nodeSearch = null;
+		if (displayMenu != null) displayMenu.remove();
+		displayMenu = null;
+		if (scriptEditor != null) scriptEditor.remove();
+		scriptEditor = null;
+		if (assistSetting != null) assistSetting.remove();
+		assistSetting = null;
+	}
+
+	/*────────────────────────────
 	  HANDLE LISTENER
 	────────────────────────────*/
 	handleListener() {
@@ -509,14 +538,26 @@ public This AssistBar(int initialX, int initialY) {
 
 	assistButton.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 		onViewAttachedToWindow(View v) {
-			hasShownOnce = true;
-			isShown = true;
-			if (isRemoved) isRemoved = false;
-			refreshSize();
+			try {
+				hasShownOnce = true;
+				isShown = true;
+				if (isRemoved) isRemoved = false;
+				refreshSize();
+				setupResources();
+			} catch (e) {
+				log(e.getMessage(), "ERROR", TOP, true);
+			}
+			
 		}
 		onViewDetachedFromWindow(View v) {
-			isShown = false;
-			isRemoved = true;
+			try {
+				isShown = false;
+				isRemoved = true;
+				a11Y.clean();
+				clearResources();
+			} catch (e) {
+				log(e.getMessage(), "ERROR", TOP, true);
+			}
 		}
 	});
 

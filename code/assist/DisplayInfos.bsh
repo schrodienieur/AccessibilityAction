@@ -129,6 +129,10 @@ DisplayInfos() {
 		return this;
 	}
 
+	getContext() {
+		return baseContext;
+	}
+
 	load() {
 		displayInfos.clear();
 		displays = displayManager.getDisplays();

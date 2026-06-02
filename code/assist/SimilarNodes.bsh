@@ -7,6 +7,7 @@ import android.graphics.Color;
 import bsh.This;
 import android.graphics.Point;
 import android.graphics.Rect;
+import bsh.This;
 /*────────────────────────────────────────────────────────────────
 	SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox)
 	Custom class to manage similar nodes for given node on given screen
@@ -131,9 +132,24 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 		}
 	}
 
+	highlightClass() {
+		if (!classNodes.isEmpty()) {
+			classBoxes.clear();
+			for (int i = 0; i < classNodes.size(); i++) {
+				AccessibilityNodeInfo targetNode = (AccessibilityNodeInfo) classNodes.get(i);
+				if (targetNode == node) continue;
+				Object[] color = debugColor("similarClass");
+				This targetBox = highlight(targetNode, color[1], color[2], color[3]);
+				if (targetBox != null) classBoxes.add(targetBox);
+			}
+		}
+	}
+
 	highlightAll() {
-		highlightId();
+		highlightClass();
+		highlightParent();
 		highlightText();
+		highlightId();
 	}
 
 	highlightParent() {
@@ -160,6 +176,12 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 				box.reset();
 			}
 		}
+
+		if (!classBoxes.isEmpty()) {
+			for (This box: classBoxes) {
+				box.reset();
+			}
+		}
 		resetParent();
 	}
 
@@ -179,10 +201,19 @@ SimilarNodes(AccessibilityNodeInfo rootNode, Map nodeBoxesMap, This nodeBox) {
 		return textNodes;
 	}
 
+	getClassNodes() {
+		return classNodes;
+	}
+
+	getClassCount() {
+		return classNodes.size();
+	}
+
 	getSimilarText() {
 		List texts = new ArrayList();
 		if (!textNodes.isEmpty()) texts.add("#" + textIndex + " Text (" + textNodes.size() + ")");
 		if (!idNodes.isEmpty()) texts.add("#" + idIndex + " Id (" + idNodes.size() + ")");
+		if (!classNodes.isEmpty()) texts.add("#" + classIndex + " Class (" + classNodes.size() + ")");
 		if (!texts.isEmpty()) {
 			return String.join(" ", texts);
 		} else {
