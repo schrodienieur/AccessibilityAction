@@ -1,0 +1,46 @@
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+  stringifyObject(Object[][] matrix)
+  **Converts a 2D Object Array into a Formatted String Matrix**
+  Iterates over a multidimensional array structure and joins its rows
+  into bounded bracket sequences matching the requested output structure.
+
+  Arguments:
+   - matrix → The 2D array of objects to process.
+
+  Returns:
+   - String → The combined, readable matrix string wrapper.
+  ───────────────────────────────────────────────────────────────*/
+public String stringifyObject(Object[][] matrix) {
+    if (matrix == null) {
+        return "[]";
+    }
+
+    StringBuffer result = new StringBuffer();
+
+    for (int i = 0; i < matrix.length; i++) {
+        Object[] row = matrix[i];
+        
+        if (row != null) {
+            result.append("[ ");
+            for (int j = 0; j < row.length; j++) {
+                result.append(row[j] != null ? row[j].toString() : "null");
+                if (j < row.length - 1) {
+                    result.append(", ");
+                }
+            }
+            result.append(" ]");
+        } else {
+            result.append("null");
+        }
+
+        if (i < matrix.length - 1) {
+            result.append(" , ");
+        }
+    }
+
+    return result.toString();
+}
+
+// output contains: "[ test, Aaa ] , [ b, Aaa, Aaa ]"

@@ -61,11 +61,12 @@ longClick(AccessibilityNodeInfo node) {
 	}
 
 	if (success) {
+		log("Long-click success.", node);
 		node.refresh();
 		if (stepDelay > 0) wait(stepDelay);
 		return node;
 	} else {
-		tasker.log("No long-clickable ancestor found.", LOG_FILE);
+		log("No long-clickable ancestor found.", node);
 		return null;
 	}
 }

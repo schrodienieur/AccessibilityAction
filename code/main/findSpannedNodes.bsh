@@ -77,7 +77,6 @@ ArrayList findSpannedNodes(AccessibilityNodeInfo root, String className, String 
 	}
 
 	ArrayList result = exactMatch.size() > 0 ? exactMatch : partialMatch;
-	tasker.log("Nodes found: ", LOG_FILE);
 	return result;
 }
 

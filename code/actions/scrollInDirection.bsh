@@ -36,13 +36,13 @@ scrollInDirection(AccessibilityNodeInfo node, String direction) {
 		else if (dir_str.equals("forward")) dir_value = View.FOCUS_FORWARD;
 		else if (dir_str.equals("backward")) dir_value = View.FOCUS_BACKWARD;
 		else {
-			tasker.log("invalid scroll direction: ", LOG_FILE);
+			log("invalid scroll direction: ");
 			return null;
 		}
 	} else if (direction instanceof Number) {
 		dir_value = ((Number) direction).intValue();
 	} else {
-		tasker.log("unsupported direction type: ", LOG_FILE);
+		log("unsupported direction type: ");
 		return null;
 	}
 
@@ -55,7 +55,7 @@ scrollInDirection(AccessibilityNodeInfo node, String direction) {
 	}
 
 	if (scrollNode == null || !scrollNode.isScrollable()) {
-		tasker.log("No scrollable parent found for node: ", LOG_FILE);
+		log("No scrollable parent found for node: ");
 		return null;
 	}
 

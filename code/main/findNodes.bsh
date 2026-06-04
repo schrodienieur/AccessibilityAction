@@ -65,11 +65,9 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 
 			} else {
 				// FALLBACK 1: System search failed. Perform robust manual recursive search.
-				tasker.log("System findByText failed. Attempting manual recursive text search for: ", LOG_FILE);
 				nodes = findNodesRecursive(root, key, value);
 				if (nodes.isEmpty()) {
 					// FALLBACK 2: Manual search failed. Attempt Spanned nodes search.
-					tasker.log("Manual recursive search failed. Attempting Spanned nodes search for: ", LOG_FILE);
 					nodes = findSpannedNodes(root, "TextSpan", value);
 				}
 			}

@@ -148,7 +148,7 @@ DisplayInfos() {
 			try {
 				displayInfo.remove();
 			} catch (e) {
-				tasker.log(e.getMessage(), LOG_FILE);
+				log(e.getMessage(), "ERROR");
 			}
 		}
 		displayInfos.clear();
@@ -162,7 +162,7 @@ DisplayInfos() {
 					try {
 						displayInfo.show();
 					} catch (Exception e) {
-						tasker.log(e.getMessage(), LOG_FILE);
+						log(e.getMessage());
 					}
 				}
 			}

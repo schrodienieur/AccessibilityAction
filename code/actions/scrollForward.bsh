@@ -38,13 +38,13 @@ scrollForward(String key, String value, int index) {
 scrollForward() {
 	AccessibilityNodeInfo root = getRoot();
 	if (root == null) {
-		tasker.log("No active root window found.", LOG_FILE);
+		log("No active root window found.");
 		return null;
 	}
 
 	AccessibilityNodeInfo scrollNode = findScrollableNode(root);
 	if (scrollNode == null) {
-		tasker.log("No scrollable node found on screen.", LOG_FILE);
+		log("No scrollable node found on screen.");
 		return null;
 	}
 

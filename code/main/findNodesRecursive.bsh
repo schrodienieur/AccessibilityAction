@@ -42,7 +42,7 @@ List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
 
 	switch (key) {
 		case "text":
-			targetVal = value.toLowerCase();
+			targetVal = (String) value.toLowerCase();
 			break;
 		case "regex":
 			targetVal = Pattern.compile(value);

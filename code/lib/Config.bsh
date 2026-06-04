@@ -7,27 +7,35 @@ Config(String filePath) {
 	List PRESET = new ArrayList();
 	
 	// { Group Name, key, default value, description, showInSettings }
-	Object[][] keysConfig = new Object[][] {
-		{ "Action", "waitNodes", true, "Waiting nodes will timeout if not found", true },
-		{ "Action", "stepDelay", (long) 100, "Step delay (ms)", true },
-		{ "Action", "waitNodesTimeout", (long) 10000, "Waiting nodes timeout (ms)", true },
-		{ "Action", "findFirstForRecursive", true, "Return first node for recursive search", true },
-		{ "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration", true },
-		{ "Debugging", "debugMe", true, "Enable debug mode", true },
-		{ "Debugging", "debugSteps", true, "Show debugging information on a toast", false },
-		{ "Debugging", "debugInfo", true, "Show debugging information on a toast", true },
-		{ "Debugging", "useOffset", true, "Use offset for normal overlay" ,true},
-		{ "Debugging", "useA11yOffset", true, "Use offset for Accessibility", true},
-		{ "Debugging", "useA11yStructure", true, "Use accessibility for structure overlay", true },
-		{ "Debugging", "findDelay", (long) 100, "Find hint duration (ms)", true },
-		{ "Debugging", "debugDelay", (long) 1000, "Debug highlight duration (ms)", true },
-		{ "Assist", "quickAddMode", true, "Long press a box enter quick mode instead of opening copy dialog", true },
-		{ "Assist", "includeAllMethods", false, "Include all methods for quick mode", true },
-		{ "Assist", "actionPickerAddToEditor", true, "Action picker append to editor or copy to clipboard", true },
-		{ "Assist", "actionPickerReminderDelay", (long) 120000, "Action picker reminder delay (ms)", true },
-		{ "Other", "updatePreRelease", false, "Update to pre-release version", true },
-		{ "Other", "useDarkTheme", true, "Use dark theme or light", true }
-	};
+    Object[][] keysConfig = new Object[][] {
+		// --- Debugging ---
+        { "Debugging", "debugMe", true, "Enable debug mode", true },
+        { "Debugging", "logIncludeNode", false, "Include node information in logs", true },
+        { "Debugging", "debugSteps", true, "Show debugging information on a toast", false },
+        { "Debugging", "debugInfo", true, "Show debugging information on a toast", true }, // "S"how debugging... (tie-breaker: "i"nfo vs "s"teps key)
+        { "Debugging", "useA11yOffset", true, "Use offset for Accessibility", true},
+        { "Debugging", "useA11yStructure", true, "Use accessibility for structure overlay", true },
+        { "Debugging", "useOffset", true, "Use offset for normal overlay" ,true},
+        { "Debugging", "debugDelay", (long) 1000, "Debug highlight duration (ms)", true },
+        { "Debugging", "findDelay", (long) 100, "Find hint duration (ms)", true },
+
+        // --- Action ---
+        { "Action", "findFirstForRecursive", true, "Return first node for recursive search", true },
+        { "Action", "waitNodes", true, "Waiting nodes will timeout if not found", true },
+        { "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration", true },
+        { "Action", "stepDelay", (long) 100, "Step delay (ms)", true },
+        { "Action", "waitNodesTimeout", (long) 10000, "Waiting nodes timeout (ms)", true },
+
+        // --- Assist ---
+        { "Assist", "actionPickerAddToEditor", true, "Action picker append to editor or copy to clipboard", true },
+        { "Assist", "includeAllMethods", false, "Include all methods for quick mode", true },
+        { "Assist", "quickAddMode", true, "Long press a box enter quick mode instead of opening copy dialog", true },
+        { "Assist", "actionPickerReminderDelay", (long) 120000, "Action picker reminder delay (ms)", true },
+
+        // --- Other ---
+        { "Other", "updatePreRelease", false, "Update to pre-release version", true },
+        { "Other", "useDarkTheme", true, "Use dark theme or light", true }
+    };
 
 	
 	InputPreset(Object[] config) {
@@ -68,13 +76,12 @@ Config(String filePath) {
 		Arrays.sort(vars, new java.util.Comparator() {
 			public int compare(Object a, Object b) {
 				try {
-				Variable va = (Variable) a;
-				Variable vb = (Variable) b;
-				int typeCmp = va.getType().toString().compareTo(vb.getType().toString());
-				if (typeCmp != 0) return typeCmp;
-				return va.getName().compareTo(vb.getName());
+					Variable va = (Variable) a;
+					Variable vb = (Variable) b;
+					int typeCmp = va.getType().toString().compareTo(vb.getType().toString());
+					if (typeCmp != 0) return typeCmp;
+					return va.getName().compareTo(vb.getName());
 				} catch(e) {
-					log(a + ", " + b, "ERROR");
 					return 0;
 				}
 			}

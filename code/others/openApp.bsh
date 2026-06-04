@@ -37,7 +37,7 @@ openApp(String pkg, String activity) {
         }
     } catch (Exception e) {
         /* Failed to launch component (e.g., activity not found) */
-        tasker.log("openApp(pkg, activity): Failed to launch component " + pkg + "/" + activity + ": ", LOG_FILE);
+        log("openApp(pkg, activity): Failed to launch component " + pkg + "/" + activity + ": ");
     }
 }
 
@@ -54,14 +54,14 @@ openApp(String labelOrPackage) {
     String pkg = pm.resolvePackage(labelOrPackage);
 
     if (pkg == null) {
-        tasker.log("openApp: App not found → ", LOG_FILE);
+        log("openApp: App not found → ");
         return;
     }
 
     Intent intent = pm.getLaunchIntent(pkg);
 
     if (intent == null) {
-        tasker.log("openApp: No launchable activity → ", LOG_FILE);
+        log("openApp: No launchable activity → ");
         return;
     }
 
@@ -76,7 +76,7 @@ openApp(String labelOrPackage) {
             context.startActivity(intent);
         }
     } catch (Exception e) {
-        tasker.log("openApp: Failed to launch main intent for package " + pkg + ": " + e.getMessage(), LOG_FILE);
+        log("openApp: Failed to launch main intent for package " + pkg + ": " + e.getMessage());
     }
 }
 
@@ -93,14 +93,14 @@ openApp(String labelOrPackage, boolean background) {
     String pkg = pm.resolvePackage(labelOrPackage);
 
     if (pkg == null) {
-        tasker.log("launchAppInBackground: App not found → ", LOG_FILE);
+        log("launchAppInBackground: App not found → ");
         return;
     }
 
     Intent intent = pm.getLaunchIntent(pkg);
 
     if (intent == null) {
-        tasker.log("launchAppInBackground: No launchable activity → ", LOG_FILE);
+        log("launchAppInBackground: No launchable activity → ");
         return;
     }
 
@@ -119,14 +119,14 @@ openApp(String labelOrPackage, boolean background) {
         int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
         if (displayId != 0) options.setLaunchDisplayId(displayId);
         Bundle optionsBundle = options.toBundle();
-        tasker.log("launchAppInBackground: Launching " + pkg + " in background.", LOG_FILE);
+        log("launchAppInBackground: Launching " + pkg + " in background.");
         
         // Use the Context.startActivity(Intent, Bundle) overload
         context.startActivity(intent, optionsBundle); 
         
     } catch (Throwable e) {
         /* Catch Throwable for compatibility on older Android versions where ActivityOptions might not be fully supported. */
-        tasker.log("launchAppInBackground: Failed to launch app behind: ", LOG_FILE);
+        log("launchAppInBackground: Failed to launch app behind: ");
     }
 }
 

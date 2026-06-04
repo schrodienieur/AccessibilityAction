@@ -36,10 +36,15 @@ setText(AccessibilityNodeInfo node, String setText) {
 	showOnScreen(node);
 	debugMe(node);
 	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args);
-	if (success) node.refresh();
-	if (stepDelay > 0) wait(stepDelay);
-	return node;
-
+	if (success) {
+		log("SetText success Text: " + setText + ".", node);
+		node.refresh();
+		if (stepDelay > 0) wait(stepDelay);
+		return node;
+	} else {
+		log("SetText failed. Text: " + setText + ".", node);
+		return null;
+	}
 }
 
 /* Collection Overloads */

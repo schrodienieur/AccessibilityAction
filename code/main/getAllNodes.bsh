@@ -20,12 +20,12 @@ ArrayList getAllNodes() {
 	AccessibilityService service = getService();
 	AccessibilityNodeInfo root = getRoot();
 	if (root == null) {
-		tasker.log("No active root node (screen inaccessible).", LOG_FILE);
+		log("No active root node (screen inaccessible).");
 		return new ArrayList();
 	}
 	ArrayList nodes = service.getChildrenRecursive(root);
 	if (nodes == null) {
-		tasker.log("No nodes found.", LOG_FILE);
+		log("No nodes found.");
 		return new ArrayList();
 	}
 	return nodes;
@@ -34,16 +34,16 @@ ArrayList getAllNodes() {
 ArrayList getAllNodes(AccessibilityNodeInfo node) {
 	AccessibilityService service = getService();
 	if (service == null) {
-		tasker.log("Accessibility service not active!", LOG_FILE);
+		log("Accessibility service not active!");
 		return new ArrayList();
 	}
 	if (node == null) {
-		tasker.log("No nodes found.", LOG_FILE);
+		log("No nodes found.");
 		return new ArrayList();
 	}
 	ArrayList nodes = service.getChildrenRecursive(node);
 	if (nodes == null) {
-		tasker.log("No nodes found.", LOG_FILE);
+		log("No nodes found.");
 		return new ArrayList();
 	}
 	return nodes;

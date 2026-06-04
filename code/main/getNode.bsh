@@ -18,14 +18,16 @@ This code was primarily generated using AI with minimal human editing.
  * All other overloads eventually point here.
  */
 getNode(AccessibilityNodeInfo root, String key, String value, int index, long timeout, Object[][] argsConfigs) {
-	// We use findNodes (plural) to do the actual system search
+	log("Getting node for key: [" + key + "] value: [" + value + "]");
 	List nodes = findNodes(root, key, value, argsConfigs);
 
 	/* Check if we should wait for the nodes to appear if initially empty */
 	if (nodes.size() == 0 && (waitNodes == true)) {
 		nodes = waitNodes(key, value, argsConfigs, timeout);
 	}
-	return toNode(nodes, index);
+	AccessibilityNodeInfo node = toNode(nodes, index);
+	log("Found " + nodes.size() + " nodes. Used index: " + index + ".", node);
+	return node;
 }
 
 /* Sibling Config Wrapper */
@@ -37,8 +39,11 @@ getNode(AccessibilityNodeInfo root, String key, String value, int index, long ti
 }
 
 getNode(This multiKeys, int index, long timeout) {
+	log("Getting node for multi keys" + multiKeys.variables);
 	List nodes = waitNodes(multiKeys, timeout);
-	return toNode(nodes, index);
+	AccessibilityNodeInfo node = toNode(nodes, index);
+	log("Found " + nodes.size() + " nodes. Used index: " + index + ".");
+	return node;
 }
 
 /*───────────────────────────────────────────────────────────────

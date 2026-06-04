@@ -22,7 +22,7 @@ void wait(long milliseconds) {
 		try {
 			Completable.timer(milliseconds, TimeUnit.MILLISECONDS).blockingAwait();
 		} catch (Exception e) {
-			tasker.log("wait interrupted: ", LOG_FILE);
+			log("wait interrupted: " + e.getMessage(), "ERROR");
 		}
 	} else if (ENV.MACRODROID) {
 		Thread.sleep(milliseconds);

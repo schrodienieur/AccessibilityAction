@@ -20,20 +20,20 @@ ArrayList findNodesNearby(ArrayList foundNodes, Object[][] argsConfigs) {
 	if (argsConfigs == null || foundNodes == null) return foundNodes;
 	
 	/* Use a temporary list to store nodes paired with their sorting distance */
-	matchedPairs = new ArrayList();
+	List matchedPairs = new ArrayList();
 
 	for (i = 0; i < foundNodes.size(); i++) {
-		node = (AccessibilityNodeInfo) foundNodes.get(i);
-		isMatch = true;
-		firstStepDistance = 99999.0;
+		AccessibilityNodeInfo node = (AccessibilityNodeInfo) foundNodes.get(i);
+		boolean isMatch = true;
+		float firstStepDistance = 99999.0;
 
 		for (j = 0; j < argsConfigs.length; j++) {
-			args = argsConfigs[j];
-			length = args.length;
-			stepResult = false;
-			last = args[length - 1]; 
+			Object[] args = argsConfigs[j];
+			int length = args.length;
+			boolean stepResult = false;
+			Object last = args[length - 1]; 
 
-			nearbyList = new ArrayList();
+			List nearbyList = new ArrayList();
 
 			if (last == false) {
 				/* Not Nearby Logic */
@@ -84,7 +84,7 @@ ArrayList findNodesNearby(ArrayList foundNodes, Object[][] argsConfigs) {
 	});
 
 	/* Extract sorted nodes into the final result list */
-	resultNodes = new ArrayList();
+	List resultNodes = new ArrayList();
 	for (k = 0; k < matchedPairs.size(); k++) {
 		resultNodes.add(((Map) matchedPairs.get(k)).get("node"));
 	}

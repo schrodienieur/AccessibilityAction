@@ -51,9 +51,15 @@ click(AccessibilityNodeInfo node) {
 		success = tap(coor.x, coor.y);
 	} 
 
-	if (success) node.refresh();
-	if (stepDelay > 0) wait(stepDelay);
-	return node;
+	if (success) {
+		log("Click success.", node);
+		node.refresh();
+		if (stepDelay > 0) wait(stepDelay);
+		return node;
+	} else {
+		log("Click failed.", node);
+		return null;
+	}
 
 }
 

@@ -1,3 +1,10 @@
+
+String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
+addClassPath(ENV_PATH);
+importCommands("lib");
+importCommands("main");
+LOG_FILE = ENV_PATH + "/log.txt";
+
 import bsh.This;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -69,7 +76,7 @@ a11Y() {
 				try {
 					if (ENV_PATH != null) source(ENV_PATH + "/a11Y.java");
 				} catch (e) {
-					tasker.log(e.getMessage(), LOG_FILE);
+					log(e.getMessage(), "ERROR");
 				}
 			}
 		});
@@ -231,10 +238,10 @@ a11Y() {
 					if (target.exists()) {
 						this.interpreter.source(target.getAbsolutePath());
 					} else {
-						tasker.log("File not found: " + fileName + " in " + scriptDirName, LOG_FILE);
+						log("File not found: " + fileName + " in " + scriptDirName, "ERROR");
 					}
 				} catch (Exception e) {
-					tasker.logAndToast(e.getMessage(), LOG_FILE);
+					log(e.getMessage(), "ERROR");
 				}
 			}
 		};
@@ -257,12 +264,7 @@ a11Y() {
 
 };
 
-String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
-addClassPath(ENV_PATH);
-importCommands("lib");
-importCommands("main");
 This a11Y = a11Y();
-
 a11Y.setEnvPath(ENV_PATH);
 LOG_FILE = ENV_PATH + "/log.txt";
 
