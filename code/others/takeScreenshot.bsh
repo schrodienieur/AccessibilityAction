@@ -50,6 +50,12 @@ public This takeScreenshot(int windowId, int displayId, AccessibilityNodeInfo no
 	Bitmap finalBitmap = null;
 	HardwareBuffer buffer = null;
 
+	recycle() {
+		if (finalBitmap != null && !finalBitmap.isRecycled()) finalBitmap.recycle();
+		if (fullBitmap != null && !fullBitmap.isRecycled()) fullBitmap.recycle();
+		if (buffer != null) buffer.close();
+	}
+
 	AccessibilityService.TakeScreenshotCallback callback = new AccessibilityService.TakeScreenshotCallback() {
 		onSuccess(ScreenshotResult screenshotResult) {
 			try {
@@ -90,9 +96,7 @@ public This takeScreenshot(int windowId, int displayId, AccessibilityNodeInfo no
 
 					recycle() {
 						try {
-							if (finalBitmap != null && !finalBitmap.isRecycled()) finalBitmap.recycle();
-							if (fullBitmap != null && !fullBitmap.isRecycled()) fullBitmap.recycle();
-							if (buffer != null) buffer.close();
+							TOP.recycle();
 						} catch (Exception e) {
 							log("Error during recycling: " + e.getMessage(), "ERROR", TOP);
 						}
@@ -124,9 +128,7 @@ public This takeScreenshot(int windowId, int displayId, AccessibilityNodeInfo no
 				signal.onSuccess(screenshotHelper);
 			} catch (Exception e) {
 				log("Exception in screenshot processing: " + e.getMessage(), "ERROR", TOP);
-				if (finalBitmap != null) finalBitmap.recycle();
-				if (fullBitmap != null) fullBitmap.recycle();
-				if (buffer != null) buffer.close();
+				TOP.recycle();
 				signal.onError(e);
 			}
 		}

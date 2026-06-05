@@ -16,6 +16,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import android.content.Context;
 import android.content.ClipboardManager;
@@ -80,9 +82,34 @@ UpdateManager() {
 		return response;
 	}
 
+    
+    /*───────────────────────────────────────────────────────────────
+      clearDirectory(File dir)
+      Recursively clears and deletes a directory.
+    ───────────────────────────────────────────────────────────────*/
+    public void clearDirectory(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            File[] children = dir.listFiles();
+            if (children != null) {
+                for (int i = 0; i < children.length; i++) {
+                    File child = children[i];
+                    if (child.isDirectory()) {
+                        clearDirectory(child);
+                    } else {
+                        child.delete();
+                    }
+                }
+            }
+            dir.delete();
+        }
+    }
+
+
 	/*───────────────────────────────────────────────────────────────
 	  unzipFile(File zipFile, String targetFolderPath)
-	  Extracts a ZIP file to a target directory.
+      Extracts a ZIP file to a target directory. Reads the ZIP first to 
+      identify top-level folders and clears them in the target directory 
+      if they exist, leaving non-matching folders intact.
 	───────────────────────────────────────────────────────────────*/
 	public String unzipFile(File zipFile, String targetFolderPath) {
 		File baseDest = new File(targetFolderPath);
@@ -90,6 +117,39 @@ UpdateManager() {
 			baseDest.mkdirs();
 		}
 
+        /* First Pass: Identify top-level folders in the ZIP */
+        List topFolders = new ArrayList();
+        ZipInputStream zisScan = new ZipInputStream(new FileInputStream(zipFile));
+        ZipEntry entryScan = zisScan.getNextEntry();
+        
+        while (entryScan != null) {
+            String name = entryScan.getName();
+            int slashIndex = name.indexOf("/");
+            if (slashIndex != -1) {
+                String topFolder = name.substring(0, slashIndex);
+                if (!topFolders.contains(topFolder)) {
+                    topFolders.add(topFolder);
+                }
+            } else if (entryScan.isDirectory()) {
+                if (!topFolders.contains(name)) {
+                    topFolders.add(name);
+                }
+            }
+            zisScan.closeEntry();
+            entryScan = zisScan.getNextEntry();
+        }
+        zisScan.close();
+
+        /* Clear matching top-level folders in the destination directory */
+        for (int i = 0; i < topFolders.size(); i++) {
+            String folderName = (String) topFolders.get(i);
+            File targetFolder = new File(baseDest, folderName);
+            if (targetFolder.exists() && targetFolder.isDirectory()) {
+                clearDirectory(targetFolder);
+            }
+        }
+
+        /* Second Pass: Extract files */
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
 		ZipEntry entry = zis.getNextEntry();
 

@@ -356,7 +356,8 @@ ActionPicker(This nodeData) {
 			onSuccess(Map map) {
 				if (map.equals(runCode)) {
 					log("Running code now", "INFO", TOP);
-					runScript(text, 500);
+					int displayId = a11Y.structureOverlay.selectedDisplayId;
+					runScript(text, 500, displayId);
 				}
 			}
 

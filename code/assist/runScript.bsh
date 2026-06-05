@@ -5,13 +5,16 @@ import java.util.concurrent.Executors;
   **Executes Script**
   Runs the provided BeanShell script on a background thread.
  ───────────────────────────────────────────────────────────────*/
-public void runScript(String script, long delayMs) {
+public void runScript(String script, long delayMs, int displayId) {
 
-	String header ="""tasker.getJavaVariable("a11Y").set();
+	String header ="""
+import bsh.This;
+This cache = object();
+setNameSpace(cache.namespace);
+tasker.getJavaVariable("a11Y").set();
 """;
-	This a11Y = tasker.getJavaVariable("a11Y");
-    if (a11Y.assistBar.selectedDisplayId != 0) {
-        header += "\nsetDisplay(" + a11Y.assistBar.selectedDisplayId + ");\n";
+    if (displayId != 0) {
+        header += "\nsetDisplay(" + displayId + ");\n";
     }
     
 	a11Y.executor.submit(new Runnable() {
@@ -33,9 +36,12 @@ public void runScript(String script, long delayMs) {
             } finally {
                 if (a11Y != null && a11Y != void) {
                     a11Y.unmuteEvents();
-                    setDisplay(0);
                 }
             }
         }
     });
+}
+
+public void runScript(String script, long delayMs) {
+    runScript(script, delayMs, 0);
 }

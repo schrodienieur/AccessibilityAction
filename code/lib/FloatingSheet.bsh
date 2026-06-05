@@ -57,7 +57,7 @@ FloatingSheet(This config) {
 	ENV.checkMaterialLib(this);
 
 	Handler mainHandler = new Handler(Looper.getMainLooper());
-	Context ctx = getContext(true);
+	Context ctx = getContext(true, 0);
 	Object a11yService = getService();
 	WindowManager windowManager = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
 	boolean isRemoved = true;
