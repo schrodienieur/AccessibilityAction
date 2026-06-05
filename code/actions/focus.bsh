@@ -63,20 +63,25 @@ focus(HashMap nodes, key) {
 	return focus(node);
 }
 
+
 focus(String key, String value, int index) {
-	AccessibilityNodeInfo n = getNode(key, value, index);
-	return focus(n);
+	AccessibilityNodeInfo npde = getNode(key, value, index);
+	return focus(node);
 }
 
 focus(String key, String value) {
 	return focus(key, value, 0);
 }
 
-focus(String value) {
-	return focus("text", value, 0);
+focus(String text, int index) {
+	AccessibilityNodeInfo node = getNode("text", text, index);
+	return focus(node);
 }
 
-import android.view.accessibility.AccessibilityNodeInfo;
+focus(String text) {
+	AccessibilityNodeInfo node = getNode("text", text, 0);
+	return focus(node);
+}
 
 /*───────────────────────────────────────────────────────────────
 focus(AccessibilityNodeInfo root, ...)
@@ -100,7 +105,7 @@ focus(AccessibilityNodeInfo root, String text) {
 return focus(node);
 }
 
-focus(AccessibilityNodeInfo root, String value, int index) {
+focus(AccessibilityNodeInfo root, String text, int index) {
 	AccessibilityNodeInfo node = getNode(root, "text", value, index);
 return focus(node);
 }

@@ -26,6 +26,10 @@ log(String logMessage, String level, This caller) {
 	tasker.log(logMessage, LOG_FILE, level, caller.namespace.name + " #" + this.namespace.invocationLine);
 }
 
+log(String logMessage, This caller) {
+	tasker.log(logMessage, LOG_FILE, "INFO", caller.namespace.name + " #" + this.namespace.invocationLine);
+}
+
 log(String logMessage, String level, This caller, boolean useAlert) {
 	tasker.log(logMessage, LOG_FILE, level, caller.namespace.name + " #" + this.namespace.invocationLine);
 	showToast(logMessage);

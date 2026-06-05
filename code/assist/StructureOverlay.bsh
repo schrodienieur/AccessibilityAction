@@ -369,9 +369,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 				if (nodeListListener != null) {
 					try {
-						nodeListListener.onReady(nodeList);
+						nodeListListener.onListReady(nodeList);
 					} catch(e) {
-						log("onReady ist not implemented: " + e.getMessage(), "ERROR", TOP);
+						log("onListReady ist not implemented: " + e.getMessage(), "ERROR", TOP);
 					}
 				}				
 			}
@@ -381,7 +381,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 	show() {
 		// Reset everything
+		log("Showing", TOP);
 		if (hasShownOnce) {
+			log("Already shown once, refreshing the node list", TOP);
 			root = (AccessibilityNodeInfo) getRoot(displayId);
 			nodeList.clear();
 		}
@@ -389,7 +391,8 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		long start = System.currentTimeMillis();
 
 		This listener() {
-			onReady(List nodeList) {
+			onListReady(List nodeList) {
+				log("List is ready", TOP);
 				Runnable showRun = new Runnable() {
 					run() {
 						int[] loc = new int[2];
@@ -403,7 +406,8 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 						float end = System.currentTimeMillis() - start;
 						showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
 						if (TOP.listener != null) {
-							TOP.listener.onReady(TOP);
+							log("Calling onStructureReady", TOP);
+							TOP.listener.onStructureReady(TOP);
 						}
 					}
 				};
@@ -458,8 +462,10 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		Runnable addRun = new Runnable() {
 			run() {
 				if (isHidden()) {
+					log("Already added but hidden, unhiding", TOP);
 					unhide();
 				} else {
+					log("Adding to view", TOP);
 					windowManager.addView(rootLayout, rootParams);
 				}
 			}
@@ -547,6 +553,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	  ───────────────────────────────────────────────────────────────*/
 	rootLayout.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 		public void onViewAttachedToWindow(View view) {
+			log("StructureOverlay attached", TOP);
 			hasShownOnce = true;
 			isShown = true;
 			if (isRemoved) isRemoved = false;
@@ -561,6 +568,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		}
 
 		public void onViewDetachedFromWindow(View view) {
+			log("StructureOverlay detached", TOP);
 			isRemoved = true;
 			isShown = false;
 			a11Y.removeOverlay(this);

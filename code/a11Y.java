@@ -2,6 +2,7 @@
 String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
 addClassPath(ENV_PATH);
 importCommands("lib");
+importCommands("lib.file");
 importCommands("main");
 LOG_FILE = ENV_PATH + "/log.txt";
 
@@ -259,11 +260,22 @@ a11Y() {
 	post(Runnable run) {
 		mainHandler.post(run);
 	}
+
+	remove() {
+		log("Removing a11Y", TOP);
+		clean();
+		removeAssist();
+		removeEvents();
+		executor.shutdownNow();
+		tasker.setJavaVariable("a11Y", null);
+	}
+
 	long startTime = System.currentTimeMillis();
 	return this;
 
 };
 
+log("Initializing a11Y");
 This a11Y = a11Y();
 a11Y.setEnvPath(ENV_PATH);
 LOG_FILE = ENV_PATH + "/log.txt";
@@ -310,7 +322,9 @@ a11Y.namespace.setVariable("packageManager", packageManager, false);
 if (!ENV.HAS_MATERIAL_COLOR && ENV.HAS_MATERIAL_COLOR_FALLBACK) {
 	This mcf = MaterialColorFallback();
 	mcf.load();
+	log("Using fallback material color.");
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");
 }
 
+log("a11Y initialized and send start command");
 tasker.sendCommand("a11Y=:=start");

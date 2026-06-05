@@ -353,6 +353,7 @@ public This AssistBar(int initialX, int initialY) {
 		Runnable displayMe = new Runnable() {
 			run() {
 				try {
+					log("Displaying Structure Overlay for display " + selectedDisplayId, "INFO", TOP);
 					removeStructure();
 					AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
 					boolean useA11yStructure = focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
@@ -362,7 +363,8 @@ public This AssistBar(int initialX, int initialY) {
 					structureOverlay.show();
 					if (useA11yStructure) show();
 				} catch (e) {
-					tasker.showToast(selectedDisplayId + ": " + e.getMessage());
+					log(e.getMessage(), "ERROR", TOP);
+					tasker.showToast("Failed to display structure overlay");
 				}
 			}
 		};
@@ -412,6 +414,7 @@ public This AssistBar(int initialX, int initialY) {
 		}
 		
 		onViewDetachedFromWindow(View view) {
+			log("Reset layout then remove structure overlay with node search & filter", TOP);
 			TOP.switchLayout(false);
 			try {
 				filterSheet.remove();
@@ -423,9 +426,11 @@ public This AssistBar(int initialX, int initialY) {
 			}
 		}
 
-		onReady(This structureOverlay) {
+		onStructureReady(This structureOverlay) {
+			log("Switching layout to use structure overlay", TOP);
 			TOP.switchLayout(true);
 		}
+
 		return this;
 	}
 

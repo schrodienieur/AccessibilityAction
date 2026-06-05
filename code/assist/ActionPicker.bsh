@@ -282,8 +282,8 @@ ActionPicker(This nodeData) {
 						if (!param.equals(selected)) {
 							String type = selected.getClass().getSimpleName();
 							if (type.equals("String")) {
-								shortReplaced = tasker.toJson(getText((String) selected, 75));
-								replaced = tasker.toJson(selected);
+								shortReplaced = escapeQuote(getText((String) selected, 75));
+								replaced = escapeQuote(selected);
 							} else {
 								replaced = selected.toString();
 							}
@@ -355,6 +355,7 @@ ActionPicker(This nodeData) {
 
 			onSuccess(Map map) {
 				if (map.equals(runCode)) {
+					log("Running code now", "INFO", TOP);
 					runScript(text, 500);
 				}
 			}
@@ -432,6 +433,7 @@ ActionPicker(This nodeData) {
 			a11Y.lastActionPickerReminder = System.currentTimeMillis();
 		}
 	} else if (actionPickerAddToEditor != void && !actionPickerAddToEditor) {
+		log("Copy to clipboard", "INFO", TOP);
 		setClipboard((String) finalOverload.get("usage"));
 		showToast("Copy to clipboard");
 	}

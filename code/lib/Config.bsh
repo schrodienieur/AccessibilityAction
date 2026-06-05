@@ -12,7 +12,7 @@ Config(String filePath) {
         { "Debugging", "debugMe", true, "Enable debug mode", true },
         { "Debugging", "logIncludeNode", false, "Include node information in logs", true },
         { "Debugging", "debugSteps", true, "Show debugging information on a toast", false },
-        { "Debugging", "debugInfo", true, "Show debugging information on a toast", true }, // "S"how debugging... (tie-breaker: "i"nfo vs "s"teps key)
+        { "Debugging", "debugInfo", true, "Show debugging information on a toast", true }, 
         { "Debugging", "useA11yOffset", true, "Use offset for Accessibility", true},
         { "Debugging", "useA11yStructure", true, "Use accessibility for structure overlay", true },
         { "Debugging", "useOffset", true, "Use offset for normal overlay" ,true},
@@ -34,7 +34,7 @@ Config(String filePath) {
 
         // --- Other ---
         { "Other", "updatePreRelease", false, "Update to pre-release version", true },
-        { "Other", "useDarkTheme", true, "Use dark theme or light", true }
+        { "Other", "useDarkTheme", true, "Use dark theme or light", false }
     };
 
 	
