@@ -1,0 +1,100 @@
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.view.accessibility.AccessibilityNodeInfo;
+import bsh.This;
+import android.os.Build.VERSION;
+
+NodeProperties(AccessibilityNodeInfo node) {
+	int flags;
+	boolean isCheckable = node.isCheckable();
+	if (isCheckable) flags |= NodeInfo.CHECKABLE;
+
+	boolean isChecked = node.isChecked();
+	if (isChecked) flags |= NodeInfo.CHECKED;
+
+	boolean isFocusable = node.isFocusable();
+	if (isFocusable) flags |= NodeInfo.FOCUSABLE;
+
+	boolean isFocused = node.isFocused();
+	if (isFocused) flags |= NodeInfo.FOCUSED;
+
+	boolean isSelected = node.isSelected();
+	if (isSelected) flags |= NodeInfo.SELECTED;
+
+	boolean isClickable = node.isClickable();
+	if (isClickable) flags |= NodeInfo.CLICKABLE;
+
+	boolean isLongClickable = node.isLongClickable();
+	if (isLongClickable) flags |= NodeInfo.LONG_CLICKABLE;
+
+	boolean isEnabled = node.isEnabled();
+	if (isEnabled) flags |= NodeInfo.ENABLED;
+
+	boolean isPassword = node.isPassword();
+	if (isPassword) flags |= NodeInfo.PASSWORD;
+
+	boolean isScrollable = node.isScrollable();
+	if (isScrollable) flags |= NodeInfo.SCROLLABLE;
+
+	boolean isAccessibilityFocused = node.isAccessibilityFocused();
+	if (isAccessibilityFocused) flags |= NodeInfo.ACCESSIBILITY_FOCUSED;
+
+	boolean isVisibleToUser = node.isVisibleToUser();
+	if (isVisibleToUser) flags |= NodeInfo.VISIBLE_TO_USER;
+
+	boolean isEditable = node.isEditable();
+	if (isEditable) flags |= NodeInfo.EDITABLE;
+
+	boolean canOpenPopup = node.canOpenPopup();
+	if (canOpenPopup) flags |= NodeInfo.OPENS_POPUP;
+
+	boolean isDismissable = node.isDismissable();
+	if (isDismissable) flags |= NodeInfo.DISMISSABLE;
+
+	boolean isMultiLine = node.isMultiLine();
+	if (isMultiLine) flags |= NodeInfo.MULTI_LINE;
+
+	boolean isContentInvalid = node.isContentInvalid();
+	if (isContentInvalid) flags |= NodeInfo.CONTENT_INVALID;
+
+	boolean isContextClickable = node.isContextClickable();
+	if (isContextClickable) flags |= NodeInfo.CONTEXT_CLICKABLE;
+
+	boolean isImportance = node.isImportantForAccessibility();
+	if (isImportance) flags |= NodeInfo.IMPORTANCE;
+
+	boolean isScreenReaderFocusable = node.isScreenReaderFocusable();
+	if (isScreenReaderFocusable) flags |= NodeInfo.SCREEN_READER_FOCUSABLE;
+
+	boolean isShowingHint = node.isShowingHintText();
+	if (isShowingHint) flags |= NodeInfo.IS_SHOWING_HINT;
+
+	boolean isHeading = node.isHeading();
+	if (isHeading) flags |= NodeInfo.IS_HEADING;
+
+
+	if (VERSION.SDK_INT >= 33) {
+		boolean isTextSelectable = node.isTextSelectable();
+		if (isTextSelectable) flags |= NodeInfo.IS_TEXT_SELECTABLE;
+	}
+
+	if (VERSION.SDK_INT >= 34) {
+		boolean isRequestInitialAccessibilityFocus = node.hasRequestInitialAccessibilityFocus();
+		if (isRequestInitialAccessibilityFocus) flags |= NodeInfo.REQUEST_INITIAL_ACCESSIBILITY_FOCUS;
+
+		boolean isAccessibilityDataSensitive = node.isAccessibilityDataSensitive();
+		if (isAccessibilityDataSensitive) flags |= NodeInfo.ACCESSIBILITY_DATA_SENSITIVE;
+	}
+
+	if (VERSION.SDK_INT >= 35) {
+		boolean isGranularScrollingSupported = node.isGranularScrollingSupported();
+		if (isGranularScrollingSupported) flags |= NodeInfo.SUPPORTS_GRANULAR_SCROLLING;
+	}
+
+	if (VERSION.SDK_INT >= 36) {
+		boolean isFieldRequired = node.isFieldRequired();
+		if (isFieldRequired) flags |= NodeInfo.FIELD_REQUIRED;
+	}
+
+	return this;
+}

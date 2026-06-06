@@ -332,7 +332,7 @@ UpdateManager() {
 	───────────────────────────────────────────────────────────────*/
 	public String confirmDialog(String title, String message, String positiveText, String negativeText, String neutralText) {
 		SingleSubject resultSignal = SingleSubject.create();
-		Consumer myActivityConsumer = new Consumer() {
+		java.util.function.Consumer myActivityConsumer = new java.util.function.Consumer() {
 			accept(Object activity) {
 				final Activity currentActivity = (Activity) activity;
 

@@ -94,8 +94,13 @@ This NodeInfo(AccessibilityNodeInfo node) {
 		constants.add(name);
 	}
 
-	Field propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
-	propertiesField.setAccessible(true);
+	Field propertiesField;
+	boolean hasPropertyField;
+	try {
+		propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
+		propertiesField.setAccessible(true);
+		hasPropertyField = true;
+	} catch (e) {}
 
 	getConstantNames() {
 		List names = Arrays.asList(map.keySet().toArray());
@@ -119,7 +124,14 @@ This NodeInfo(AccessibilityNodeInfo node) {
 	}
 
 	getProperties(AccessibilityNodeInfo targetNode) {
-		return propertiesField.getInt(targetNode);
+		int properties;
+		if (!hasPropertyField) {
+			This nodeProps = NodeProperties(targetNode);
+			properties = nodeProps.flags;
+		} else {
+			properties = propertiesField.getInt(targetNode);
+		}
+		return properties;
 	}
 
 	hasProperty(int sourceProperties, int properties) {
@@ -209,7 +221,7 @@ This NodeInfo(AccessibilityNodeInfo node) {
 	int displayId;
 	if (a11Y != null)
 		if (a11Y.structureOverlay != void)
-			if (a11Y.structureOverlay.selectedDisplayId != void) displayId = a11Y.structureOverlay.selectedDisplayId;
+			if (a11Y.assistBar.selectedDisplayId != void) displayId = a11Y.assistBar.selectedDisplayId;
 	Context context = getContext(displayId);
 	PackageManager pm = context.getPackageManager();
 	ApplicationInfo appInfo = pm.getApplicationInfo(packageName, 0);

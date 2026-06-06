@@ -380,7 +380,7 @@ ListDialog(This config) {
 		if (!hasShown) {
 			isRemoved = false;
 			hasShown = true;
-			tasker.doWithActivity(new Consumer() {
+			tasker.doWithActivity(new java.util.function.Consumer() {
 				accept(Object activity) { layout((Activity) activity); }
 			});
 			if (timeout != 0) {

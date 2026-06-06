@@ -374,7 +374,7 @@ ScriptEditor() {
 
 	}
 
-	Consumer uiLogic = new Consumer() {
+	java.util.function.Consumer uiLogic = new java.util.function.Consumer() {
 		accept(Object activityObj) {
 			layout((Activity) activityObj);
 		}
