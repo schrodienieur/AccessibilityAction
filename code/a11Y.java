@@ -1,4 +1,3 @@
-
 String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
 addClassPath(ENV_PATH);
 importCommands("lib");
@@ -22,17 +21,21 @@ a11Y() {
 	This old = tasker.getJavaVariable("a11Y");
 	if (old != null) {
 		try {
-			if (old.executor != void && old.executor != null) {
-				if (!old.executor.isShutdown()) {
-					old.executor.shutdownNow();
-				}
+			boolean hasRemoveBoolean = old.namespace.getMethod("remove", new Class[] { Boolean.class } ) != null;
+			boolean hasRemove = old.namespace.getMethod("remove", new Class[] { } ) != null ;
+			if (hasRemoveBoolean) {
+				old.remove(false);
+			} else if (hasRemove) {
+				old.remove();
+			} else {
+				old.clean();
+				old.removeAssist();
+				old.removeEvents();
+				old.executor.shutdownNow();
 			}
-			old.removeAssist();
-			if (old.structureOverlay != void) old.structureOverlay.remove();
 		} catch (Exception e) {}
 	}
 
-	
 	final This TOP = this;
 
 	// Variables
@@ -41,7 +44,7 @@ a11Y() {
 	String ENV_PATH;
 	String LOG_FILE;
 	long lastActionPickerReminder = 0;
-	
+
 	This assistBar;
 	This updateManager;
 	This materialColorFallback;
@@ -261,13 +264,34 @@ a11Y() {
 		mainHandler.post(run);
 	}
 
-	remove() {
+	remove(boolean clearA11Y) {
 		log("Removing a11Y", TOP);
 		clean();
 		removeAssist();
 		removeEvents();
 		executor.shutdownNow();
-		tasker.setJavaVariable("a11Y", null);
+		tasker.setJavaVariable("a11E", null);
+		if (clearA11Y) tasker.setJavaVariable("a11Y", null);
+	}
+	
+	remove() {
+		remove(true);
+	}
+
+	checkService() {
+		return tasker.getAccessibilityService() != null;
+	}
+
+	enableService() {
+		if (a11yController == null) a11yController = A11yController();
+		String packageName = context.getPackageName();
+		a11yController.enableService(packageName);
+	}
+
+	disableService() {
+		if (a11yController == null) a11yController = A11yController();
+		String packageName = context.getPackageName();
+		a11yController.disableService(packageName);
 	}
 
 	long startTime = System.currentTimeMillis();
@@ -282,7 +306,6 @@ LOG_FILE = ENV_PATH + "/log.txt";
 
 This ENV = Environment();
 a11Y.setEnv(ENV);
-
 
 This viewControl = ViewControl();
 a11Y.namespace.setVariable("viewControl", viewControl, false);
@@ -299,17 +322,14 @@ inspector.read();
 a11Y.inspector = inspector;
 tasker.setJavaVariable("a11Y", a11Y);
 
+This a11yController = A11yController();
+a11Y.namespace.setVariable("a11yController", a11yController, false);
 
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
 This NodeInfo = NodeInfo();
 a11Y.namespace.setVariable("NodeInfo", NodeInfo, false);
-// Limit following methods and scripted objects to Tasker app
-if (!ENV.HAS_MATERIAL_LIB) return;
-
-This assistBar = AssistBar(0.8, 0.8);
-a11Y.namespace.setVariable("assistBar", assistBar, false);
 
 This updateManager = UpdateManager();
 updateManager.namespace.setVariable("directoryPath", ENV_PATH, false);
@@ -318,6 +338,11 @@ a11Y.namespace.setVariable("updateManager", updateManager, false);
 This packageManager = PackageManager();
 a11Y.namespace.setVariable("packageManager", packageManager, false);
 
+// Limit following methods and scripted objects to Tasker app
+if (!ENV.HAS_MATERIAL_LIB) return;
+
+This assistBar = AssistBar(0.8, 0.8);
+a11Y.namespace.setVariable("assistBar", assistBar, false);
 
 if (!ENV.HAS_MATERIAL_COLOR && ENV.HAS_MATERIAL_COLOR_FALLBACK) {
 	This mcf = MaterialColorFallback();

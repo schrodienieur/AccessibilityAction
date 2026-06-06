@@ -356,8 +356,8 @@ ActionPicker(This nodeData) {
 
 			onSuccess(Map map) {
 				if (map.equals(runCode)) {
-					log("Running code now", "INFO", TOP);
 					int displayId = a11Y.assistBar.selectedDisplayId;
+					log("Running code now on display " + displayId, "INFO", TOP);
 					runScript(text, 500, displayId);
 				}
 			}
