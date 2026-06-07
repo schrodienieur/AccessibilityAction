@@ -121,7 +121,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 	remove() {
 		if (activeBox != null) activeBox.reset();
-		if (!isRemoved) windowManager.removeView(rootLayout);
+		if (!isRemoved()) windowManager.removeView(rootLayout);
 	}
 
 	isRemoved() {
@@ -299,7 +299,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 					run() {
 						try {
 							tasker.getJavaVariable("a11Y").set();
-							Map result = ActionPicker(nodeData);
+							if (a11Y.assistBar == null) return;
+							if (a11Y.assistBar.actionPicker == null) return;
+							Map result = a11Y.assistBar.actionPicker.selectNodeActions(nodeData);
 							if (result != null) {
 								a11Y.selectedAction = result;
 							}
@@ -515,6 +517,14 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 	isShown() {
 		return rootLayout.getParent() != null && isVisible();
+	}
+
+	isAdded() {
+		return rootLayout.getParent() != null;
+	}
+
+	isRemoved() {
+		return rootLayout.getParent() == null;
 	}
 
 	setNodeBoxListener(This newListener) {

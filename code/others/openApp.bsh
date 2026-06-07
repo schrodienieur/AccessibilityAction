@@ -16,14 +16,14 @@ import android.os.Build;
 import android.content.Context;
 
 /*───────────────────────────────────────────────────────────────
- * openApp(pkg, activity)
- * Launch a specific activity.
+ * openApp(packageName, className)
+ * Launch a specific className.
  *──────────────────────────────────────────────────────────────*/
-openApp(String pkg, String activity) {
-    if (pkg == null || activity == null) return;
+openApp(String packageName, String className) {
+    if (packageName == null || className == null) return;
 
     Intent intent = new Intent();
-    intent.setComponent(new ComponentName(pkg, activity));
+    intent.setComponent(new ComponentName(packageName, className));
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
     try {
@@ -36,29 +36,29 @@ openApp(String pkg, String activity) {
             context.startActivity(intent);
         }
     } catch (Exception e) {
-        /* Failed to launch component (e.g., activity not found) */
-        log("openApp(pkg, activity): Failed to launch component " + pkg + "/" + activity + ": ");
+        /* Failed to launch component (e.g., className not found) */
+        log("openApp(packageName, className): Failed to launch component " + packageName + "/" + className + ": ");
     }
 }
 
 /*───────────────────────────────────────────────────────────────
- * openApp(labelOrPackage)
+ * openApp(labelOrPackageName)
  * Opens app by exact package OR precise case-insensitive label,
- * OR a fully qualified activity name (e.g., com.pkg.ActivityName)
+ * OR a fully qualified className name (e.g., com.packageName.ActivityName)
  *──────────────────────────────────────────────────────────────*/
-openApp(String labelOrPackage) {
-    if (labelOrPackage == null) return;
+openApp(String labelOrPackageName) {
+    if (labelOrPackageName == null) return;
 	This a11Y = tasker.getJavaVariable("a11Y");
 	This pm = a11Y.packageManager;
     /* Fallback: treat as a package or label and find the main launch intent. */
-    String pkg = pm.resolvePackage(labelOrPackage);
+    String packageName = pm.resolvePackage(labelOrPackageName);
 
-    if (pkg == null) {
+    if (packageName == null) {
         log("openApp: App not found → ");
         return;
     }
 
-    Intent intent = pm.getLaunchIntent(pkg);
+    Intent intent = pm.getLaunchIntent(packageName);
 
     if (intent == null) {
         log("openApp: No launchable activity → ");
@@ -76,28 +76,28 @@ openApp(String labelOrPackage) {
             context.startActivity(intent);
         }
     } catch (Exception e) {
-        log("openApp: Failed to launch main intent for package " + pkg + ": " + e.getMessage());
+        log("openApp: Failed to launch main intent for package " + packageName + ": " + e.getMessage());
     }
 }
 
 /*───────────────────────────────────────────────────────────────
- * launchAppInBackground(labelOrPackage)
+ * launchAppInBackground(labelOrPackageName)
  * Launches app behind the current task using ActivityOptions.
  * Requires Android 5.0 (API 21) or higher.
  *──────────────────────────────────────────────────────────────*/
-openApp(String labelOrPackage, boolean background) {
-    if (labelOrPackage == null) return;
+openApp(String labelOrPackageName, boolean background) {
+    if (labelOrPackageName == null) return;
 	This a11Y = tasker.getJavaVariable("a11Y");
 	This pm = a11Y.packageManager;
     /* Use existing logic to find the package name */
-    String pkg = pm.resolvePackage(labelOrPackage);
+    String packageName = pm.resolvePackage(labelOrPackageName);
 
-    if (pkg == null) {
+    if (packageName == null) {
         log("launchAppInBackground: App not found → ");
         return;
     }
 
-    Intent intent = pm.getLaunchIntent(pkg);
+    Intent intent = pm.getLaunchIntent(packageName);
 
     if (intent == null) {
         log("launchAppInBackground: No launchable activity → ");
@@ -119,7 +119,7 @@ openApp(String labelOrPackage, boolean background) {
         int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
         if (displayId != 0) options.setLaunchDisplayId(displayId);
         Bundle optionsBundle = options.toBundle();
-        log("launchAppInBackground: Launching " + pkg + " in background.");
+        log("launchAppInBackground: Launching " + packageName + " in background.");
         
         // Use the Context.startActivity(Intent, Bundle) overload
         context.startActivity(intent, optionsBundle); 

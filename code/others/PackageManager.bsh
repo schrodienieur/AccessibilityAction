@@ -56,21 +56,21 @@ public This PackageManager() {
 	}
 
 	/*───────────────────────────────────────────────────────────────
-	  getLaunchIntent(String pkg)
+	  getLaunchIntent(String packageName)
 	  **Validates and Returns Launch Intent**
 	  Returns a launch intent only if the package is enabled, 
 	  not stopped, not suspended, and has a launchable activity.
 	 ───────────────────────────────────────────────────────────────*/
-	public Intent getLaunchIntent(String pkg) {
-		if (pkg == null) return null;
+	public Intent getLaunchIntent(String packageName) {
+		if (packageName == null) return null;
 		try {
-			ApplicationInfo appInfo = manager.getApplicationInfo(pkg, 0);
+			ApplicationInfo appInfo = manager.getApplicationInfo(packageName, 0);
 
 			if (!appInfo.enabled) return null;
 			if ((appInfo.flags & ApplicationInfo.FLAG_STOPPED) != 0) return null;
 			if ((appInfo.flags & ApplicationInfo.FLAG_SUSPENDED) != 0) return null;
 
-			return manager.getLaunchIntentForPackage(pkg);
+			return manager.getLaunchIntentForPackage(packageName);
 		} catch (Exception e) {
 			return null;
 		}
@@ -89,21 +89,30 @@ public This PackageManager() {
 		return (String) cache.get(label.toLowerCase());
 	}
 
+	public String getLabel(String packageName) {
+		try {
+			ApplicationInfo appInfo = manager.getApplicationInfo(packageName, 0);
+			return manager.getApplicationLabel(appInfo).toString();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	/*───────────────────────────────────────────────────────────────
-	  resolvePackage(String labelOrPackage)
+	  resolvePackage(String labelOrPackageName)
 	  **Primary Resolution Logic**
 	  Attempts to resolve an input as either a direct package name 
 	  or a display label via cached mapping.
 	 ───────────────────────────────────────────────────────────────*/
-	public String resolvePackage(String labelOrPackage) {
-		if (labelOrPackage == null) return null;
+	public String resolvePackage(String labelOrPackageName) {
+		if (labelOrPackageName == null) return null;
 
 		/* Step 1: Check if input is already a valid package name */
-		Intent intent = getLaunchIntent(labelOrPackage);
-		if (intent != null) return labelOrPackage;
+		Intent intent = getLaunchIntent(labelOrPackageName);
+		if (intent != null) return labelOrPackageName;
 
 		/* Step 2: Search by cached display label */
-		return findFirstPackageByPreciseLabel(labelOrPackage);
+		return findFirstPackageByPreciseLabel(labelOrPackageName);
 	}
 
 	return this;

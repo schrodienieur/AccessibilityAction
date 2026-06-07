@@ -48,8 +48,7 @@ public This AssistBar(int initialX, int initialY) {
 	This a11Y = tasker.getJavaVariable("a11Y");
 	final int WINDOW_TYPE = ENV.Layout.TYPE_ASSIST_BAR;
 	a11Y.viewControl.addView(TOP);
-
-	final AccessibilityService accessibilityService = getService();
+	
 	if (ENV == void || ENV == null) ENV = Environment();
 	ENV.checkMaterialLib(this);
 	
@@ -80,6 +79,7 @@ public This AssistBar(int initialX, int initialY) {
 	This displayMenu;
 	This scriptEditor;
 	This assistSetting;
+	This actionPicker;
 
 	// Buttons and Handle
 	GestureDetector detector;
@@ -331,6 +331,12 @@ public This AssistBar(int initialX, int initialY) {
 		runMe(runMe);
 	}
 
+	isSystemWindow() {
+		AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
+		if (focusedWindow == null) return false;
+		return focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
+	}
+
 	displayStructure() {
 		Runnable displayMe = new Runnable() {
 			run() {
@@ -338,7 +344,7 @@ public This AssistBar(int initialX, int initialY) {
 					log("Displaying Structure Overlay for display " + selectedDisplayId, "INFO", TOP);
 					removeStructure();
 					AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
-					boolean useA11yStructure = focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
+					boolean useA11yStructure = isSystemWindow();
 					if (useA11yStructure) remove();
 					This listener = createStructureOverlayListener();
 					structureOverlay = StructureOverlay(listener, useA11yStructure, focusedWindow);
@@ -355,9 +361,20 @@ public This AssistBar(int initialX, int initialY) {
 
 	toggleStructure() {
 		try {
-			if (structureOverlay != null && !structureOverlay.isRemoved()) {
+			boolean isSystemWindow = isSystemWindow();
+			if (structureOverlay == null) {
+				log("Displaying Structure Overlay From Toggle because null", "INFO", this);
+				scriptEditor.remove();
+				displayStructure();
+			}
+
+			else if (structureOverlay.isShown()) {
 				structureOverlay.remove();
-			} else {
+				log("Removing Structure Overlay From Toggle", "INFO", this);
+			} 
+			
+			else {
+				log("Displaying Structure Overlay From Toggle" + structureOverlay.isRemoved(), "INFO", this);
 				scriptEditor.remove();
 				displayStructure();
 			}
@@ -430,15 +447,15 @@ public This AssistBar(int initialX, int initialY) {
 				}
 				return this;
 			}
-			displayMenu.onClickListener = listener();
+			This listener = listener();
+			displayMenu.setOnClickListener(listener);
 		}
 		if (scriptEditor == null) scriptEditor = ScriptEditor();
 		if (assistSetting == null) assistSetting = AssistSetting();
+		if (actionPicker == null) actionPicker = ActionPicker();
 	}
 
 	clearResources() {
-		if (structureOverlay != null) structureOverlay.remove();
-		structureOverlay = null;
 		if (filterSheet != null) filterSheet.remove();
 		filterSheet = null;
 		if (nodeSearch != null) nodeSearch.remove();
@@ -449,6 +466,7 @@ public This AssistBar(int initialX, int initialY) {
 		scriptEditor = null;
 		if (assistSetting != null) assistSetting.remove();
 		assistSetting = null;
+		// actionPicker = null;
 	}
 
 	/*────────────────────────────
@@ -457,14 +475,13 @@ public This AssistBar(int initialX, int initialY) {
 	handleListener() {
 		onLongPress() {
 			vibrate(assistButton);
-
-			// TODO: Make changes on FloatingSheet so its height can be retrieved
-			// Use placeholder as of now
-			int displayMenuY = (1.0 - 0.5) * screenheight;
-			int assistY = assistParams.y + assistParams.height;
-			if (assistY > displayMenuY) moveHandle(assistParams.x, displayMenuY);
-			displayMenu.load();
-			displayMenu.show();
+			Runnable runMe = new Runnable() {
+				run() {
+					removeStructure();
+					ActionsGroupDialog();
+				}
+			};
+			a11Y.execute(runMe);
 		}
 		onSingleTapConfirmed() {
 			toggleStructure();
@@ -537,14 +554,14 @@ public This AssistBar(int initialX, int initialY) {
 				
 			}
 			onViewDetachedFromWindow(View v) {
-				try {
+				// try {
 					isShown = false;
 					isRemoved = true;
-					a11Y.clean();
 					clearResources();
-				} catch (e) {
-					log(e.getMessage(), "ERROR", TOP, true);
-				}
+					a11Y.clean();
+				// } catch (e) {
+				// 	log(e.getMessage(), "ERROR", TOP, true);
+				// }
 			}
 		});
 	}
@@ -570,6 +587,8 @@ public This AssistBar(int initialX, int initialY) {
 	}
 
 	remove() {
+		removeStructure();
+		stuctureOverlay = null;
 		if (isShown) windowManager.removeView(assistButton);
 		isShown = false;
 		a11Y.clean();

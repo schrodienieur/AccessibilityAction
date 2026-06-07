@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+allApps() {
+	AccessibilityService svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_ACCESSIBILITY_ALL_APPS);
+}

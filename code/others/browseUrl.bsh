@@ -30,7 +30,7 @@ Arguments:
 Example:
 browseUrl("[https://google.com](https://google.com)", "com.android.chrome");
 ───────────────────────────────────────────────────────────────*/
-browseUrl(String url, String labelOrPackage) {
+browseUrl(String url, String labelOrPackageName) {
 	/* Basic scheme check for standard web addresses. */
 	if (url.startsWith("www.")) {
 		url = "http://" + url;
@@ -38,7 +38,7 @@ browseUrl(String url, String labelOrPackage) {
 	This a11Y = tasker.getJavaVariable("a11Y");
 	This pm = a11Y.packageManager;
     String packageName;
-	if (labelOrPackage != null) packageName = pm.resolvePackage(labelOrPackage);
+	if (labelOrPackageName != null) packageName = pm.resolvePackage(labelOrPackageName);
 	intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 
 	/* Only target a specific package if the argument is not null/void. */

@@ -96,8 +96,8 @@ getText(AccessibilityNodeInfo node, String key, String sourceField) {
 	if ("seekbar".equals(key)) {
 		RangeInfo rangeInfo = node.getRangeInfo();
 		if (rangeInfo != null) {
-			current = rangeInfo.getCurrent();
-			return current;
+			float current = rangeInfo.getCurrent();
+			return current.toString();
 		}
 		return null;
 	}

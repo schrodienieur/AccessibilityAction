@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+dismiss() {
+	AccessibilityService svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE);
+}

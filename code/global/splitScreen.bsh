@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+splitScreen() {
+	AccessibilityService svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN);
+}

@@ -1,0 +1,137 @@
+import bsh.This;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.graphics.Point;
+
+/*───────────────────────────────────────────────────────────────
+  DisplayMenu()
+  ───────────────────────────────────────────────────────────────*/
+DisplayMenu() {
+	final This TOP = this;
+	This a11Y = tasker.getJavaVariable("a11Y");
+	final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_SEARCH;
+	a11Y.viewControl.addView(TOP);
+	List displayList = new ArrayList();
+	This displayInfos;
+    This config;
+    This listDialog;
+    This onClickListener;
+
+	loadList() {
+        displayList.clear();
+		Display[] displays = displayInfos.displays;
+		for (int i = 0; i < displays.length; i++) {
+			Display display = displays[i];
+			Map item = new HashMap();
+			item.put("title", display.getName());
+			String size = display.getWidth() + "x" + display.getHeight();
+			int id = display.getDisplayId();
+			String description = "ID: " + id + "\nSize: " + size;
+
+            AccessibilityNodeInfo root = getRoot(id);
+            if (root != null) {
+                String packageName = root.getPackageName();
+                String packageLabel = a11Y.packageManager.getLabel(packageName);
+                description += "\nPackage: " + packageName + " (" + packageLabel + ")";
+            }
+
+			item.put("subtitle", description);
+			item.put("display", display);
+			displayList.add(item);
+		}
+	}
+
+
+	config(This THIS) {
+		List itemList = TOP.displayList;
+		String title = "Display Menu";
+        long timeout = 30000;
+		boolean showFilter;
+		onSuccess(Map map) {
+			Display display = map.get("display");
+			if (TOP.onClickListener != null) {
+				Runnable runMe = new Runnable() {
+					run() {
+                        log("Running onClickListener", "INFO", TOP);
+						try {
+							if (TOP.namespace.getVariable("onClickListener") != null) {
+								TOP.onClickListener.onClick(display);
+							} else {
+                                log("No onClickListener set", "INFO", TOP);
+                                showToast("No onClickListener set");
+                            }
+						} catch (Exception e) {
+                            log(e.getMessage(), "ERROR", TOP);
+							showToast(e.getMessage());
+						}
+					};
+				};
+				a11Y.post(runMe);
+			} else {
+                log("No onClickListener set", "ERROR", TOP);
+            }
+            TOP.remove();
+		}
+
+		onCancel() {
+
+		}
+
+		onTimeout() {}
+
+		onAttach() {}
+
+		onDetach() {}
+
+		return this;
+	}
+
+	setOnClickListener(This listener) {
+        log("Setting onClickListener", "INFO", TOP);
+		TOP.onClickListener = listener;
+	}
+
+	show() {
+        displayInfos = DisplayInfos();
+        loadList();
+		config = config(TOP);
+	    TOP.listDialog = ListDialog(config);
+		listDialog.show();
+	}
+
+	remove() {
+		if (listDialog != null) listDialog.remove();
+	}
+
+	toggle() {
+		if (listDialog != null) listDialog.toggle();
+	}
+
+	isAdded() {
+        if (listDialog == null) return false;
+		return listDialog.isAdded();
+	}
+
+	isHidden() {
+        if (listDialog == null) return false;
+		return listDialog.isHidden();
+	}
+
+	isShown() {
+        if (listDialog == null) return false;
+		return listDialog.isShown();
+	}
+
+	isRemoved() {
+        if (listDialog == null) return false;
+		return listDialog.isRemoved();
+	}
+
+	return this;
+}
+
+/* Auto-start if called directly */
+// if (MAIN_DIRECTORY == void) {
+// 	a11Y.set();
+// 	DisplayMenu = DisplayMenu();
+// 	DisplayMenu.show();
+// }

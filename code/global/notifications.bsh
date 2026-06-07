@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+notifications() {
+	AccessibilityService svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+}

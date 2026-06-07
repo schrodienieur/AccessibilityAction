@@ -65,7 +65,7 @@ focus(HashMap nodes, key) {
 
 
 focus(String key, String value, int index) {
-	AccessibilityNodeInfo npde = getNode(key, value, index);
+	AccessibilityNodeInfo node = getNode(key, value, index);
 	return focus(node);
 }
 

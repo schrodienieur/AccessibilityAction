@@ -3,7 +3,7 @@ import android.content.Context;
 import bsh.This;
 
 /*───────────────────────────────────────────────────────────────
-shareText(String text, String labelOrPackage)
+shareText(String text, String labelOrPackageName)
 **Shares Text to Specific App**
 Creates an Intent to share text. If a package name is provided,
 it targets that specific app; otherwise, it shows the system
@@ -12,7 +12,7 @@ chooser.
 Arguments:
 
 * text → The string content to be shared.
-* labelOrPackage → The package ID of the target app or app label (e.g., "com.whatsapp").
+* labelOrPackageName → The package ID of the target app or app label (e.g., "com.whatsapp").
 Pass null or empty string for the system chooser.
 
 Example:
@@ -22,18 +22,18 @@ shareText("Hello from Tasker!", "com.whatsapp");
 // Open general share menu
 shareText("Check this out!", null);
 ───────────────────────────────────────────────────────────────*/
-public void shareText(String text, String labelOrPackage) {
+public void shareText(String text, String labelOrPackageName) {
 	Intent intent = new Intent(Intent.ACTION_SEND);
 	intent.setType("text/plain");
 	intent.putExtra(Intent.EXTRA_TEXT, text);
 	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
 	/* Target a specific app if package is provided */
-	if (labelOrPackage != null && !labelOrPackage.equals("")) {
+	if (labelOrPackageName != null && !labelOrPackageName.equals("")) {
 		This a11Y = tasker.getJavaVariable("a11Y");
 		This pm = a11Y.packageManager;
-		String pkg = pm.resolvePackage(labelOrPackage);
-		intent.setPackage(labelOrPackage);
+		String pkg = pm.resolvePackage(labelOrPackageName);
+		intent.setPackage(labelOrPackageName);
 		context.startActivity(intent);
 		return;
 	}

@@ -251,8 +251,13 @@ Object[][] DIRECTORIES_OBJECT = new Object[][] {
 	},
 
 	{
-		"other",
+		"others",
 		"Others"
+	},
+
+	{
+		"global",
+		"Global Actions"
 	}
 };
 

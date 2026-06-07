@@ -27,14 +27,14 @@ import java.util.TimeZone;
 import org.json.JSONArray;
 
 /*───────────────────────────────────────────────────────────────*/
-toIsoLocal(ts) {
+String toIsoLocal(long ts) {
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 	sdf.setTimeZone(TimeZone.getDefault());
 	return sdf.format(new Date(ts));
 }
 
 /*───────────────────────────────────────────────────────────────*/
-getEventTypeName(type) {
+String getEventTypeName(int type) {
 	if (type == 0) return "NONE";
 	if (type == 1) return "MOVE_TO_FOREGROUND";
 	if (type == 2) return "MOVE_TO_BACKGROUND";
@@ -72,26 +72,26 @@ getEventTypeName(type) {
 }
 
 /*───────────────────────────────────────────────────────────────*/
-parseFilterInput(filterInput) {
+List parseFilterInput(Object filterInput) {
 
 	if (filterInput == null) return null;
 
 	if (filterInput instanceof java.util.List) {
-		return filterInput;
+		return (List) filterInput;
 	}
 
 	if (filterInput instanceof String) {
-		s = filterInput.trim();
+		String s = ((String) filterInput).trim();
 		if (s.length() == 0) return null;
 
 		try {
-			arr = new JSONArray(s);
-			list = new ArrayList();
-			for (i = 0; i < arr.length(); i++) {
+			JSONArray arr = new JSONArray(s);
+			List list = new ArrayList();
+			for (int i = 0; i < arr.length(); i++) {
 				list.add(arr.getString(i));
 			}
 			return list;
-		} catch (e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}
@@ -100,38 +100,38 @@ parseFilterInput(filterInput) {
 }
 
 /*───────────────────────────────────────────────────────────────*/
-getUsageEvents(windowMs, filterInput, limit, returnRaw) {
+Object getUsageEvents(long windowMs, Object filterInput, int limit, boolean returnRaw) {
 
-	filterList = parseFilterInput(filterInput);
+	List filterList = parseFilterInput(filterInput);
 
-	endTime = System.currentTimeMillis();
-	startTime = endTime - windowMs;
+	long endTime = System.currentTimeMillis();
+	long startTime = endTime - windowMs;
 
-	usm = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
+	UsageStatsManager usm = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
 	if (usm == null) {
 		if (returnRaw) {
-			err = new ArrayList();
+			ArrayList err = new ArrayList();
 			return err;
 		}
 		return "{\"error\":\"UsageStatsManager unavailable\"}";
 	}
 
-	usageEvents = usm.queryEvents(startTime, endTime);
-	event = new UsageEvents.Event();
+	UsageEvents usageEvents = usm.queryEvents(startTime, endTime);
+	UsageEvents.Event event = new UsageEvents.Event();
 
-	list = new ArrayList();
+	List list = new ArrayList();
 
 	while (usageEvents.getNextEvent(event)) {
 
-		typeName = getEventTypeName(event.getEventType());
+		String typeName = getEventTypeName(event.getEventType());
 
 		if (filterList != null && !filterList.contains(typeName)) {
 			continue;
 		}
 
-		ts = event.getTimeStamp();
+		long ts = event.getTimeStamp();
 
-		map = new java.util.HashMap();
+		java.util.HashMap map = new java.util.HashMap();
 		map.put("timestamp", new Long(ts));
 		map.put("timestampIso", toIsoLocal(ts));
 		map.put("eventType", new Integer(event.getEventType()));
@@ -143,9 +143,9 @@ getUsageEvents(windowMs, filterInput, limit, returnRaw) {
 	}
 
 	Collections.sort(list, new Comparator() {
-		compare(a, b) {
-			ta = ((Long)((java.util.Map) a).get("timestamp")).longValue();
-			tb = ((Long)((java.util.Map) b).get("timestamp")).longValue();
+		compare(Object a, Object b) {
+			long ta = ((Long)((java.util.Map) a).get("timestamp")).longValue();
+			long tb = ((Long)((java.util.Map) b).get("timestamp")).longValue();
 			if (ta > tb) return -1;
 			if (ta < tb) return 1;
 			return 0;
@@ -153,8 +153,8 @@ getUsageEvents(windowMs, filterInput, limit, returnRaw) {
 	});
 
 	if (limit > 0 && list.size() > limit) {
-		sub = new ArrayList();
-		for (i = 0; i < limit; i++) sub.add(list.get(i));
+		List sub = new ArrayList();
+		for (int i = 0; i < limit; i++) sub.add(list.get(i));
 
 		if (returnRaw) return sub;
 		return tasker.toJson(sub, true);
@@ -166,20 +166,9 @@ getUsageEvents(windowMs, filterInput, limit, returnRaw) {
 }
 
 
-getUsageEvents() {
-	filters = new ArrayList();
+Object getUsageEvents() {
+	List filters = new ArrayList();
 	filters.add("ACTIVITY_RESUMED");
 	filters.add("MOVE_TO_FOREGROUND");
-	return getUsageEvents(1000*60*60, filters, 1, true).get(0);
+	return (getUsageEvents(1000*60*60, filters, 1, true)).get(0);
 }
-// filters = new ArrayList();
-// filters.add("ACTIVITY_RESUMED");
-// filters.add("MOVE_TO_FOREGROUND");
-// recent = getUsageEvents(1000*60*60, filters, 1, true);
-
-// return recent.get(0);
-
-
-
-
-

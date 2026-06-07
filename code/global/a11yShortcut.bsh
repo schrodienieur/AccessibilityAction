@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+a11yShortcut() {
+	AccessibilityService svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_ACCESSIBILITY_SHORTCUT);
+}
