@@ -13,11 +13,11 @@ It exposes methods such as `show, remove, toggle, addSpacer`.
 
 # How to use
 
-```
+```java
 sheet = FloatingSheet(config);
 ```
 
-```
+```java
 sheet.show();
 ```
 

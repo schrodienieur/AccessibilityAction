@@ -14,19 +14,19 @@ Perform global accessibility actions through the accessibility service.
 # How to use
 
 **Return to the previous screen:**
-```
+```java
 back();
 ```
 
 &nbsp;
 **Open the home screen:**
-```
+```java
 home();
 ```
 
 &nbsp;
 **Take a screenshot:**
-```
+```java
 screenshot();
 ```
 

@@ -20,25 +20,25 @@ Click a target node or its closest clickable parent.
 # How to use
 
 **Click by text:**
-```
+```java
 click("Login");
 ```
 
 &nbsp;
 **Click by resource-id:**
-```
+```java
 click(identifierKey, "com.example:id/submit_button");
 ```
 
 &nbsp;
 **Click a node from a collection:**
-```
+```java
 click(nodes, 2);
 ```
 
 &nbsp;
 **Click at screen coordinates:**
-```
+```java
 click(0.5, 0.7);
 ```
 

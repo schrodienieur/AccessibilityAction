@@ -20,7 +20,7 @@ Dispatch a complex multi-step gesture using accessibility gestures and optional 
 
 **Simple gesture sequence:**
 A quick down-move-up gesture in the middle of the screen.
-```
+```java
 Object[][] points = new Object[][] {
   {0.5, 0.5, 0, 1L},
   {0.5, 0.8, 1, 200L},
@@ -31,7 +31,7 @@ gesture(points);
 
 &nbsp;
 **Gesture with visual overlay:**
-```
+```java
 Paint paint = createPaint(0xFF00FFFF, 6, 18);
 Object[][] points = new Object[][] {
   {0.2, 0.2, 0, 1L},

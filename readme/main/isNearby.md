@@ -14,7 +14,7 @@ Check whether a matching node exists near a reference node.
 # How to use
 
 **Check if a nearby text label exists:**
-```
+```java
 if (isNearby(node, 0, "text", "Price")) {
   // a nearby match exists
 }

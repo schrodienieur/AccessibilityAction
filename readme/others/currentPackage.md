@@ -15,7 +15,7 @@ Get the package name of the currently active application.
 # How to use
 
 **Get current package name:**
-```
+```java
 pkg = currentPackage();
 ```
 

@@ -14,13 +14,13 @@ None
 # How to use
 
 **Get the default context:**
-```
+```java
 ctx = getContext();
 ```
 
 &nbsp;
 **Get the accessibility overlay context:**
-```
+```java
 ctx = getContext(true);
 ```
 

@@ -13,11 +13,11 @@ It exposes methods such as `layout, show, remove`.
 
 # How to use
 
-```
+```java
 dialog = ListDialog(config);
 ```
 
-```
+```java
 dialog.show();
 ```
 

@@ -13,11 +13,11 @@ It exposes methods such as `show, remove, infoDialog, simpleGesture`.
 
 # How to use
 
-```
+```java
 box = NodeBox(context, overlayType, node);
 ```
 
-```
+```java
 box.show();
 ```
 

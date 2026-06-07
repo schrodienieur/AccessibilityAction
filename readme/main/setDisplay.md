@@ -16,19 +16,19 @@ Set the target display by ID or find and set by display name.
 # How to use
 
 **Set display by ID:**
-```
+```java
 setDisplay(1);
 ```
 
 &nbsp;
 **Find and set display by name:**
-```
+```java
 setDisplay("HDMI");
 ```
 
 &nbsp;
 **Reset to default display:**
-```
+```java
 setDisplay(0);
 ```
 

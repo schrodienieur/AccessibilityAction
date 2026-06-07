@@ -14,25 +14,25 @@ Perform a swipe gesture through the accessibility gesture engine.
 # How to use
 
 **Swipe from one point to another:**
-```
+```java
 swipe(0.5, 0.8, 0.5, 0.2, 300);
 ```
 
 &nbsp;
 **Swipe and stop flick momentum:**
-```
+```java
 swipe(0.5, 0.8, 0.5, 0.2, 300, true);
 ```
 
 &nbsp;
 **Screen-center vertical swipe:**
-```
+```java
 swipe(0.8, 0.2);
 ```
 
 &nbsp;
 **Vertical swipe with custom duration:**
-```
+```java
 swipe(0.8, 0.2, 400);
 ```
 

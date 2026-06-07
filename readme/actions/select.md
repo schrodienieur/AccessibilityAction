@@ -18,19 +18,19 @@ Select a target node item.
 # How to use
 
 **Select by visible text:**
-```
+```java
 select("Option 1");
 ```
 
 &nbsp;
 **Select by attribute:**
-```
+```java
 select(identifierKey, "com.example:id/tab", 0);
 ```
 
 &nbsp;
 **Select the currently focused node:**
-```
+```java
 select();
 ```
 

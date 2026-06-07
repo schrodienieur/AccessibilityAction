@@ -55,7 +55,16 @@ click("Add");
 | `LOG_FILE`          | `String`             | Log file path derived from `ENV_PATH`.                                                               | `null`            |
 | `ENV`               | `This`               | [`Environment`](/code/main/Environment.bsh) instance loaded by `a11Y.set()`.                         | `null`            |
 | `assistOverlays`    | `List`               | Stored overlays from [`StructureOverlay`](/code/assist/StructureOverlay.bsh), [`NodeBox`](/code/assist/NodeBox.bsh), [`InfoToast`](/code/assist/InfoToast.bsh), [`InfoDialog`](/code/assist/InfoDialog.bsh), etc. | `new ArrayList()` |
-| `assistButton`      | `This`               | Assist button instance created by [`AssistButton`](/code/assist/AssistButton.bsh).                    | `null`            |
+| `assistBar`         | `This`               | Assist overlay bar instance created by [`AssistBar`](/code/assist/AssistBar.bsh).                    | `null`            |
+| `materialColorFallback` | `This`           | Fallback material color helper used when theme colors are not available.                            | `null`            |
+| `displayInfos`      | `This`               | Display helper used by `testDisplay()` to show temporary info overlays.                              | `null`            |
+| `lastActionPickerReminder` | `long`        | Timestamp of the last action picker reminder.                                                         | `0`               |
+| `mainHandler`       | `Handler`            | Main thread handler used for posting UI actions.                                                     | `new Handler(Looper.getMainLooper())` |
+| `customThreadFactory` | `ThreadFactory`    | Custom thread factory for executor threads with max priority.                                        | custom factory    |
+| `config`            | `This`               | Configuration object loaded from `ENV_PATH + "/config.java"`.                                     | `null`            |
+| `NodeInfo`          | `This`               | Node metadata helper available to scripts and helpers.                                               | `null`            |
+| `a11yController`    | `This`               | Accessibility service controller used to enable or disable the service.                              | `null`            |
+| `viewControl`       | `This`               | UI view control helper exposed to scripts and overlay helpers.                                      | `null`            |
 | `updateManager`     | `This`               | Update manager created by [`UpdateManager`](/code/lib/UpdateManager.bsh).                             | `null`            |
 | `packageManager`    | `This`               | Package manager created by [`PackageManager`](/code/others/PackageManager.bsh).                      | `null`            |
 | `scriptEditor`      | `String`             | Script editor content path or identifier.                                                             | `""`            |
@@ -135,6 +144,14 @@ click("Add");
 
    Reload the current [`a11Y.java`](/code/a11Y.java) source asynchronously using the configured `ENV_PATH`.
 
+9. [`testDisplay()`](/code/a11Y.java)
+
+   Initialize and show the `displayInfos` helper overlay for a short duration. Useful to verify display helper behavior during development.
+
+10. [`post(Runnable run)`](/code/a11Y.java)
+
+   Post a `Runnable` to the main UI thread using `mainHandler`.
+
 ### Overlay management
 
 1. [`addOverlay(This overlay)`](/code/a11Y.java)
@@ -151,11 +168,19 @@ click("Add");
 
 4. [`showAssist()`](/code/a11Y.java)
 
-   Show the assist overlay button created by [`AssistButton`](/code/assist/AssistButton.bsh).
+   Show the assist overlay bar created by [`AssistBar`](/code/assist/AssistBar.bsh).
 
 5. [`removeAssist()`](/code/a11Y.java)
 
-   Remove the assist button overlay.
+   Remove the assist bar overlay.
+
+6. [`remove(boolean clearA11Y)`](/code/a11Y.java)
+
+   Remove `a11Y` state, clean overlays, remove assist UI, stop event listeners, and shut down the executor. If `clearA11Y` is `true`, the global Tasker variable `a11Y` is also cleared.
+
+7. [`remove()`](/code/a11Y.java)
+
+   Alias for `remove(true)` that fully removes the global `a11Y` instance.
 
 ### Events
 
@@ -205,6 +230,20 @@ Event helpers delegate to the global [`a11E`](/code/event/a11E.bsh) instance sto
 
    Unmute event processing on the global [`a11E`](/code/event/a11E.bsh) manager.
 
+### Accessibility service control
+
+1. [`checkService()`](/code/a11Y.java)
+
+   Return whether Tasker's accessibility service is currently available.
+
+2. [`enableService()`](/code/a11Y.java)
+
+   Use the internal `A11yController` helper to enable the accessibility service for the current package.
+
+3. [`disableService()`](/code/a11Y.java)
+
+   Use the internal `A11yController` helper to disable the accessibility service for the current package.
+
 &nbsp;
 
 # 4. Dependency & Dependant
@@ -215,7 +254,7 @@ The runtime also initializes:
 - [`Environment()`](/code/main/Environment.bsh)
 - [`Config(ENV_PATH + "/config.java")`](/code/config.java)
 - [`MethodInspector(this)`](/code/lib/MethodInspector.bsh)
-- [`AssistButton`](/code/assist/AssistButton.bsh), [`UpdateManager`](/code/lib/UpdateManager.bsh), and [`PackageManager`](/code/others/PackageManager.bsh)
+- [`AssistBar`](/code/assist/AssistBar.bsh), [`UpdateManager`](/code/lib/UpdateManager.bsh), and [`PackageManager`](/code/others/PackageManager.bsh)
 
 [`StructureOverlay`](/code/assist/StructureOverlay.bsh), [`NodeBox`](/code/assist/NodeBox.bsh), [`InfoToast`](/code/assist/InfoToast.bsh), and [`InfoDialog`](/code/assist/InfoDialog.bsh) depend on `a11Y` for overlay lifecycle management.
 

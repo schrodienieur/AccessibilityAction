@@ -18,13 +18,13 @@ Send an IME Enter action to a target node.
 # How to use
 
 **Send IME Enter to a field by id:**
-```
+```java
 imeEnter(identifierKey, "com.example:id/message_input", 0);
 ```
 
 &nbsp;
 **Send IME Enter to the focused node:**
-```
+```java
 imeEnter();
 ```
 

@@ -19,19 +19,19 @@ Perform a context click (secondary click) on a target node.
 # How to use
 
 **Context click by visible text:**
-```
+```java
 contextClick("Options");
 ```
 
 &nbsp;
 **Context click by resource id:**
-```
+```java
 contextClick(identifierKey, "com.example:id/item", 0);
 ```
 
 &nbsp;
 **Context click a node directly:**
-```
+```java
 contextClick(node);
 ```
 

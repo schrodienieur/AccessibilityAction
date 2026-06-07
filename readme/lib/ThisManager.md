@@ -13,11 +13,11 @@ It exposes methods such as `toArray`.
 
 # How to use
 
-```
+```java
 manager = ThisManager(This);
 ```
 
-```
+```java
 manager.toArray(objs);
 ```
 

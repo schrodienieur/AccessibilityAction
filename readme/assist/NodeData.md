@@ -13,7 +13,7 @@ It exposes methods such as `NodeData`.
 
 # How to use
 
-```
+```java
 data = NodeData(node);
 ```
 

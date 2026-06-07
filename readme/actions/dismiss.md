@@ -17,19 +17,19 @@ Dismiss a dismissible UI element such as a dialog or notification.
 # How to use
 
 **Dismiss by text:**
-```
+```java
 dismiss("New Update Available");
 ```
 
 &nbsp;
 **Dismiss by resource id:**
-```
+```java
 dismiss(identifierKey, "com.example:id/close_button");
 ```
 
 &nbsp;
 **Dismiss a node directly:**
-```
+```java
 dismiss(node);
 ```
 

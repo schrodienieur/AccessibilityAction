@@ -20,19 +20,19 @@ Perform a long press on a target node or its long-clickable ancestor.
 # How to use
 
 **Long click by text:**
-```
+```java
 longClick("Item 1");
 ```
 
 &nbsp;
 **Long click by resource id:**
-```
+```java
 longClick(identifierKey, "com.example:id/icon", 0);
 ```
 
 &nbsp;
 **Long click the currently focused node:**
-```
+```java
 longClick();
 ```
 

@@ -13,11 +13,11 @@ It exposes methods such as `setAlpha, debugColor`.
 
 # How to use
 
-```
+```java
 color = debugColor("default");
 ```
 
-```
+```java
 color = setAlpha(color, 128);
 ```
 

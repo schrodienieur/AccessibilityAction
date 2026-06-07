@@ -15,13 +15,13 @@ Share text to a specific app or system chooser.
 # How to use
 
 **Share to specific app (e.g., WhatsApp):**
-```
+```java
 shareText("Check this out!", "com.whatsapp");
 ```
 
 &nbsp;
 **Open system share chooser:**
-```
+```java
 shareText("Check this out!", null);
 ```
 

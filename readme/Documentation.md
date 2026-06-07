@@ -1,6 +1,6 @@
  
 > [!NOTE] 
-*This code was primarily generated using AI with minimal human editing.*
+*This documentation was generated using AI with very minimal human editing.*
 
 > [!IMPORTANT]
 > This doc doesn't cover the whole functionalities and can be wrong. Please check the functions yourself by reading the function files inside the folder.
@@ -33,6 +33,21 @@
     - [setSelection](/readme/actions/setSelection.md)
     - [setText](/readme/actions/setText.md)
     - [showOnScreen](/readme/actions/showOnScreen.md)
+  - [Global](/code/global/)
+    - [a11yButton](/readme/global/a11yButton.md)
+    - [a11yShortcut](/readme/global/a11yShortcut.md)
+    - [allApps](/readme/global/allApps.md)
+    - [back](/readme/global/back.md)
+    - [dismiss](/readme/global/dismiss.md)
+    - [home](/readme/global/home.md)
+    - [lastapp](/readme/global/lastapp.md)
+    - [lockScreen](/readme/global/lockScreen.md)
+    - [notifications](/readme/global/notifications.md)
+    - [powerDialog](/readme/global/powerDialog.md)
+    - [quickSettings](/readme/global/quickSettings.md)
+    - [recents](/readme/global/recents.md)
+    - [screenshot](/readme/global/screenshot.md)
+    - [splitScreen](/readme/global/splitScreen.md)
   - [Gestures](/code/gestures/)
     - [createPaint](/readme/gestures/createPaint.md)
     - [gesture](/readme/gestures/gesture.md)
@@ -155,3 +170,28 @@ Key are used to find node by querying their attributes.
 | `*Span`              | Span objects (e.g. `URLSpan`, etc.)      | Yes               | Matches specific text spans that contains text |
 
 *Traverse as fallback when not a single text if found.*
+
+# Multi key
+
+Certain actions support a multi-key matcher by passing a BeanShell `This` object to helper functions such as `isMatch`.
+
+Use a `This` object to define multiple criteria (and negations) in a single, namespaced object. This is commonly used with `isMatch(node, thisKeys)` to require several attributes at once.
+
+Example:
+
+```java
+keys.text = "login"; // partial, case-insensitive match
+keys.id = "com.example:id/login_button";
+keys.flags = NodeInfo.CLICKABLE;
+keys.notext = "me"; // negate: node must NOT be focused
+
+boolean matched = isMatch(node, keys);
+```
+
+See [isMatch](/readme/main/isMatch.md) for full details on supported fields, negation (`no*`), and behavior.
+
+# Flags 
+
+Available flags can be read in [NodeInfo](/readme/assist/NodeInfo.md).
+
+

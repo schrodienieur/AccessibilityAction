@@ -15,14 +15,14 @@ None
 
 **Create a simple paint style:**
 Creates a white stroke that is 10 pixels thick with rounded corners.
-```
+```java
 Paint paint = createPaint(0xFFFFFFFF, 10, 20);
 ```
 
 &nbsp;
 **Use paint with `gesture`:**
 Draws the gesture path while dispatching the touch events.
-```
+```java
 Object[][] points = new Object[][] {
   {0.5, 0.5, 0, 1L},
   {0.5, 0.8, 1, 200L},
@@ -34,7 +34,7 @@ gesture(points, paint);
 
 &nbsp;
 **Customize thickness and corner radius:**
-```
+```java
 Paint paint = createPaint(0xFF00FF00, 12, 30);
 ```
 

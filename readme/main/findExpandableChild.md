@@ -14,13 +14,13 @@ Find the first expandable child node in a subtree.
 # How to use
 
 **Find expandable child from a section header:**
-```
+```java
 expandableNode = findExpandableChild(sectionHeader);
 ```
 
 &nbsp;
 **Use result before collapsing:**
-```
+```java
 if (expandableNode != null) {
   expandableNode.performAction(AccessibilityNodeInfo.ACTION_COLLAPSE);
 }

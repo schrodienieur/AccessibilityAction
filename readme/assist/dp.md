@@ -13,7 +13,7 @@ It exposes methods such as `dp`.
 
 # How to use
 
-```
+```java
 pixels = dp(16);
 ```
 

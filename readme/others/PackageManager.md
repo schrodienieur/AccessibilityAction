@@ -15,25 +15,25 @@ Core package resolver for finding applications by label or package name.
 # How to use
 
 **Initialize PackageManager:**
-```
+```java
 pm = PackageManager();
 ```
 
 &nbsp;
 **Resolve package by label:**
-```
+```java
 pkg = pm.resolvePackage("WhatsApp");
 ```
 
 &nbsp;
 **Resolve package by package name:**
-```
+```java
 pkg = pm.resolvePackage("com.whatsapp");
 ```
 
 &nbsp;
 **Build cache of installed apps:**
-```
+```java
 pm.buildCache();
 ```
 

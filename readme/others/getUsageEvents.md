@@ -14,26 +14,26 @@ Retrieve application usage events and foreground activity information.
 # How to use
 
 **Get usage events (default parameters):**
-```
+```java
 events = getUsageEvents();
 ```
 
 &nbsp;
 **Get events within time window (milliseconds):**
-```
+```java
 events = getUsageEvents(3600000);  // Last hour
 ```
 
 &nbsp;
 **Filter by event types:**
-```
+```java
 eventTypes = ["MOVE_TO_FOREGROUND", "MOVE_TO_BACKGROUND"];
 events = getUsageEvents(3600000, eventTypes);
 ```
 
 &nbsp;
 **Get raw ArrayList instead of JSON:**
-```
+```java
 events = getUsageEvents(3600000, null, 50, true);
 ```
 

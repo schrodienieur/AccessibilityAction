@@ -14,13 +14,13 @@ None
 # How to use
 
 **Get node coordinates:**
-```
+```java
 result = getNodeCoordinates(node);
 ```
 
 &nbsp;
 **Use the returned coordinates:**
-```
+```java
 tap(result.x, result.y);
 ```
 

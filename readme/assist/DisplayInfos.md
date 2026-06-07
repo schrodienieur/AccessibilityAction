@@ -13,11 +13,11 @@ It exposes methods such as `show, remove`.
 
 # How to use
 
-```
+```java
 infos = DisplayInfos();
 ```
 
-```
+```java
 infos.show();
 ```
 

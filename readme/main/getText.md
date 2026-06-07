@@ -14,13 +14,13 @@ Extract smart text from a node using a waterfall strategy.
 # How to use
 
 **Get text from a node:**
-```
+```java
 value = getText(node);
 ```
 
 &nbsp;
 **Get a specific metadata span:**
-```
+```java
 link = getText(node, "URLSpan");
 ```
 

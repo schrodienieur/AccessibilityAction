@@ -13,11 +13,11 @@ It exposes methods such as `show, remove, toggle, loadList`.
 
 # How to use
 
-```
+```java
 search = NodeSearch(structureOverlay);
 ```
 
-```
+```java
 search.show();
 ```
 

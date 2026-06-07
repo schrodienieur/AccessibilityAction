@@ -14,13 +14,13 @@ None
 # How to use
 
 **Fetch available display IDs:**
-```
+```java
 displays = getDisplayIds();
 ```
 
 &nbsp;
 **Log each display:**
-```
+```java
 for (int i = 0; i < displays.size(); i++) {
   tasker.log("Display: " + displays.get(i));
 }

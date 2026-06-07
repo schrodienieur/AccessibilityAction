@@ -14,7 +14,7 @@ a11Y.set() executes [import.java](/code/import.java), so we can always execute i
 
 The most easiest one is using [`source(String path)`](https://beanshell.org/manual/bshmanual.html#source()), it's a built-in function from the interpreter Tasker uses that evaluates a script file. It's also what a11Y.set() uses.
 
-```
+```java
 source(folder + "/import.java");
 ```
 

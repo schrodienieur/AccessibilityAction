@@ -13,11 +13,11 @@ It exposes methods such as `setWrapperContext, setTheme, setThemeDark, setThemeL
 
 # How to use
 
-```
+```java
 theme = ThemeManager(context);
 ```
 
-```
+```java
 theme.setTheme("Material3");
 ```
 

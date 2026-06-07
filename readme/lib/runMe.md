@@ -12,7 +12,7 @@ None
 
 # How to use
 
-```
+```java
 runMe(action);
 ```
 

@@ -13,11 +13,11 @@ It exposes methods such as `hideBox, addHistory, remove`.
 
 # How to use
 
-```
+```java
 overlay = StructureOverlay(listener, root, true, 0);
 ```
 
-```
+```java
 overlay.hideBox(nodeBox);
 ```
 

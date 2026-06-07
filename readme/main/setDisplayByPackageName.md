@@ -14,13 +14,13 @@ Set the target display by locating an application's active window.
 # How to use
 
 **Set display by app package:**
-```
+```java
 setDisplayByPackageName("com.android.settings");
 ```
 
 &nbsp;
 **Switch to another app's display:**
-```
+```java
 setDisplayByPackageName("com.whatsapp");
 ```
 

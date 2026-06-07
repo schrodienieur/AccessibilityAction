@@ -14,13 +14,13 @@ None
 # How to use
 
 **Check the default display:**
-```
+```java
 on = isScreenOn();
 ```
 
 &nbsp;
 **Check a specific display:**
-```
+```java
 on = isScreenOn(1);
 ```
 

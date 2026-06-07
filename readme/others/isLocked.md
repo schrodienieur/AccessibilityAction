@@ -14,7 +14,7 @@ None
 # How to use
 
 **Check lock state:**
-```
+```java
 locked = isLocked();
 ```
 

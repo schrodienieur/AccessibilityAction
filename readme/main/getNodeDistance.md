@@ -15,7 +15,7 @@ Calculate the straight-line distance between two nodes.
 # How to use
 
 **Calculate distance between two nodes:**
-```
+```java
 distance = getNodeDistance(nodeA, nodeB);
 ```
 

@@ -14,13 +14,13 @@ Get the root accessibility node for the active window.
 # How to use
 
 **Get the active window root:**
-```
+```java
 root = getRoot();
 ```
 
 &nbsp;
 **Use a specific display ID:**
-```
+```java
 DISPLAY_ID = 1;
 root = getRoot();
 ```

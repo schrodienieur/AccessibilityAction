@@ -14,13 +14,13 @@ Locate the first scrollable node in a subtree.
 # How to use
 
 **Find the first scrollable container on screen:**
-```
+```java
 scrollNode = findScrollableNode(getRoot());
 ```
 
 &nbsp;
 **Find a scrollable child under a specific node:**
-```
+```java
 scrollNode = findScrollableNode(formSection);
 ```
 

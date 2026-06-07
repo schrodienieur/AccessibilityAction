@@ -13,7 +13,7 @@ It exposes methods such as `accept`.
 
 # How to use
 
-```
+```java
 textDialog("Enter text");
 ```
 

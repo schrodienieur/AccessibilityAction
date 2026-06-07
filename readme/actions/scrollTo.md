@@ -18,7 +18,7 @@ Use [swipe](/readme/gestures/swipe.bsh) to scroll. After every scroll, run [find
 
 **Scroll by text (simplest):**
 Scrolls up to 20 times looking for a node with text "Login", scrolling from 80% to 20% of screen height.
-```
+```java
 scrollTo("Login");
 ```
 
@@ -27,7 +27,7 @@ scrollTo("Login");
 
 **Scroll by custom attribute:**
 Scrolls looking for a node with a specific resource-id.
-```
+```java
 scrollTo(identifierKey, "com.example:id/button");
 ```
 
@@ -35,7 +35,7 @@ scrollTo(identifierKey, "com.example:id/button");
 
 **Customize scroll count:**
 Scrolls up to 10 times instead of the default 20.
-```
+```java
 scrollTo("Settings", 10);
 ```
 
@@ -43,7 +43,7 @@ scrollTo("Settings", 10);
 
 **Customize scroll range:**
 Scrolls from 90% to 10% of screen height, up to 15 times.
-```
+```java
 scrollTo("Profile", 15, 0.9, 0.1);
 ```
 
@@ -51,7 +51,7 @@ scrollTo("Profile", 15, 0.9, 0.1);
 
 **Full control:**
 Scrolls with custom key, value, count, Y-positions, and duration (in milliseconds).
-```
+```java
 scrollTo("text", "Submit", 25, 0.85, 0.15, 300);
 ```
 

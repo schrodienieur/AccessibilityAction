@@ -16,25 +16,25 @@ Perform a low-level tap injection using Shizuku.
 # How to use
 
 **Simple normalized tap:**
-```
+```java
 tapShizuku(0.5, 0.5);
 ```
 
 &nbsp;
 **Tap with explicit duration:**
-```
+```java
 tapShizuku(0.5, 0.5, 100);
 ```
 
 &nbsp;
 **Tap using absolute pixel coordinates:**
-```
+```java
 tapShizuku(200, 400, 50);
 ```
 
 &nbsp;
 **Default fast tap:**
-```
+```java
 tapShizuku(200, 400);
 ```
 

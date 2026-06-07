@@ -13,7 +13,7 @@ It exposes methods such as `runScript`.
 
 # How to use
 
-```
+```java
 runScript("log("Hello");", 100);
 ```
 

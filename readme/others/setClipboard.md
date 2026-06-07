@@ -15,7 +15,7 @@ Copy text to the system clipboard.
 # How to use
 
 **Copy text to clipboard:**
-```
+```java
 setClipboard("Hello from Tasker!");
 ```
 

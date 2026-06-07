@@ -16,25 +16,25 @@ Perform a swipe gesture by injecting touch events through Shizuku.
 # How to use
 
 **Direct Shizuku swipe:**
-```
+```java
 swipeShizuku(0.5, 0.8, 0.5, 0.2, 300);
 ```
 
 &nbsp;
 **Shizuku swipe with momentum control:**
-```
+```java
 swipeShizuku(0.5, 0.8, 0.5, 0.2, 300, true);
 ```
 
 &nbsp;
 **Vertical center swipe shortcut:**
-```
+```java
 swipeShizuku(0.8, 0.2);
 ```
 
 &nbsp;
 **Vertical swipe with custom duration and no stop flick:**
-```
+```java
 swipeShizuku(0.8, 0.2, 400);
 ```
 

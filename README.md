@@ -37,7 +37,7 @@ click("Today");
 ```
 
 **Open reddit on secondary display and scroll to r/tasker**
-```
+```java
 setDisplay(21); // or setDisplay("scrcpy");
 openApp("Reddit");
 node = scrollTo("r/tasker");

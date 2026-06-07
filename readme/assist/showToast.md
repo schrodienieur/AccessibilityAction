@@ -13,7 +13,7 @@ It exposes methods such as `showToast`.
 
 # How to use
 
-```
+```java
 showToast("Hello World");
 ```
 

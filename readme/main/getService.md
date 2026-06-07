@@ -14,7 +14,7 @@ None
 # How to use
 
 **Fetch the accessibility service:**
-```
+```java
 service = getService();
 ```
 

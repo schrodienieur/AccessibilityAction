@@ -13,11 +13,11 @@ It exposes methods such as `show, remove, addRow, updateRow, removeRow, clearRow
 
 # How to use
 
-```
+```java
 toast = InfoToast(node, context, overlayType);
 ```
 
-```
+```java
 toast.show();
 ```
 

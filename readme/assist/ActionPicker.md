@@ -13,11 +13,11 @@ It exposes methods such as `selectActions, selectPattern`.
 
 # How to use
 
-```
+```java
 picker = ActionPicker(nodeData);
 ```
 
-```
+```java
 action = picker.selectActions(inspector, true);
 ```
 

@@ -19,19 +19,19 @@ Paste clipboard content into a target editable node.
 # How to use
 
 **Paste by visible label:**
-```
+```java
 paste("Message");
 ```
 
 &nbsp;
 **Paste by attribute selector:**
-```
+```java
 paste(identifierKey, "com.example:id/input_field");
 ```
 
 &nbsp;
 **Paste into the currently focused input:**
-```
+```java
 paste();
 ```
 

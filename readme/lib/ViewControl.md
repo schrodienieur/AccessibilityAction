@@ -13,11 +13,11 @@ It exposes methods such as `addView, removeView, getView, isHidden, isVisible, i
 
 # How to use
 
-```
+```java
 vc = ViewControl();
 ```
 
-```
+```java
 vc.addView(viewObject);
 ```
 

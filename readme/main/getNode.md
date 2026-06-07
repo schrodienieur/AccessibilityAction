@@ -17,19 +17,19 @@ Resolve a single matching node from the accessibility tree.
 # How to use
 
 **Find the first node by text:**
-```
+```java
 node = getNode("Login");
 ```
 
 &nbsp;
 **Find by resource id:**
-```
+```java
 node = getNode(identifierKey, "com.example:id/button");
 ```
 
 &nbsp;
 **Find a sibling-related node:**
-```
+```java
 node = getNode("text", "Submit", 0, waitNodesTimeout, 1, "text", "Password");
 ```
 

@@ -19,19 +19,19 @@ Set a text selection range or cursor position in an input node.
 # How to use
 
 **Select text by visible label:**
-```
+```java
 setSelection("Message", 0, 5);
 ```
 
 &nbsp;
 **Move cursor to the end of the current field:**
-```
+```java
 setSelection(0, -1);
 ```
 
 &nbsp;
 **Set selection on a specific node object:**
-```
+```java
 setSelection(node, 3, 8);
 ```
 

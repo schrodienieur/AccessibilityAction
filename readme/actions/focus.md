@@ -18,19 +18,19 @@ Request input focus on a target node.
 # How to use
 
 **Focus by text label:**
-```
+```java
 focus("Password Field");
 ```
 
 &nbsp;
 **Focus by attribute:**
-```
+```java
 focus(identifierKey, "com.example:id/input");
 ```
 
 &nbsp;
 **Focus a node object:**
-```
+```java
 focus(node);
 ```
 

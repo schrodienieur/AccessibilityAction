@@ -17,19 +17,19 @@ Scroll a scrollable container forward (down or right).
 # How to use
 
 **Scroll the first scrollable container forward:**
-```
+```java
 scrollForward();
 ```
 
 &nbsp;
 **Scroll a specific node forward:**
-```
+```java
 scrollForward(node);
 ```
 
 &nbsp;
 **Scroll by selector:**
-```
+```java
 scrollForward("text", "Messages", 0);
 ```
 

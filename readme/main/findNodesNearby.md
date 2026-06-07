@@ -15,7 +15,7 @@ Filter a node list by proximity rules.
 # How to use
 
 **Filter nodes by nearby match:**
-```
+```java
 results = findNodesNearby(foundNodes, new Object[][] {
   {0, "text", "Label"}
 });
@@ -23,7 +23,7 @@ results = findNodesNearby(foundNodes, new Object[][] {
 
 &nbsp;
 **Exclude nodes near a sibling:**
-```
+```java
 results = findNodesNearby(foundNodes, new Object[][] {
   {"No", false}
 });

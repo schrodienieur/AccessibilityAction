@@ -14,13 +14,13 @@ Calculate the screen distance between two nodes.
 # How to use
 
 **Measure distance between two nodes:**
-```
+```java
 distance = getDistance(node1, node2);
 ```
 
 &nbsp;
 **Compare distances:**
-```
+```java
 if (getDistance(node1, node2) < 100) {
   // nodes are close
 }

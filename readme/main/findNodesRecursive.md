@@ -15,13 +15,13 @@ Recursively search the accessibility tree for matching nodes.
 # How to use
 
 **Find nodes by text recursively:**
-```
+```java
 results = findNodesRecursive(getRoot(), "text", "Save");
 ```
 
 &nbsp;
 **Find nodes by regex:**
-```
+```java
 results = findNodesRecursive(getRoot(), "regex", "^Item\\s\\d$");
 ```
 

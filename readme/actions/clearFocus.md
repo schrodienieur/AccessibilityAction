@@ -15,7 +15,7 @@ Clear focus from any currently focused input node.
 # How to use
 
 **Clear current focus:**
-```
+```java
 clearFocus();
 ```
 

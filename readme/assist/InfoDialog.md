@@ -13,11 +13,11 @@ It exposes methods such as `createPropertyChip, getNodeData`.
 
 # How to use
 
-```
+```java
 dialog = InfoDialog(node);
 ```
 
-```
+```java
 dialog.show();
 ```
 

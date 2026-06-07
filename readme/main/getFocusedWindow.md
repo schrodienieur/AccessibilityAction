@@ -14,19 +14,19 @@ Return the currently focused accessibility window for a display.
 # How to use
 
 **Get the focused window on the default display:**
-```
+```java
 window = getFocusedWindow();
 ```
 
 &nbsp;
 **Get the focused window on display 1:**
-```
+```java
 window = getFocusedWindow(1);
 ```
 
 &nbsp;
 **Get the focused window from a Display object:**
-```
+```java
 window = getFocusedWindow(display);
 ```
 

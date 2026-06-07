@@ -15,13 +15,13 @@ Extract smart text from a node, including spans and metadata.
 # How to use
 
 **Get visible text from a node:**
-```
+```java
 text = getNodeText(node);
 ```
 
 &nbsp;
 **Get a specific span value:**
-```
+```java
 url = getNodeText(node, "URLSpan");
 ```
 

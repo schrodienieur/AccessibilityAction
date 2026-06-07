@@ -15,13 +15,13 @@ Find nodes near a reference node and sort them by distance.
 # How to use
 
 **Find nodes near a source node:**
-```
+```java
 nearby = findNearbyNodes(sourceNode, 0, "text", "Price");
 ```
 
 &nbsp;
 **Use a parent-level search radius:**
-```
+```java
 nearby = findNearbyNodes(sourceNode, 1, identifierKey, "com.example:id/label");
 ```
 

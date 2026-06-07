@@ -14,13 +14,13 @@ None
 # How to use
 
 **Get the current environment object:**
-```
+```java
 env = Environment();
 ```
 
 &nbsp;
 **Check for Tasker:**
-```
+```java
 if (env.isTasker()) {
     // ...
 }

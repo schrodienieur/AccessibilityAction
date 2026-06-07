@@ -18,25 +18,25 @@ Find nodes using text, id, regex, focus, and proximity filters.
 # How to use
 
 **Find nodes by text:**
-```
+```java
 buttons = findNodes("Save");
 ```
 
 &nbsp;
 **Find nodes by id:**
-```
+```java
 nodes = findNodes("id", "com.example:id/button");
 ```
 
 &nbsp;
 **Find nodes with nearby criteria:**
-```
+```java
 nodes = findNodes("text", "Submit", 1, "text", "Login");
 ```
 
 &nbsp;
 **Bulk search with IDs:**
-```
+```java
 config = new Object[][] {
   {"btn1", "text", "OK"},
   {"input", "id", "com.example:id/input"}

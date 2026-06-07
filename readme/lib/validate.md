@@ -13,7 +13,7 @@ It exposes methods such as `hasMethod`.
 
 # How to use
 
-```
+```java
 validate(criteria, object);
 ```
 

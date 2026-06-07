@@ -13,11 +13,11 @@ It exposes methods such as `getCapitalized, getOriginal, convertToCapital, conve
 
 # How to use
 
-```
+```java
 ml = MethodList(methods);
 ```
 
-```
+```java
 caps = ml.getCapitalized();
 ```
 

@@ -22,31 +22,31 @@ Dispatch a tap gesture using accessibility service or fallback to Shizuku when n
 # How to use
 
 **Tap by screen percentage:**
-```
+```java
 tap(0.5, 0.5);
 ```
 
 &nbsp;
 **Tap with a custom hold duration:**
-```
+```java
 tap(0.5, 0.5, 100);
 ```
 
 &nbsp;
 **Tap by visible text label:**
-```
+```java
 tap("Login");
 ```
 
 &nbsp;
 **Tap by resource id:**
-```
+```java
 tap(identifierKey, "com.example:id/login_button");
 ```
 
 &nbsp;
 **Tap a node object:**
-```
+```java
 AccessibilityNodeInfo node = getNode(getRoot(), "text", "Submit", 0);
 tap(node);
 ```

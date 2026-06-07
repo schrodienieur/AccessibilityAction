@@ -14,7 +14,7 @@ Set the target display by locating a specific window ID.
 # How to use
 
 **Set display by window ID:**
-```
+```java
 setDisplayByWindowId(1234);
 ```
 

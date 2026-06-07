@@ -13,11 +13,11 @@ It exposes methods such as `browseUrl, makeRequest, unzipFile`.
 
 # How to use
 
-```
+```java
 updater = UpdateManager();
 ```
 
-```
+```java
 updater.browseUrl(url);
 ```
 

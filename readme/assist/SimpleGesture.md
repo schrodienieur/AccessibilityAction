@@ -13,11 +13,11 @@ It exposes methods such as `listen, remove, mute, unmute`.
 
 # How to use
 
-```
+```java
 gesture = SimpleGesture(view, listener, customObjects);
 ```
 
-```
+```java
 gesture.remove();
 ```
 

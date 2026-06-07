@@ -13,7 +13,7 @@ It exposes methods such as `debugMe, line`.
 
 # How to use
 
-```
+```java
 debugMe(nodes);
 ```
 

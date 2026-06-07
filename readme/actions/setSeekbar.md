@@ -18,19 +18,19 @@ Set progress on a seek bar or range node.
 # How to use
 
 **Set exact progress on a seek bar:**
-```
+```java
 setSeekbar("Volume", 0.7);
 ```
 
 &nbsp;
 **Set progress by percentage:**
-```
+```java
 setSeekbar(identifierKey, "com.example:id/slider", 50);
 ```
 
 &nbsp;
 **Set progress on a node object:**
-```
+```java
 setSeekbar(node, 0.45);
 ```
 

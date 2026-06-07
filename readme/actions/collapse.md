@@ -19,19 +19,19 @@ Collapse an expandable node or its parent container.
 # How to use
 
 **Collapse by text selector:**
-```
+```java
 collapse("text", "Details", 0, true);
 ```
 
 &nbsp;
 **Collapse a node directly:**
-```
+```java
 collapse(node, 0, true);
 ```
 
 &nbsp;
 **Collapse using a node collection:**
-```
+```java
 collapse(nodes, 1, false);
 ```
 

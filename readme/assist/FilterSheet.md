@@ -13,11 +13,11 @@ It exposes methods such as `config, addFlag, removeFlag, getViewList`.
 
 # How to use
 
-```
+```java
 sheet = FilterSheet(structure);
 ```
 
-```
+```java
 sheet.show();
 ```
 

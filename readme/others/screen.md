@@ -17,13 +17,13 @@ Control screen power state via accessibility service.
 # How to use
 
 **Wake the screen:**
-```
+```java
 screen(true);
 ```
 
 &nbsp;
 **Lock or turn off the screen:**
-```
+```java
 screen(false);
 ```
 

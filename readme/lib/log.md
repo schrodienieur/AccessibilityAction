@@ -13,11 +13,11 @@ It exposes methods such as `log`.
 
 # How to use
 
-```
+```java
 log("Loaded", "INFO");
 ```
 
-```
+```java
 log("Error", "ERROR", "MyTag");
 ```
 

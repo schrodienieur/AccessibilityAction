@@ -17,19 +17,19 @@ Set the text value of an editable node.
 # How to use
 
 **Set text by visible label:**
-```
+```java
 setText("Email", "user@example.com");
 ```
 
 &nbsp;
 **Set text by resource id:**
-```
+```java
 setText(identifierKey, "com.example:id/input", "12345");
 ```
 
 &nbsp;
 **Set text in the currently focused field:**
-```
+```java
 setText("Hello world");
 ```
 

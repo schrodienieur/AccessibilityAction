@@ -13,7 +13,7 @@ It exposes methods such as `vibrate`.
 
 # How to use
 
-```
+```java
 vibrate();
 ```
 

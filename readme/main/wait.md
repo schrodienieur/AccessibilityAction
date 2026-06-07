@@ -14,7 +14,7 @@ None
 # How to use
 
 **Wait for half a second:**
-```
+```java
 wait(500);
 ```
 

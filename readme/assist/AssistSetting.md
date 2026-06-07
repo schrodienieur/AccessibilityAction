@@ -13,11 +13,11 @@ It exposes methods such as `save, remove, layout`.
 
 # How to use
 
-```
+```java
 settings = AssistSetting();
 ```
 
-```
+```java
 settings.save();
 ```
 

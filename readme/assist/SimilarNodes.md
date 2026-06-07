@@ -13,11 +13,11 @@ It exposes methods such as `highlight, remove`.
 
 # How to use
 
-```
+```java
 similar = SimilarNodes(rootNode, nodeBoxesMap, nodeBox);
 ```
 
-```
+```java
 similar.highlight(targetNode);
 ```
 

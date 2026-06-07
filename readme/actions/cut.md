@@ -19,19 +19,19 @@ Cut selected text from a target node to the clipboard.
 # How to use
 
 **Cut by text label:**
-```
+```java
 cut("Notes");
 ```
 
 &nbsp;
 **Cut by attribute selector:**
-```
+```java
 cut(identifierKey, "com.example:id/message");
 ```
 
 &nbsp;
 **Cut from current focus:**
-```
+```java
 cut();
 ```
 

@@ -14,13 +14,13 @@ None
 # How to use
 
 **Translate a node into coordinates:**
-```
+```java
 coords = toCoordinates(node);
 ```
 
 &nbsp;
 **Use for gestures or taps:**
-```
+```java
 tap(coords.x, coords.y);
 ```
 

@@ -14,13 +14,13 @@ None
 # How to use
 
 **Get center coordinates for a node:**
-```
+```java
 point = getCoordinates(node);
 ```
 
 &nbsp;
 **Use the point for gestures:**
-```
+```java
 tap(point.x, point.y);
 ```
 

@@ -15,7 +15,7 @@ Check whether no matching node exists near a reference node.
 # How to use
 
 **Confirm absence of a nearby label:**
-```
+```java
 if (isNotNearby(node, "text", "Price")) {
   // no nearby match found
 }

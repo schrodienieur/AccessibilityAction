@@ -15,13 +15,13 @@ Wait for nodes to appear on screen.
 # How to use
 
 **Wait for a node by text:**
-```
+```java
 result = waitNodes("text", "Login", 5000);
 ```
 
 &nbsp;
 **Wait for multiple IDs:**
-```
+```java
 config = new Object[][] {
   {"button", "text", "OK"},
   {"input", "id", "com.example:id/edit"}

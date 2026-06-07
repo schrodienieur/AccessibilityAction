@@ -16,7 +16,7 @@ Replay a complex touch motion sequence using Shizuku input injection.
 # How to use
 
 **Simple Shizuku gesture:**
-```
+```java
 Object[][] points = new Object[][] {
   {0.5, 0.5, 0, 1L},
   {0.5, 0.8, 1, 200L},
@@ -27,7 +27,7 @@ gestureShizuku(points);
 
 &nbsp;
 **Gesture with curve control point:**
-```
+```java
 Object[][] circlePoints = new Object[][] {
   {0.5, 0.3, 0, 100L},
   {0.7, 0.5, 3, 200L, 0.7, 0.3},
@@ -41,7 +41,7 @@ gestureShizuku(circlePoints);
 
 &nbsp;
 **Overlay-enabled gesture:**
-```
+```java
 Paint paint = createPaint(0xFFFFFF00, 5, 12);
 gestureShizuku(points, paint);
 ```

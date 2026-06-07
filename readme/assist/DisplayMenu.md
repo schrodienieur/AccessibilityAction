@@ -13,11 +13,11 @@ It exposes methods such as `show, remove, toggle`.
 
 # How to use
 
-```
+```java
 menu = DisplayMenu();
 ```
 
-```
+```java
 menu.toggle();
 ```
 

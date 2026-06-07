@@ -13,11 +13,11 @@ It exposes methods such as `displayMenu, scriptEditor, assistSetting`.
 
 # How to use
 
-```
+```java
 bar = AssistBar(0, 0);
 ```
 
-```
+```java
 bar.show();
 ```
 

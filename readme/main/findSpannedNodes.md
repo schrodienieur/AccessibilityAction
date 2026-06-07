@@ -14,13 +14,13 @@ Search for nodes containing spanned text or metadata.
 # How to use
 
 **Find nodes by custom text span:**
-```
+```java
 results = findSpannedNodes(getRoot(), "TextSpan", "Submit");
 ```
 
 &nbsp;
 **Find nodes by regex:**
-```
+```java
 results = findSpannedNodes(getRoot(), "/r/https?://.*", "/r/https?://.*");
 ```
 

@@ -13,11 +13,11 @@ It exposes methods such as `getSettings, save, setTo, loadFrom, updateMissing, l
 
 # How to use
 
-```
+```java
 cfg = Config("/sdcard/config.bsh");
 ```
 
-```
+```java
 cfg.save();
 ```
 

@@ -15,19 +15,19 @@ Opens a URL or deep link with optional package targeting.
 # How to use
 
 **Open URL with default handler:**
-```
+```java
 browseUrl("https://example.com");
 ```
 
 &nbsp;
 **Open URL in specific app:**
-```
+```java
 browseUrl("https://example.com", "com.android.chrome");
 ```
 
 &nbsp;
 **Open deep link:**
-```
+```java
 browseUrl("myapp://action/details?id=123");
 ```
 

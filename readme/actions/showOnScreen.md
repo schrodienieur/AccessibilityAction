@@ -14,7 +14,7 @@ None
 # How to use
 
 **Show a node on screen:**
-```
+```java
 showOnScreen(node);
 ```
 

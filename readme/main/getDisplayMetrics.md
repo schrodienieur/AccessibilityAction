@@ -14,13 +14,13 @@ None
 # How to use
 
 **Get metrics for display 0:**
-```
+```java
 dm = getDisplayMetrics(0);
 ```
 
 &nbsp;
 **Get metrics for the current display:**
-```
+```java
 dm = getDisplayMetrics();
 ```
 

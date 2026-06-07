@@ -13,11 +13,11 @@ It exposes methods such as `show, save, toggle`.
 
 # How to use
 
-```
+```java
 editor = ScriptEditor();
 ```
 
-```
+```java
 editor.show();
 ```
 

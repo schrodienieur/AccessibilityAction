@@ -14,7 +14,7 @@ None
 # How to use
 
 **Check a list of nodes:**
-```
+```java
 if (hasNode(nodes)) {
   // safe to use the list
 }
@@ -22,7 +22,7 @@ if (hasNode(nodes)) {
 
 &nbsp;
 **Check a node map by key:**
-```
+```java
 if (hasNode(nodesMap, "submit")) {
   // key exists and contains a node
 }

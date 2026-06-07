@@ -18,19 +18,19 @@ Copy text from a target node to the clipboard.
 # How to use
 
 **Copy by text label:**
-```
+```java
 copy("Username");
 ```
 
 &nbsp;
 **Copy by resource id:**
-```
+```java
 copy(identifierKey, "com.example:id/input");
 ```
 
 &nbsp;
 **Copy the currently focused field:**
-```
+```java
 copy();
 ```
 

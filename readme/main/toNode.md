@@ -14,19 +14,19 @@ None
 # How to use
 
 **Get the first node from a list:**
-```
+```java
 node = toNode(nodes);
 ```
 
 &nbsp;
 **Get the last node using index -1:**
-```
+```java
 node = toNode(nodes, -1);
 ```
 
 &nbsp;
 **Get a node from a map by key:**
-```
+```java
 node = toNode(nodesMap, "submit");
 ```
 

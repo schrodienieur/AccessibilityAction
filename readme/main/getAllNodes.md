@@ -15,13 +15,13 @@ Retrieve all nodes from the active window.
 # How to use
 
 **Get all nodes from the active window:**
-```
+```java
 allNodes = getAllNodes();
 ```
 
 &nbsp;
 **Get all nodes under a specific subtree:**
-```
+```java
 childNodes = getAllNodes(parentNode);
 ```
 

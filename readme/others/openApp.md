@@ -19,25 +19,25 @@ Supports multi-display scenarios when `DISPLAY_ID` is set.
 # How to use
 
 **Launch app by package name:**
-```
+```java
 openApp("com.android.chrome");
 ```
 
 &nbsp;
 **Launch app by label:**
-```
+```java
 openApp("Chrome");
 ```
 
 &nbsp;
 **Launch specific activity:**
-```
+```java
 openApp("com.android.chrome", "com.android.chrome.MainActivity");
 ```
 
 &nbsp;
 **Launch app in background:**
-```
+```java
 openApp("com.whatsapp", true);
 ```
 

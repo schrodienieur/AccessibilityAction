@@ -14,7 +14,7 @@ None
 # How to use
 
 **Check a node before collapsing:**
-```
+```java
 if (isExpandable(node)) {
   node.performAction(AccessibilityNodeInfo.ACTION_COLLAPSE);
 }

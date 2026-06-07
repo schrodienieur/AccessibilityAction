@@ -16,13 +16,13 @@ Wait until specified nodes disappear from the screen.
 # How to use
 
 **Wait until a button disappears:**
-```
+```java
 waitUntilGone("text", "Loading", 5000);
 ```
 
 &nbsp;
 **Wait until multiple targets disappear:**
-```
+```java
 config = new Object[][] {
   {"spinner", "text", "Loading"},
   {"dialog", identifierKey, "com.example:id/dialog"}

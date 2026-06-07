@@ -17,7 +17,7 @@ Retrieve text from the system clipboard with hybrid access methods.
 # How to use
 
 **Get clipboard content:**
-```
+```java
 text = getClipboard();
 ```
 
