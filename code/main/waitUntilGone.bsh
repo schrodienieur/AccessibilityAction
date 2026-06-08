@@ -68,11 +68,7 @@ boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 
 		} catch (Exception e) {
 			debugMe = oldDebug;
-
-			if (waitNodes == void || (waitNodes != void && waitNodes == true)) {
-				throw new JavaCodeException("Timeout reached while waiting for nodes to disappear: " + e.getMessage());
-			}
-
+			throw new JavaCodeException("Timeout reached while waiting for nodes to disappear: " + e.getMessage());
 			return false;
 		}
 	} else if (ENV.MACRODROID) {
@@ -172,9 +168,7 @@ boolean waitUntilGone(AccessibilityNodeInfo node, long timeout) {
 				.firstOrError()
 				.blockingGet();
 		} catch (Exception e) {
-			if (waitNodes == void || (waitNodes != void && waitNodes == true)) {
-				throw new JavaCodeException("Timeout waiting for specific node to disappear");
-			}
+			throw new JavaCodeException("Timeout waiting for specific node to disappear");
 			return false;
 		}
 	}

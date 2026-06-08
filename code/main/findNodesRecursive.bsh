@@ -29,7 +29,8 @@ import android.text.Spanned;
   ───────────────────────────────────────────────────────────────*/
 List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
 	List nodes = new ArrayList();
-	if (root == null) {
+	if (root == null || key == null || value == null) {
+		log("Invalid arguments for findNodesRecursive: " + key + ", " + value, "INFO");
 		return nodes;
 	}
 	/* Use a stack for manual recursion to avoid deep nesting and handle the tree efficiently */

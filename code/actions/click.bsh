@@ -29,38 +29,48 @@ Returns:
 
 /* Base Click Logic */
 click(AccessibilityNodeInfo node) {
-	if (node == null) return null;
-	boolean success;
-	AccessibilityNodeInfo firstNode = node;
-	/* Traverse up to find a clickable parent if the current node isn't */
-	while (node != null && !node.isClickable()) {
-		node = node.getParent();
-	}
+    if (node == null) return null;
+    boolean success;
+    AccessibilityNodeInfo firstNode = node;
+    
+    if (limitParentLevel == 0) {
+        /* Directly target the node without searching upward */
+        if (node != null) {
+            showOnScreen(node);
+            debugMe(node);
+            success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    } else {
+        /* Traverse up to find a clickable parent if the current node isn't */
+		log("Traversing up to find a clickable parent.");
+        while (node != null && !node.isClickable()) {
+            node = node.getParent();
+        }
 
-	if (node != null) {
-		showOnScreen(node);
-		debugMe(node);
-		success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-	}
+        if (node != null) {
+            showOnScreen(node);
+            debugMe(node);
+            success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    }
 
-	if (!success) {
-		node = firstNode;
-		showOnScreen(node);
-		Point coor = getCoordinates(node);
-		debugMe(node);
-		success = tap(coor.x, coor.y);
-	} 
+    if (!success) {
+        node = firstNode;
+        showOnScreen(node);
+        Point coor = getCoordinates(node);
+        debugMe(node);
+        success = tap(coor.x, coor.y);
+    } 
 
-	if (success) {
-		log("Click success.", node);
-		node.refresh();
-		if (stepDelay > 0) wait(stepDelay);
-		return node;
-	} else {
-		log("Click failed.", node);
-		return null;
-	}
-
+    if (success) {
+        log("Click success.", node);
+        node.refresh();
+        if (stepDelay > 0) wait(stepDelay);
+        return node;
+    } else {
+        log("Click failed.", node);
+        return null;
+    }
 }
 
 click(This multiKeys) {

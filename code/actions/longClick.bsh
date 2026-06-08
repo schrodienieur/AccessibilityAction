@@ -30,45 +30,69 @@ Returns:
 ───────────────────────────────────────────────────────────────*/
 
 /* Base Long Click Logic */
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+  longClick(AccessibilityNodeInfo node)
+  **Performs Long-Click or Coordinate Gesture Action on Node**
+  Attempts to long-click the given node. If limitParentLevel is 0, it directly
+  attempts to long-click the target node. If limitParentLevel > 0, it traverses
+  upward to find a long-clickable parent. If accessibility long-clicking fails,
+  it falls back to a coordinate-based gesture.
+ 
+  Arguments:
+   - node → The target AccessibilityNodeInfo to interact with.
+ 
+  Return:
+   - AccessibilityNodeInfo → The refreshed node if successful, null otherwise.
+  ───────────────────────────────────────────────────────────────*/
 longClick(AccessibilityNodeInfo node) {
-	if (node == null) return null;
+    if (node == null) return null;
 
-	/* Search upward for a node that explicitly supports ACTION_LONG_CLICK */
-	AccessibilityNodeInfo currentNode = node;
-	boolean success;
-	while (currentNode != null) {
-		List actions = currentNode.getActionList();
-		/* Manually check the action list for the long click constant */
+    boolean success;
+    AccessibilityNodeInfo currentNode = node;
 
-		if (currentNode.isLongClickable()) {
-			showOnScreen(currentNode);
-			debugMe(currentNode);
-			success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
-			if (success) currentNode.refresh();
-			break;
-		}
+    if (limitParentLevel == 0) {
+        /* Directly target the node without searching upward */
+        if (currentNode != null) {
+            if (currentNode.isLongClickable()) {
+                showOnScreen(currentNode);
+                debugMe(currentNode);
+                success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+                if (success) currentNode.refresh();
+            }
+        }
+    } else {
+        /* Search upward for a node that explicitly supports ACTION_LONG_CLICK */
+        while (currentNode != null) {
+            if (currentNode.isLongClickable()) {
+                showOnScreen(currentNode);
+                debugMe(currentNode);
+                success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+                if (success) currentNode.refresh();
+                break;
+            }
+            currentNode = currentNode.getParent();
+        }
+    }
 
-		/* Move up to parent if currentNodeent node can't be long-clicked */
-		currentNode = currentNode.getParent();
-	}
+    // Fallback to using gesture
+    if (!success) {
+        showOnScreen(node);
+        Point coor = getCoordinates(node);
+        debugMe(node);
+        success = tap(coor.x, coor.y, longClickFallBackDuration);
+    }
 
-	// Fallback to using gesture
-	if (!success) {
-		showOnScreen(node);
-		Point coor = getCoordinates(node);
-		debugMe(node);
-		success = tap(coor.x, coor.y, longClickFallBackDuration);
-	}
-
-	if (success) {
-		log("Long-click success.", node);
-		node.refresh();
-		if (stepDelay > 0) wait(stepDelay);
-		return node;
-	} else {
-		log("No long-clickable ancestor found.", node);
-		return null;
-	}
+    if (success) {
+        log("Long-click success.", node);
+        node.refresh();
+        if (stepDelay > 0) wait(stepDelay);
+        return node;
+    } else {
+        log("No long-clickable ancestor found.", node);
+        return null;
+    }
 }
 
 // Using coordinates and percentages will return boolean instead!

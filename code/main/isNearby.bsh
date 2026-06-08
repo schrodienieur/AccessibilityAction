@@ -20,13 +20,13 @@ Example:
 if (isNearby(node, 0, "text", "Price"))
 ───────────────────────────────────────────────────────────────*/
 boolean isNearby(AccessibilityNodeInfo sourceNode, int parentLevel, String key, String value) {
+	boolean isNearby;
 	if (key == null) key = "text";
 	if (parentLevel == null) parentLevel = 0;
-	if (value == null || sourceNode == null) return;
-	nearbyNodes = findNearbyNodes(sourceNode, parentLevel, key, value);
-	nearby = true;
-	if (nearbyNodes.isEmpty()) nearby = false;
-	return nearby;
+	if (value == null || sourceNode == null) return isNearby;
+	List nearbyNodes = findNearbyNodes(sourceNode, parentLevel, key, value);
+	if (!nearbyNodes.isEmpty()) isNearby = true;
+	return isNearby;
 }
 
 

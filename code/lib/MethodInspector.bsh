@@ -452,14 +452,14 @@ public This MethodInspector(This THIS) {
 			/* Iterate through the keys to dictate the assignment */
 			for (int j = 0; j < keys.length; j++) {
 				String currentKey = keys[j];
-				Object value = null;
+				Object currentValue = null;
 
 				/* Assign value from row if index exists, otherwise remains null */
 				if (row != null && j < row.length) {
-					value = row[j];
+					currentValue = row[j];
 				}
 
-				entry.put(currentKey, value);
+				entry.put(currentKey, currentValue);
 			}
 
 			targetMap.put(entry.get(keyString), entry);

@@ -59,12 +59,9 @@ waitNodes(Object[][] argsConfigs, long timeout, boolean allFound) {
 				.blockingGet();
 		} catch (Exception e) {
 			debugMe = oldDebug;
-
-			if (waitNodes == void || waitNodes != void && waitNodes == true) {
-				log("Timeout for : " + stringifyObject(argsConfigs));
-				throw new JavaCodeException("Timeout reached while waiting for nodesMap: " + e.getMessage());
-			}
-
+			String message = "Timeout waiting for nodes: " + stringifyObject(argsConfigs) + " : " + e.getMessage();
+			log(message, "ERROR");
+			throw new JavaCodeException(message);
 			return NO_RESULT;
 		}
 

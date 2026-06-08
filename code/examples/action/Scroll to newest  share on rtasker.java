@@ -1,4 +1,3 @@
-a11Y.waitNodes = false;
 a11Y.set();
 
 browseUrl("www.reddit.com/r/tasker", "com.reddit.frontpage");
