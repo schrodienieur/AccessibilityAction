@@ -140,6 +140,7 @@ AssistSetting() {
 		createInput(String hintText, String variableName, Object defaultValue) {
 			TextInputLayout textLayout = new TextInputLayout(activity);
 			textLayout.setHint(hintText);
+			textLayout.setHintMaxLines(2);
 			textLayout.setBoxBackgroundMode(2);
 			textLayout.setPadding(p, p, p, p);
 			

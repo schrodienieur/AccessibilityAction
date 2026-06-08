@@ -21,8 +21,8 @@ Config(String filePath) {
 
         // --- Action ---
         { "Action", "findFirstForRecursive", true, "Return first node for recursive search", true },
-        { "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration", true },
-		{ "Action", "limitParentLevel", (int) 1, "Click/long click limit parent level before fallback", true },
+		{ "Action", "limitParentLevel", (int) 1, "Limit parent level before fallback for click & long click", true },
+        { "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration (ms)", true },
         { "Action", "stepDelay", (long) 100, "Step delay (ms)", true },
         { "Action", "waitNodesTimeout", (long) 10000, "Waiting nodes timeout (ms)", true },
 
