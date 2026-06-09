@@ -55,13 +55,7 @@ public boolean gesture(Object[][] points, Paint paint) {
 	}
 
 	Context windowContext = getContext(true);
-	int targetDisplayId;
-
-	try {
-		targetDisplayId = windowContext.getDisplayId();
-	} catch (Exception e) {
-		targetDisplayId = windowContext.getDisplay().getDisplayId();
-	}
+	int targetDisplayId = windowContext.getDisplay().getDisplayId();
 
 	WindowManager windowManager = (WindowManager) windowContext.getSystemService(Context.WINDOW_SERVICE);
 	DisplayMetrics dm = getDisplayMetrics(targetDisplayId);

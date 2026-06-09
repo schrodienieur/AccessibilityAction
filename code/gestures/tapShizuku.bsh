@@ -32,12 +32,7 @@ tapShizuku(double x, double y, long duration) {
 		/* 1. Normalize Coordinates */
 		Context windowContext = getContext();
 		WindowManager wm = (WindowManager) windowContext.getSystemService(Context.WINDOW_SERVICE);
-		int targetDisplayId; 
-		try {
-			targetDisplayId = windowContext.getDisplayId();
-		} catch (Exception e) {
-			targetDisplayId = windowContext.getDisplay().getDisplayId();
-		}
+		int targetDisplayId = windowContext.getDisplay().getDisplayId();
 		DisplayMetrics dm = getDisplayMetrics(targetDisplayId);
 
 		int screenWidth = dm.widthPixels;
