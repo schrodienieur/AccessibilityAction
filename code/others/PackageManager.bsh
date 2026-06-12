@@ -38,7 +38,6 @@ public This PackageManager() {
 
 			/* Filter out disabled, stopped, or suspended apps */
 			if (!app.enabled) continue;
-			if ((app.flags & ApplicationInfo.FLAG_STOPPED) != 0) continue;
 			if ((app.flags & ApplicationInfo.FLAG_SUSPENDED) != 0) continue;
 
 			/* Ensure the app has a valid launch intent */
@@ -67,7 +66,6 @@ public This PackageManager() {
 			ApplicationInfo appInfo = manager.getApplicationInfo(packageName, 0);
 
 			if (!appInfo.enabled) return null;
-			if ((appInfo.flags & ApplicationInfo.FLAG_STOPPED) != 0) return null;
 			if ((appInfo.flags & ApplicationInfo.FLAG_SUSPENDED) != 0) return null;
 
 			return manager.getLaunchIntentForPackage(packageName);
