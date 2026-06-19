@@ -512,7 +512,7 @@ UpdateManager() {
         if (directoryPath != null) pickPath = directoryPath;
 
         directoryPath = pickDirectory(pickPath);
-        String updatePath = update();
+        String updatePath = updatePreRelease();
         if (updatePath != null) {
             tasker.showToast("Download is finished");
             return updatePath;
