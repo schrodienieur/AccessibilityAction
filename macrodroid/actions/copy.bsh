@@ -1,0 +1,168 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+copy(...)
+**Performs Copy to Clipboard**
+Finds a node using the provided criteria and performs a copy action
+on the currently selected text within that node.
+
+Arguments:
+
+* node/nodes → The specific node or collection to copy from.
+* value → The text/ID value to search for the field.
+* key → The attribute to search by (default is "text").
+* index → The instance index if multiple matches exist.
+* timeout → Max time to wait for the node.
+* parentLevel/sibling → Criteria for complex node location.
+
+Returns:
+
+* The AccessibilityNodeInfo where copy was performed, or null.
+───────────────────────────────────────────────────────────────*/
+
+/* Base Copy Logic */
+copy(AccessibilityNodeInfo node) {
+	if (node == null) return null;
+
+	showOnScreen(node);
+	debugMe(node);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_COPY);
+
+	if (stepDelay > 0) wait(stepDelay);
+	if (success) node.refresh();
+	return node;
+
+}
+
+/* Collection Overloads */
+copy(This multiKeys) {
+	return copy(getNode(multiKeys));
+}
+
+copy(ArrayList nodes) {
+	return copy(toNode(nodes));
+}
+
+copy(ArrayList nodes, int index) {
+	return copy(toNode(nodes, index));
+}
+
+
+copy(HashMap nodesMap) {
+	return copy(toNode(nodesMap));
+}
+
+copy(HashMap nodesMap, String key) {
+	return copy(toNode(nodesMap, key));
+}
+
+/* Basic Search Overloads (Text-based) */
+copy(String text) {
+	AccessibilityNodeInfo node = getNode("text", text);
+	return copy(node);
+}
+
+copy(String text, int index) {
+	AccessibilityNodeInfo node = getNode("text", text, index);
+	return copy(node);
+}
+
+copy(String text, long timeout) {
+	AccessibilityNodeInfo node =getNode("text", text, 0, timeout);
+	return copy(node);
+}
+
+copy(String text, int index, long timeout) {
+	return copy(getNode(getRoot(), "text", text, index, timeout));
+}
+
+/* Key-Value Search Overloads */
+copy(String key, String value) {
+	AccessibilityNodeInfo node = getNode(key, value);
+	return copy(node);
+}
+
+copy(String key, String value, int index) {
+	return copy(getNode(getRoot(), key, value, index));
+}
+
+copy(String key, String value, int index, long timeout) {
+	return copy(getNode(getRoot(), key, value, index, timeout));
+}
+
+/* Focus and Shortcut Overloads */
+copy() {
+	/* Copies from the currently focused input field */
+	return copy("focus", null, 0);
+}
+
+/* Complex Search Overloads (Root and Configs) */
+copy(AccessibilityNodeInfo root, String value) {
+	return copy(getNode(root, value));
+}
+
+copy(String text, Object[][] argsConfigs) {
+	return copy(getNode(getRoot(), "text", text, 0, waitNodesTimeout, argsConfigs));
+}
+
+copy(String text, int parentLevel, String nearbyText) {
+	return copy(getNode(getRoot(), "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+copy(String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
+	return copy(getNode(getRoot(), key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue));
+}
+
+/* AccessibilityNodeInfo Root specific variants */
+copy(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
+	return copy(getNode(root, key, value, index, timeout));
+}
+
+
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+copy(AccessibilityNodeInfo root, ...)
+**New Overloads with Root Entry Parameter**
+These methods allow performing a copy action on nodes found
+relative to a specific AccessibilityNodeInfo root instead of the global root.
+───────────────────────────────────────────────────────────────*/
+
+copy(AccessibilityNodeInfo root, String text, int index) {
+	return copy(getNode(root, "text", text, index));
+}
+
+copy(AccessibilityNodeInfo root, String text, long timeout) {
+	return copy(getNode(root, "text", text, 0, timeout));
+}
+
+copy(AccessibilityNodeInfo root, String text, int index, long timeout) {
+	return copy(getNode(root, "text", text, index, timeout));
+}
+
+copy(AccessibilityNodeInfo root, String key, String value) {
+	return copy(getNode(root, key, value, 0));
+}
+
+copy(AccessibilityNodeInfo root, String key, String value, int index) {
+	return copy(getNode(root, key, value, index));
+}
+
+copy(AccessibilityNodeInfo root, String text, Object[][] argsConfigs) {
+	return copy(getNode(root, "text", text, 0, waitNodesTimeout, argsConfigs));
+}
+
+copy(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyText) {
+	return copy(getNode(root, "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+copy(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
+	return copy(getNode(root, key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue));
+}

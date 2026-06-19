@@ -1,0 +1,179 @@
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.accessibilityservice.AccessibilityService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import bsh.This;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+
+DisplayInfos() {
+	final This TOP = this;
+	This a11Y = getA11yInstance();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_DISPLAY_INFO;
+	a11Y.viewControl.addView(TOP);
+	
+	String LOG_FILE = a11Y.LOG_FILE;
+	List displayInfos = new ArrayList();
+	Context baseContext = context;
+
+	try {
+		baseContext = getContext(true);
+	} catch (Exception e) {}
+
+	DisplayManager displayManager = (DisplayManager) baseContext.getSystemService(Context.DISPLAY_SERVICE);
+	if (displayManager == null) {
+		return;
+	}
+
+	Display[] displays = displayManager.getDisplays();
+	Handler mainHandler = new Handler(Looper.getMainLooper());
+
+	This DisplayInfo(Display display) {
+		String name = display.getName();
+		int id = display.getDisplayId();
+		Context displayContext = baseContext.createDisplayContext(display);
+		WindowManager windowManager = (WindowManager) displayContext.getSystemService(Context.WINDOW_SERVICE);
+		if (windowManager == null) {
+			continue;
+		}
+		boolean isRemoved;
+		boolean isShown;
+		/* Create parent container view holding both separate children */
+		LinearLayout view = new LinearLayout(displayContext);
+		view.setOrientation(LinearLayout.VERTICAL);
+		view.setGravity(Gravity.CENTER);
+		view.setBackgroundColor(Color.BLACK);
+
+		/* View dedicated strictly to displaying the display name */
+		TextView nameView = new TextView(displayContext);
+		nameView.setText(name);
+		nameView.setTextColor(Color.MAGENTA);
+		nameView.setTextSize(50);
+		nameView.setGravity(Gravity.CENTER);
+
+		nameView.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				TOP.remove();
+				setClipboard(name);
+				showToast(name + " copied to clipboard");
+			}
+		});
+
+		/* View dedicated strictly to displaying the numeric ID */
+		TextView idView = new TextView(displayContext);
+		idView.setText(String.valueOf(id));
+		idView.setTextColor(Color.MAGENTA);
+		idView.setTextSize(300);
+		idView.setGravity(Gravity.CENTER);
+		idView.setPadding(0, 15, 0, 0);
+
+		idView.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				TOP.remove();
+				setClipboard(String.valueOf(id));
+				showToast(String.valueOf(id) + " copied to clipboard");
+			}
+		});
+
+		/* Assemble UI tree structures under single node */
+		view.addView(nameView);
+		view.addView(idView);
+
+		WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+		/* Modified to fill the full screen size on each display */
+		params.width = WindowManager.LayoutParams.MATCH_PARENT;
+		params.height = WindowManager.LayoutParams.MATCH_PARENT;
+		params.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+		params.flags = WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+		params.format = PixelFormat.TRANSLUCENT;
+		params.gravity = Gravity.CENTER;
+		params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+
+		show() {
+			if (!isShown) windowManager.addView(view, params);
+		}
+
+		remove() {
+			if (!isRemoved) {
+				windowManager.removeView(view);
+			}
+		}
+
+		view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+			onViewAttachedToWindow(View v) {
+				isRemoved = false;
+				isShown = true;
+				a11Y.addOverlay(this);
+			}
+
+			onViewDetachedFromWindow(View v) {
+				isRemoved = true;
+				isShown = false;
+				a11Y.removeOverlay(this);
+			}
+		});
+
+		return this;
+	}
+
+	getContext() {
+		return baseContext;
+	}
+
+	load() {
+		displayInfos.clear();
+		displays = displayManager.getDisplays();
+		for (Display display: displays) {
+			This displayInfo = DisplayInfo(display);
+			displayInfos.add(displayInfo);
+		}
+	}
+
+	remove() {
+		if (displayInfos.isEmpty()) return;
+		for (This displayInfo: displayInfos) {
+			try {
+				displayInfo.remove();
+			} catch (e) {
+				log(e.getMessage(), "ERROR");
+			}
+		}
+		displayInfos.clear();
+	}
+	
+	show() {
+		load();
+		Runnable show = new Runnable() {
+			run() {
+				for (This displayInfo: displayInfos) {
+					try {
+						displayInfo.show();
+					} catch (Exception e) {
+						log(e.getMessage());
+					}
+				}
+			}
+		};
+		mainHandler.post(show);
+	}
+
+	show(long timeout) {
+		show();
+		Thread.sleep(timeout);
+		remove();
+	}
+
+	return this;
+}

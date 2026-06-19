@@ -1,0 +1,158 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.lang.CharSequence;
+import android.text.Spanned;
+import bsh.This;
+
+isMatch(AccessibilityNodeInfo node, String key, Object value, boolean strict) {
+	boolean isMatch;
+	switch (key) {
+		case "id":
+			String viewId = node.getViewIdResourceName();
+			if (viewId != null && viewId.equals(value)) {
+				isMatch = true;
+			}
+			break;
+
+			/* Class Match */
+		case "class":
+		case "clazz":
+			CharSequence className = node.getClassName();
+			if (className != null && className.toString().equals(value)) {
+				isMatch = true;
+			}
+			break;
+
+			/* Text/Description Match (Containment & Case-Insensitive) */
+		case "text":
+			CharSequence text = node.getText();
+			CharSequence desc = node.getContentDescription();
+			if (text == null && desc == null) break;
+			if (strict) {
+				if (text != null && value.equalsIgnoreCase(text.toString())) {
+					isMatch = true;
+				} else if (desc != null && value.equalsIgnoreCase(desc.toString())) {
+					isMatch = true;
+				}
+			} else {
+				if (text != null && text.toString().toLowerCase().indexOf(value) >= 0) {
+					isMatch = true;
+				} else if (desc != null && desc.toString().toLowerCase().indexOf(value) >= 0) {
+					isMatch = true;
+				}
+			}
+			break;
+
+			/* Regex Match */
+		case "regex":
+			CharSequence text = node.getText();
+			CharSequence desc = node.getContentDescription();
+			if (text == null && desc == null) break;
+			if (value instanceof Pattern) {
+				if ((text != null && value.matcher(text).find()) ||
+					(desc != null && value.matcher(desc).find())) {
+					isMatch = true;
+				}
+				break;
+			} else {
+				throw new IllegalArgumentException("Must pass value with java.util.regex.Pattern");
+			}
+
+			/* Focus Match (Input or Accessibility) */
+		case "focus":
+			if (node.isFocused() || node.isAccessibilityFocused()) {
+				isMatch = true;
+			}
+			break;
+
+		case "flags":
+			int flags = NodeInfo.getProperties(node);
+			int includedFlags = value instanceof String ? Integer.parseInt(value) : value;
+			if ((flags & includedFlags) == includedFlags) {
+				isMatch = true;
+			}
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid key: " + key);
+	}
+
+	return isMatch;
+}
+
+isMatch(AccessibilityNodeInfo node, String key, Object value) {
+	return isMatch(node, key, value, false);
+}
+
+isMatch(AccessibilityNodeInfo node, Pattern value) {
+	return isMatch(node, "regex", value, true);
+}
+
+isMatch(AccessibilityNodeInfo node, String value) {
+	return isMatch(node, "text", value, false);
+}
+
+isMatch(AccessibilityNodeInfo node, int value) {
+	return isMatch(node, "flags", value, false);
+}
+
+/*───────────────────────────────────────────────────────────────
+isMatch(AccessibilityNodeInfo node, This multiKeys)
+**Namespace Encapsulated Matcher**
+Matches a node against all defined criteria fields inside a BeanShell context.
+
+Arguments:
+
+* node → The AccessibilityNodeInfo to inspect.
+* multiKeys → The BeanShell 'This' context containing filtering variables.
+
+Returns:
+
+* boolean → True if all present properties match successfully.
+───────────────────────────────────────────────────────────────*/
+public boolean isMatch(AccessibilityNodeInfo node, This multiKeys) {
+	String[] keysString = new String[] { "id", "text", "class", "clazz", "flags", "noflags", "regex" };
+	List keysList = Arrays.asList(keysString);
+	List vars = Arrays.asList(multiKeys.namespace.getVariableNames());
+	List matchList = new ArrayList();
+	
+	for (String varName : vars) {
+		boolean hasCounter = varName.startsWith("no");
+		String key =  varName;
+		key = hasCounter ? key.substring(2) : key;
+		if (!keysList.contains(key)) continue;
+				
+		matchList.add(varName);
+		Object targetValue = multiKeys.namespace.getVariable(varName);
+		
+		// substring after getting the variable
+		switch (key) {
+			case "text":
+				targetValue = targetValue.toLowerCase();
+				break;
+			case "regex":
+				targetValue = Pattern.compile(targetValue);
+				break;
+			case "flags":
+				targetValue = Integer.parseInt(targetValue);
+				break;
+			default:
+				targetValue = targetValue;
+		}
+		
+		boolean isMatch = isMatch(node, key, targetValue);
+		if (!isMatch && !hasCounter) {
+			return false;
+		} else if (hasCounter && isMatch) {
+			return false;
+		}
+	}
+
+	
+	if (matchList.isEmpty()) {
+		return false;
+	}
+
+	return true;
+
+}

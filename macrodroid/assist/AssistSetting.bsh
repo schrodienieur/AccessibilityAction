@@ -1,0 +1,318 @@
+import java.util.function.Consumer;
+import android.app.Activity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.Gravity;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.FrameLayout;
+import android.widget.CompoundButton;
+import android.text.InputType;
+import android.text.TextWatcher;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textview.MaterialTextView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
+
+import android.content.Context;
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+  AssistSetting()
+  ───────────────────────────────────────────────────────────────*/
+AssistSetting() {
+
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+	
+	final This TOP = this;
+	This a11Y = getA11yInstance();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_SETTINGS;
+	a11Y.viewControl.addView(TOP);
+
+	Activity activity;
+	FrameLayout baseRoot;
+	boolean isRemoved;
+	boolean isShown;
+	boolean hasShownOnce;
+
+	save() {
+		// Save config to file
+		if (a11Y.config != void) {
+			a11Y.config.loadFrom(a11Y);
+			a11Y.config.save();
+		}
+	}
+
+	remove() {
+		if (activity != null) {
+			activity.finish();
+		}
+		isRemoved = true;
+		save();
+	}
+
+	layout(Activity act) {
+		activity = act;
+		float density = activity.getResources().getDisplayMetrics().density;
+
+		window = activity.getWindow();
+		window.requestFeature(Window.FEATURE_NO_TITLE);
+		window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+		window.setBackgroundDrawableResource(android.R.color.transparent);
+		window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+		window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS 
+            | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS 
+            | WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        
+		WindowManager.LayoutParams winParams = window.getAttributes();
+		winParams.gravity = Gravity.BOTTOM;
+		winParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+		winParams.dimAmount = 0.5f;
+		window.setAttributes(winParams);
+		This tm = ThemeManager(activity);
+		tm.setThemeDark();
+		baseRoot = new FrameLayout(activity);
+
+		/* Applying requested shape to baseRoot */
+		GradientDrawable shape = new GradientDrawable();
+		shape.setCornerRadius(28 * density);
+		shape.setColor((int) tm.color("colorSurface"));
+		baseRoot.setBackground(shape);
+		baseRoot.setClipToOutline(true);
+
+		root = new FloatingToolbarLayout(activity);
+		root.setBackgroundColor(Color.TRANSPARENT);
+
+		final LinearLayout main = new LinearLayout(activity);
+		main.setOrientation(LinearLayout.VERTICAL);
+		int p = dp(ENV.Settings.PADDING);
+		// main.setPadding(p, 0, p, 0);
+
+		FrameLayout.LayoutParams mainParams = new FrameLayout.LayoutParams(
+			ViewGroup.LayoutParams.MATCH_PARENT,
+			ViewGroup.LayoutParams.WRAP_CONTENT
+		);
+		mainParams.gravity = Gravity.BOTTOM;
+		main.setLayoutParams(mainParams);
+
+		toolbar = new MaterialToolbar(activity);
+		toolbar.setTitle("Settings");
+		toolbar.setTitleCentered(true);
+		main.addView(toolbar);
+
+		ScrollView scroller = new ScrollView(activity);
+		scroller.setVerticalScrollBarEnabled(false);
+
+		LinearLayout content = new LinearLayout(activity);
+		content.setOrientation(LinearLayout.VERTICAL);
+		scroller.addView(content);
+		main.addView(scroller, new LinearLayout.LayoutParams(-1, 0, 1.0f));
+
+		createSwitch(String text, String variableName) {
+			MaterialSwitch itemSwitch = new MaterialSwitch(activity);
+			itemSwitch.setText(text);
+			itemSwitch.setPadding(p, p, p, p);
+
+			Typeface currentTypeface = itemSwitch.getTypeface();
+			int currentStyle = currentTypeface != null ? currentTypeface.getStyle() : Typeface.NORMAL;
+			float currentSize = itemSwitch.getTextSize();
+			float newSize = currentSize * ENV.Settings.TEXT_SIZE_MULTIPLIER;
+			itemSwitch.setTypeface(currentTypeface, currentStyle);
+			itemSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
+
+			boolean state = a11Y.namespace.getVariable(variableName);
+			itemSwitch.setChecked(state);
+			itemSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				onCheckedChanged(CompoundButton b, boolean checked) {
+					a11Y.namespace.setVariable(variableName, checked, false);
+				}
+			});
+			content.addView(itemSwitch);
+			return itemSwitch;
+		}
+
+		createInput(String hintText, String variableName, Object defaultValue) {
+			TextInputLayout textLayout = new TextInputLayout(activity);
+			textLayout.setHint(hintText);
+			textLayout.setHintMaxLines(2);
+			textLayout.setBoxBackgroundMode(2);
+			textLayout.setPadding(p, p, p, p);
+			
+			Object value = a11Y.namespace.getVariable(variableName);
+			TextInputEditText editText = new TextInputEditText(textLayout.getContext());
+			editText.setText(String.valueOf(value));
+
+			float currentSizePx = editText.getTextSize();
+			float newSizePx = currentSizePx * ENV.Settings.TEXT_SIZE_MULTIPLIER;
+			editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSizePx);
+			
+
+			String inputClass = value.getClass().getSimpleName();
+			switch (inputClass) {
+				case "Float":
+				case "Double":
+					editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+					break;
+				case "Integer":
+				case "Long":
+					editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+					break;
+			}
+
+
+			editText.addTextChangedListener(new TextWatcher() {
+				beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+				onTextChanged(CharSequence charSequence, int start, int before, int count) {
+					try {
+						if (charSequence.length() > 0) {
+							textLayout.setError(null);
+							String newValue = charSequence.toString();
+							switch (inputClass) {
+								case "Integer":
+									a11Y.namespace.setVariable(variableName, Integer.parseInt(newValue), false);
+									break;
+								case "Long":
+									a11Y.namespace.setVariable(variableName, Long.parseLong(newValue), false);
+									break;
+								case "Double":
+									a11Y.namespace.setVariable(variableName, Double.parseDouble(newValue), false);
+									break;
+								case "Float":
+									a11Y.namespace.setVariable(variableName, Float.parseFloat(newValue), false);
+									break;
+								default:
+									a11Y.namespace.setVariable(variableName, newValue, false);
+									break;
+							}
+						} else {
+							textLayout.setError("Cannot be empty.");
+							a11Y.namespace.setVariable(variableName, defaultValue, false);
+						}
+					} catch (Exception e) {}
+				}
+				afterTextChanged(android.text.Editable charSequence) {}
+			});
+
+			textLayout.addView(editText);
+			content.addView(textLayout);
+			return textLayout;
+		}
+
+		Map settings = a11Y.config.getSettings();
+		Object[] keys = settings.keySet().toArray();
+
+		for (int i = 0; i < keys.length; i++) {
+			String groupName = keys[i];
+			List settingRows = (List) settings.get(groupName);
+			MaterialTextView groupTitle = new MaterialTextView(activity);
+			groupTitle.setText(groupName);
+			groupTitle.setTypeface(null, 1);
+			groupTitle.setTextSize(ENV.Settings.GROUP_TITLE_TEXT_SIZE);
+			groupTitle.setTextColor(tm.color("colorPrimary"));
+			groupTitle.setPadding(p/2, p, p, p);
+			content.addView(groupTitle);
+			for (Object settingRow: settingRows) {
+				if (!settingRow.showInSettings) continue;
+				This inputPreset = settingRow;
+				Object value = a11Y.namespace.getVariable(inputPreset.key);
+				if (value instanceof Boolean) {
+					createSwitch(inputPreset.description, inputPreset.key);
+				} else {
+					createInput(inputPreset.description, inputPreset.key, value);
+				}
+			}
+		}
+
+		TextInputLayout envInput = createInput("Project Path", "ENV_PATH", a11Y.ENV_PATH);
+		envInput.setEnabled(false);
+
+		MaterialButton saveBtn = new MaterialButton(activity);
+		saveBtn.setText("CLOSE");
+		saveBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				remove();
+			}
+		});
+		content.addView(saveBtn);
+
+		root.addView(main);
+
+		activity.getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+			onViewAttachedToWindow(View v) {
+				hasShownOnce = true;
+				isShown = true;
+				if (isRemoved) isRemoved = false;
+			}
+			onViewDetachedFromWindow(View v) {
+				isRemoved = true;
+				isShown = false;
+				activity.finish();
+				save();
+			}
+		});
+		baseRoot.addView(root);
+		activity.setContentView(baseRoot);
+
+
+	}
+
+	java.util.function.Consumer uiLogic = new java.util.function.Consumer() {
+		accept(Object activityObj) {
+			layout((Activity) activityObj);
+		}
+	};
+
+	show() {
+		if (!isShown) {
+			isRemoved = false;
+			isShown = true;
+			tasker.doWithActivity(uiLogic);
+		}
+	}
+
+	toggle() {
+		if (!isShown) {
+			show();
+		} else {
+			remove();
+		}
+	}
+
+	isAdded() {
+		if (baseRoot == null) return false;
+		return baseRoot.getParent() != null && baseRoot.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (baseRoot == null) return false;
+		return !isAdded();
+	}
+
+	return this;
+}
+
+/* Auto-start if called directly */
+// if (MAIN_DIRECTORY == void) {
+// 	a11Y.set();
+// 	assistSetting = AssistSetting();
+// 	assistSetting.show();
+// }

@@ -1,0 +1,260 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import android.graphics.Point;
+import bsh.This;
+
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+/*───────────────────────────────────────────────────────────────
+longClick(...)
+**Performs Long Click Action**
+Finds a node using the provided criteria and performs a long-press
+on it or its closest long-clickable ancestor.
+
+Arguments:
+
+* node → The specific node or collection to long-click.
+* value → The text value to search for.
+* key → The attribute to search by (default is "text").
+* index → The instance index if multiple matches exist.
+* timeout → Max time to wait for the node.
+* parentLevel/sibling → Criteria for complex node location.
+
+Returns:
+
+* The AccessibilityNodeInfo that was long-clicked, or null.
+───────────────────────────────────────────────────────────────*/
+
+/* Base Long Click Logic */
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+  longClick(AccessibilityNodeInfo node)
+  **Performs Long-Click or Coordinate Gesture Action on Node**
+  Attempts to long-click the given node. If limitParentLevel is 0, it directly
+  attempts to long-click the target node. If limitParentLevel > 0, it traverses
+  upward to find a long-clickable parent. If accessibility long-clicking fails,
+  it falls back to a coordinate-based gesture.
+ 
+  Arguments:
+   - node → The target AccessibilityNodeInfo to interact with.
+ 
+  Return:
+   - AccessibilityNodeInfo → The refreshed node if successful, null otherwise.
+  ───────────────────────────────────────────────────────────────*/
+longClick(AccessibilityNodeInfo node) {
+    if (node == null) return null;
+
+    boolean success;
+    AccessibilityNodeInfo currentNode = node;
+
+    if (limitParentLevel == 0) {
+        /* Directly target the node without searching upward */
+        if (currentNode != null) {
+            if (currentNode.isLongClickable()) {
+                showOnScreen(currentNode);
+                debugMe(currentNode);
+                success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+                if (success) currentNode.refresh();
+            }
+        }
+    } else {
+        /* Search upward for a node that explicitly supports ACTION_LONG_CLICK */
+        while (currentNode != null) {
+            if (currentNode.isLongClickable()) {
+                showOnScreen(currentNode);
+                debugMe(currentNode);
+                success = currentNode.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+                if (success) currentNode.refresh();
+                break;
+            }
+            currentNode = currentNode.getParent();
+        }
+    }
+
+    // Fallback to using gesture
+    if (!success) {
+        showOnScreen(node);
+        Point coor = getCoordinates(node);
+        debugMe(node);
+        success = tap(coor.x, coor.y, longClickFallBackDuration);
+    }
+
+    if (success) {
+        log("Long-click success.", node);
+        node.refresh();
+        if (stepDelay > 0) wait(stepDelay);
+        return node;
+    } else {
+        log("No long-clickable ancestor found.", node);
+        return null;
+    }
+}
+
+// Using coordinates and percentages will return boolean instead!
+longClick(int x, int y) {
+	return tap(coor.x, coor.y, longClickFallBackDuration, true);
+}
+
+longClick(float x, float y) {
+	return tap(coor.x, coor.y, longClickFallBackDuration, true);
+}
+
+/* Collection Overloads */
+longClick(This multiKeys) {
+	return longClick(getNode(multiKeys));
+}
+
+longClick(ArrayList nodes) {
+	return longClick(toNode(nodes));
+}
+
+longClick(ArrayList nodes, int index) {
+	AccessibilityNodeInfo node = toNode(nodes, index);
+	return longClick(node);
+}
+
+longClick(HashMap nodesMap) {
+	AccessibilityNodeInfo node = toNode(nodesMap);
+	return longClick(node);
+}
+
+longClick(HashMap nodesMap, String key) {
+	AccessibilityNodeInfo node = toNode(nodesMap, key);
+	return longClick(node);
+}
+
+/* Basic Search Overloads (Text-based) */
+longClick(String text) {
+	AccessibilityNodeInfo node = getNode("text", text, 0);
+	return longClick(node);
+}
+
+longClick(String text, int index) {
+	AccessibilityNodeInfo node = getNode("text", text, index);
+	return longClick(node);
+}
+
+longClick(String text, long timeout) {
+	AccessibilityNodeInfo node = getNode("text", text, 0, timeout);
+	return longClick(node);
+}
+
+longClick(String text, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode("text", text, index, timeout);
+	return longClick(node);
+}
+
+/* Key-Value Search Overloads */
+longClick(String key, String value) {
+	AccessibilityNodeInfo node = getNode(key, value, 0);
+	return longClick(node);
+}
+
+longClick(String key, String value, int index) {
+	AccessibilityNodeInfo node = getNode(key, value, index);
+	if (node == null) {
+		throw new Exception("No node found for key=" + key + ", value=" + value);
+	}
+	return longClick(node);
+}
+
+longClick(String key, String value, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode(key, value, index, timeout);
+	return longClick(node);
+}
+
+/* Complex Search Overloads (Root and Configs) */
+longClick(AccessibilityNodeInfo root, String text) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, 0);
+	return longClick(node);
+}
+
+longClick(String text, Object[][] argsConfigs) {
+	AccessibilityNodeInfo node = getNode(getRoot(), "text", text, 0, waitNodesTimeout, argsConfigs);
+	return longClick(node);
+}
+
+/* Parent and Sibling Overloads */
+longClick(String text, int parentLevel, String nearbyText) {
+	AccessibilityNodeInfo node = getNode(getRoot(), "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText);
+	return longClick(node);
+}
+
+longClick(String key, String value, int parentLevel, String nearbyText) {
+	AccessibilityNodeInfo node = getNode(getRoot(), key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyText);
+	return longClick(node);
+}
+
+longClick(String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(getRoot(), key, value, index, timeout, parentLevel, nearbyKey, nearbyValue);
+	return longClick(node);
+}
+
+/* AccessibilityNodeInfo Root specific variants */
+longClick(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index, timeout);
+	return longClick(node);
+}
+
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+longClick(AccessibilityNodeInfo root, ...)
+**New Overloads with Root Entry Parameter**
+These methods allow performing a long click on nodes found
+relative to a specific AccessibilityNodeInfo root instead of
+the global root.
+───────────────────────────────────────────────────────────────*/
+
+longClick(AccessibilityNodeInfo root, String text, int index) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, index);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String text, long timeout) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, 0, timeout);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String text, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, index, timeout);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String key, String value) {
+	AccessibilityNodeInfo node = getNode(root, key, value, 0);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String key, String value, int index) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index);
+	if (node == null) {
+		throw new Exception("No node found for key=" + key + ", value=" + value + " under provided root");
+	}
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String text, Object[][] argsConfigs) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, 0, waitNodesTimeout, argsConfigs);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyText) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyText) {
+	AccessibilityNodeInfo node = getNode(root, key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyText);
+	return longClick(node);
+}
+
+longClick(AccessibilityNodeInfo root, String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index, timeout, parentLevel, nearbyKey, nearbyValue);
+	return longClick(node);
+}

@@ -1,0 +1,67 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was generated using AI.
+───────────────────────────────────────────────────────────────*/
+boolean swipe(double startX, double startY, double endX, double endY, long duration, boolean stopFlick) {
+	if (stopFlick) {
+		Object[][] swipePoints = new Object[][] {
+			{
+				(float) startX, (float) startY, 0,1L
+			}, // Action Down
+			{
+				(float) endX,
+				(float) endY,
+				1,
+				duration
+			}, // Action Move (Type 1)
+			{
+				(float) endX,
+				(float) endY,
+				2,50L
+			} // Action Up (Type 2) + Hold
+		};
+
+		return gesture(swipePoints);
+	} else {
+		Object[][] swipePoints = new Object[][] {
+			{
+				(float) startX, (float) startY, 0,1L
+			}, {
+				(float) endX,
+				(float) endY,
+				2,
+				duration
+			}
+		};
+		return gesture(swipePoints);
+	}
+}
+
+boolean swipe(double startX, double startY, double endX, double endY, long duration) {
+	return swipe(startX, startY, endX, endY, duration, false);
+}
+
+boolean swipe(double startX, double startY, double endX, double endY) {
+	return swipe(startX, startY, endX, endY, 10, false);
+}
+
+boolean swipe(double startX, double startY, double endX, double endY, boolean stopFlick) {
+	return swipe(startX, startY, endX, endY, 10, stopFlick);
+}
+
+boolean swipe(double startY, double endY) {
+	return swipe(0.5, startY, 0.5, endY, 10, false);
+}
+
+boolean swipe(double startY, double endY, boolean stopFlick) {
+	return swipe(0.5, startY, 0.5, endY, 10, stopFlick);
+}
+
+boolean swipe(double startY, double endY, long duration) {
+	return swipe(0.5, startY, 0.5, endY, duration, false);
+}
+
+boolean swipe(double startY, double endY, long duration, boolean stopFlick) {
+	return swipe(0.5, startY, 0.5, endY, duration, stopFlick);
+}
+
+

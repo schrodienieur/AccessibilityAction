@@ -1,0 +1,16 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.accessibilityservice.AccessibilityService;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import java.lang.Exception;
+
+// === Get accessibility service ===
+android.content.Context getService() {
+	android.content.Context service = accessibility;
+	if (service == null) {
+		throw new Exception("Accessibility service not active!");
+	}
+	return service;
+}

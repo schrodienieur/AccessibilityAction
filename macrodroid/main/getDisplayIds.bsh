@@ -1,0 +1,50 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.content.Context;
+import android.view.accessibility.AccessibilityWindowInfo;
+import android.accessibilityservice.AccessibilityService;
+import android.util.SparseArray;
+import java.util.List;
+import java.util.ArrayList;
+
+/*───────────────────────────────────────────────────────────────
+getDisplayIds()
+**Get All Available Display IDs**
+Scans all current windows across the system and returns an ArrayList
+containing the unique integer IDs of all active displays.
+
+Arguments:
+
+* (None)
+
+Return:
+
+* ArrayList → A list of active display IDs (integers). Returns an
+empty list if no displays or windows are found.
+
+Example:
+ArrayList displays = getDisplayIds();
+for (int i = 0; i < displays.size(); i++) {
+int id = ((Integer) displays.get(i)).intValue();
+}
+───────────────────────────────────────────────────────────────*/
+public ArrayList getDisplayIds() {
+	ArrayList displayIds = new ArrayList();
+
+	android.content.Context service = getService();
+	if (service == null) {
+		return displayIds;
+	}
+
+	SparseArray allDisplaysWindows = service.getWindowsOnAllDisplays();
+	if (allDisplaysWindows == null) {
+		return displayIds;
+	}
+
+	for (int i = 0; i < allDisplaysWindows.size(); i++) {
+		int displayId = allDisplaysWindows.keyAt(i);
+		displayIds.add(new Integer(displayId));
+	}
+
+	return displayIds;
+
+}

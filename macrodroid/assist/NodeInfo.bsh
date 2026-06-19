@@ -1,0 +1,281 @@
+import bsh.This;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Field;
+import android.graphics.Color;
+import java.lang.reflect.Field;
+import android.graphics.Rect;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.content.Context;
+
+This NodeInfo(AccessibilityNodeInfo node) {
+	// Properties from https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/accessibility/AccessibilityNodeInfo.java
+	final int CHECKABLE = 1 /* << 0 */ ;
+	final int CHECKED = 1 << 1;
+	final int FOCUSABLE = 1 << 2;
+	final int FOCUSED = 1 << 3;
+	final int SELECTED = 1 << 4;
+	final int CLICKABLE = 1 << 5;
+	final int LONG_CLICKABLE = 1 << 6;
+	final int ENABLED = 1 << 7;
+	final int PASSWORD = 1 << 8;
+	final int SCROLLABLE = 1 << 9;
+	final int ACCESSIBILITY_FOCUSED = 1 << 10;
+	final int VISIBLE_TO_USER = 1 << 11;
+	final int EDITABLE = 1 << 12;
+	final int OPENS_POPUP = 1 << 13;
+	final int DISMISSABLE = 1 << 14;
+	final int MULTI_LINE = 1 << 15;
+	final int CONTENT_INVALID = 1 << 16;
+	final int CONTEXT_CLICKABLE = 1 << 17;
+	final int IMPORTANCE = 1 << 18;
+	final int SCREEN_READER_FOCUSABLE = 1 << 19;
+	final int IS_SHOWING_HINT = 1 << 20;
+	final int IS_HEADING = 1 << 21;
+	final int IS_TEXT_ENTRY_KEY = 1 << 22;
+	final int IS_TEXT_SELECTABLE = 1 << 23;
+	final int REQUEST_INITIAL_ACCESSIBILITY_FOCUS = 1 << 24;
+	final int ACCESSIBILITY_DATA_SENSITIVE = 1 << 25;
+	final int SUPPORTS_GRANULAR_SCROLLING = 1 << 26;
+	final int FIELD_REQUIRED = 1 << 27;
+
+	// Custom properties
+	final int HAS_VIEW_ID_RESOURCE_NAME = 1 << 30;
+	final int HAS_TEXT = 1 << 31;
+
+	Object[][] constantsObject = new Object[][] {
+        {"Checkable", CHECKABLE, "Action"},
+        {"Checked", CHECKED,"State"},
+        {"Focusable", FOCUSABLE, "Action"},
+        {"Focused", FOCUSED,"State"},
+        {"Selected", SELECTED,"State"},
+        {"Clickable", CLICKABLE, "Action"},
+        {"LongClickable", LONG_CLICKABLE, "Action"},
+        {"Enabled", ENABLED,"State"},
+        {"Password", PASSWORD,"Other"},
+        {"Scrollable", SCROLLABLE, "Action"},
+        {"AccessibilityFocused", ACCESSIBILITY_FOCUSED,"State"},
+        {"VisibleToUser", VISIBLE_TO_USER,"State"},
+        {"Editable", EDITABLE, "Action"},
+        {"OpensPopup", OPENS_POPUP, "Other"},
+        {"Dismissable", DISMISSABLE, "Action"},
+        {"MultiLine", MULTI_LINE,"State"},
+        {"ContentInvalid", CONTENT_INVALID, "State"},
+        {"ContextClickable", CONTEXT_CLICKABLE, "Action"},
+        {"Importance", IMPORTANCE,"Other"},
+        {"ScreenReaderFocusable", SCREEN_READER_FOCUSABLE, "Action"},
+        {"ShowingHint", IS_SHOWING_HINT,"State"},
+        {"Heading", IS_HEADING,"Other"},
+        {"TextEntryKey", IS_TEXT_ENTRY_KEY,"Other"},
+        {"TextSelectable", IS_TEXT_SELECTABLE, "Action"},
+        {"RequestInitialAccessibilityFocus", REQUEST_INITIAL_ACCESSIBILITY_FOCUS,"Other"},
+        {"DataSensitive", ACCESSIBILITY_DATA_SENSITIVE,"Other"},
+        {"SupportsGranularScrolling", SUPPORTS_GRANULAR_SCROLLING,"Other"},
+        {"FieldRequired", FIELD_REQUIRED,"Other"},
+        {"Has View Id", HAS_VIEW_ID_RESOURCE_NAME, "Node"},
+        {"Has Text", HAS_TEXT, "Node"}
+    };
+
+	Map map = new HashMap();
+	Map group = new HashMap();
+	for (Object[] constant: constantsObject) {
+		String name = constant[0];
+		int value = constant[1];
+		String groupName = constant[2];
+		map.put(name, value);
+		List constants = (List) group.get(groupName);
+		if (constants == null) {
+			constants = new ArrayList();
+			group.put(groupName, constants);
+		}
+		constants.add(name);
+	}
+
+	Field propertiesField;
+	boolean hasPropertyField;
+	try {
+		propertiesField = AccessibilityNodeInfo.class.getDeclaredField("mBooleanProperties");
+		propertiesField.setAccessible(true);
+		hasPropertyField = true;
+	} catch (e) {}
+
+	getConstantNames() {
+		List names = Arrays.asList(map.keySet().toArray());
+		return names;
+	}
+
+	getConstant(String name) {
+		Object value = map.get(name);
+		if (value != null) return value;
+		return 0;
+	}
+
+	getGroupList(String groupName) {
+		List names = (List) group.get(groupName);
+		return names;
+	}
+
+	getGroupNames() {
+		List names = Arrays.asList(group.keySet().toArray());
+		return names;
+	}
+
+	getProperties(AccessibilityNodeInfo targetNode) {
+		int properties;
+		if (!hasPropertyField) {
+			This nodeProps = NodeProperties(targetNode);
+			properties = nodeProps.flags;
+		} else {
+			properties = propertiesField.getInt(targetNode);
+		}
+		return properties;
+	}
+
+	hasProperty(int sourceProperties, int properties) {
+		return (sourceProperties & properties) == properties;
+	}
+
+	hasAllProperties(AccessibilityNodeInfo targetNode, int properties) {
+		int nodeProperties = getProperties(targetNode);
+
+		// Custom flags has to be checked later
+		if (targetNode.viewIdResourceName != null) {
+			properties |= HAS_VIEW_ID_RESOURCE_NAME;
+		}
+		// Has content description
+		if (targetNode.contentDescription != null || targetNode.text != null) {
+			properties |= HAS_TEXT;
+		}
+		return (nodeProperties & properties) == properties;
+	}
+
+	hasAllProperties(This nodeBox, int properties) {
+		int nodeProperties = nodeBox.properties;
+		return (nodeProperties & properties) == properties;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	calculateDepth(AccessibilityNodeInfo targetNode)
+	**Calculates Node Depth in the Hierarchy**
+	Traverses up the visual tree using parent pointers to calculate the absolute
+	depth level of the current targetNode relative to the root window layout.
+
+	Arguments:
+
+	* targetNode → The baseline AccessibilityNodeInfo targetNode to compute depth for.
+
+	Returns:
+
+	* int → The numeric depth index (0 if it is the root layout or has no parent).
+	───────────────────────────────────────────────────────────────*/
+	public int calculateDepth(AccessibilityNodeInfo targetNode) {
+		int depth = 0;
+		if (targetNode == null) {
+			return depth;
+		}
+
+		AccessibilityNodeInfo parent = targetNode.getParent();
+		while (parent != null) {
+			depth++;
+			parent = parent.getParent();
+		}
+
+		return depth;
+
+	}
+
+	/*───────────────────────────────────────────────────────────────
+		LEAVE HERE EARLY FOR STATIC
+	  ─────────────────────────────────────────────────────────────── */
+	if (node == null) {
+		return this;
+	}
+
+
+
+	/*───────────────────────────────────────────────────────────────
+		NodeInfo(AccessibilityNodeInfo node) starts from here
+	  ─────────────────────────────────────────────────────────────── */
+	This a11Y = getA11yInstance();
+	int properties = getProperties(node);
+	List propertiesList = new ArrayList();
+
+	for (Object[] constant: info.constantsObject) {
+		int value = constant[1];
+		if (info.hasProperty(properties, value)) propertiesList.add(value);
+	}
+
+	List infos = new ArrayList();
+	String text = getText(node);
+
+	/* Extract structural bounds of the accessibility element on the physical display. */
+	Rect rect = new Rect();
+	node.getBoundsInScreen(rect);
+
+	/* Retrieve readable application label tied to the current node package identifier. */
+	String packageName = node.packageName != null ? node.packageName.toString() : "";
+	String appName = "";
+	int displayId;
+	if (a11Y != null)
+		if (a11Y.structureOverlay != void)
+			if (a11Y.assistBar.selectedDisplayId != void) displayId = a11Y.assistBar.selectedDisplayId;
+	Context context = getContext(displayId);
+	PackageManager pm = context.getPackageManager();
+	ApplicationInfo appInfo = pm.getApplicationInfo(packageName, 0);
+	appName = pm.getApplicationLabel(appInfo).toString();
+
+	/* Compile coordinates for bounds profiling including margins and operational center. */
+	String topLeftCoordinate = rect.left + "," + rect.top;
+	String bottomRightCoordinate = rect.right + "," + rect.bottom;
+	String centerCoordinate = rect.centerX() + "," + rect.centerY();
+	String currentCoordinate = currentProbeX + "," + currentProbeY;
+
+	/* Evaluate direct and functional aggregate child elements nesting constraints. */
+	int directChildCount = node.getChildCount();
+	This childHierarchyData = ChildHierarchyData(node);
+	int totalChildCount = ((Integer) childHierarchyData.count).intValue();
+	String childTexts = (String) childHierarchyData.text;
+
+	/* Trim content descriptions or text aggregations exceeding memory layouts. */
+	String finalChildTexts = childTexts;
+	if (childTexts != null && childTexts.length() > 300) {
+		finalChildTexts = childTexts.substring(0, 300) + "...";
+	}
+
+	/* Compute tracking variables for inheritance nodes up the visual window hierarchy. */
+	int depth = info.calculateDepth(node);
+	AccessibilityNodeInfo parentNode = node.getParent();
+	String parentName = "none";
+	if (parentNode != null && parentNode.getClassName() != null) {
+		parentName = parentNode.getClassName().toString();
+	}
+
+	Field() {
+		final String text = "Text";
+		final String packageName = "Package Name";
+		final String rect = "Rect";
+		final String appName = "App Name";
+		final String className = "Class Name";
+		final String topLeftCoordinate = "Top Left";
+		final String bottomRightCoordinate = "Bottom Right";
+		final String centerCoordinate = "Center";
+		final String directChildCount = "Direct Children";
+		final String totalChildCount = "Total Children";
+		final String childTexts = "Child Texts";
+		final String depth = "Depth";
+		final String parentName = "Parent";
+		return this;
+	}
+
+	This Field = Field();
+
+	return this;
+
+}
+
+NodeInfo() {
+	return NodeInfo(null);
+}

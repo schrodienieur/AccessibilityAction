@@ -1,0 +1,204 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.HashMap;
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+setSelection(...)
+**Sets Text Selection/Cursor Position**
+Finds a node and sets the text selection range. Useful for
+highlighting text or moving the cursor in an input field.
+
+Arguments:
+
+* node/nodes → The specific node or collection.
+* start → Starting index (0-based).
+* end → Ending index (-1 usually indicates end of text).
+* value → The text/ID value to search for the field.
+* key → The attribute to search by (default is "text").
+* index → The instance index if multiple matches exist.
+* timeout → Max time to wait for the node.
+
+Returns:
+
+* The AccessibilityNodeInfo where selection was set, or null.
+───────────────────────────────────────────────────────────────*/
+
+/* Base Selection Logic */
+setSelection(AccessibilityNodeInfo node, int start, int end) {
+	if (node == null) return null;
+
+	showOnScreen(node);
+	debugMe(node);
+	int maxLength = node.getText().length();
+	/* Handle -1 as a shortcut for the end of the current text */
+	if (end >= start) {
+		if (end == -1 && node.getText() != null) end = maxLength;
+		if (end > maxLength) end = maxLength;
+
+	} else if (start > end) {
+		if (end < 0) {
+			end = maxLength + 1 + end;
+		} else {
+			start = maxLength - start;
+			end = maxLength - end;
+		}
+	}
+	if (start < 0) start = 0;
+	Bundle args = new Bundle();
+	args.putInt("ACTION_ARGUMENT_SELECTION_START_INT", start);
+	args.putInt("ACTION_ARGUMENT_SELECTION_END_INT", end);
+	boolean success = node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, args);
+	if (success) node.refresh();
+	if (stepDelay > 0) wait(stepDelay);
+	return node;
+}
+
+/* Collection Overloads */
+setSelection(This multiKeys) {
+	int start = multiKeys.start == void ? 0 : multiKeys.start;
+	int end = multiKeys.end == void ? -1 : multiKeys.end;
+	return setSelection(getNode(multiKeys), start, end);
+}
+
+setSelection(ArrayList nodes, int start, int end) {
+	AccessibilityNodeInfo node = toNode(nodes);
+	return setSelection(node, start, end);
+}
+
+setSelection(ArrayList nodes, int index, int start, int end) {
+	AccessibilityNodeInfo node = toNode(nodes, index);
+	return setSelection(node, start, end);
+}
+
+setSelection(HashMap nodes, int start, int end) {
+	AccessibilityNodeInfo node = toNode(nodes);
+	return setSelection(node, start, end);
+}
+
+setSelection(HashMap nodes, String key, int start, int end) {
+	AccessibilityNodeInfo node = toNode(nodes, key);
+	return setSelection(node, start, end);
+}
+
+/* Basic Search Overloads (Text-based) */
+setSelection(String value, int start, int end) {
+	AccessibilityNodeInfo node = getNode("text", value);
+	return setSelection(node, start, end);
+}
+
+setSelection(String value, int start, int end, int index) {
+	AccessibilityNodeInfo node = getNode("text", value, index);
+	return setSelection(node, start, end);
+}
+
+setSelection(String value, int start, int end, long timeout) {
+	AccessibilityNodeInfo node = getNode("text", value, 0, timeout);
+	return setSelection(node, start, end);
+}
+
+/* Key-Value Search Overloads */
+setSelection(String key, String value, int start, int end) {
+	AccessibilityNodeInfo node = getNode("text", value, 0);
+	return setSelection(node, start, end);
+}
+
+setSelection(String key, String value, int start, int end, int index) {
+	AccessibilityNodeInfo node = getNode(key, value, index);
+	return setSelection(node, start, end);
+}
+
+setSelection(String key, String value, int start, int end, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode(key, value, index, timeout);
+	return setSelection(node, start, end);
+}
+
+/* Focus and Shortcut Overloads */
+setSelection(int start, int end) {
+	/* Targets the currently focused input field */
+	AccessibilityNodeInfo node = getNode("focus", null, 0);
+	return setSelection(node, start, end);
+}
+
+setSelection() {
+	/* Select All on the focused field */
+	AccessibilityNodeInfo node = getNode("focus", null, 0);
+	return setSelection(node, 0, -1);
+}
+
+/* Complex Search Overloads (Root and Configs) */
+setSelection(AccessibilityNodeInfo root, String value, int start, int end) {
+	AccessibilityNodeInfo node = getNode(root, value);
+	return setSelection(node, start, end);
+}
+
+setSelection(String value, int start, int end, Object[][] argsConfigs) {
+	AccessibilityNodeInfo node = getNode(getRoot(), "text", value, 0, waitNodesTimeout, argsConfigs);
+	return setSelection(node, start, end);
+}
+
+/* Parent and Sibling Overloads */
+setSelection(String value, int start, int end, int parentLevel, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(getRoot(), "text", value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue);
+	return setSelection(node, start, end);
+}
+
+setSelection(String key, String value, int start, int end, int parentLevel, String nearbyKey, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(getRoot(), key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue);
+	return setSelection(node, start, end);
+}
+
+/* AccessibilityNodeInfo Root specific variants */
+setSelection(AccessibilityNodeInfo root, String key, String value, int start, int end, int index, long timeout) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index, timeout);
+	return setSelection(node, start, end);
+}
+
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+setSelection(AccessibilityNodeInfo root, ...)
+**New Overloads with Root Entry Parameter**
+These methods allow setting text selection on nodes found
+relative to a specific AccessibilityNodeInfo root instead of
+the global root.
+───────────────────────────────────────────────────────────────*/
+
+setSelection(AccessibilityNodeInfo root, String value, int start, int end, int index) {
+	AccessibilityNodeInfo node = getNode(root, "text", value, index);
+	return setSelection(node, start, end);
+}
+
+setSelection(AccessibilityNodeInfo root, String value, int start, int end, long timeout) {
+	AccessibilityNodeInfo node = getNode(root, "text", value, 0, timeout);
+	return setSelection(node, start, end);
+}
+
+setSelection(AccessibilityNodeInfo root, String key, String value, int start, int end) {
+	return setSelection(root, key, value, start, end, 0);
+}
+
+setSelection(AccessibilityNodeInfo root, String key, String value, int start, int end, int index) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index);
+	return setSelection(node, start, end);
+}
+
+setSelection(AccessibilityNodeInfo root, String value, int start, int end, Object[][] argsConfigs) {
+	AccessibilityNodeInfo node = getNode(root, "text", value, 0, waitNodesTimeout, argsConfigs);
+	return setSelection(node, start, end);
+}
+
+setSelection(AccessibilityNodeInfo root, String value, int start, int end, int parentLevel, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(root, "text", value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue);
+	return setSelection(node, start, end);
+}
+
+setSelection(AccessibilityNodeInfo root, String key, String value, int start, int end, int parentLevel, String nearbyKey, String nearbyValue) {
+	AccessibilityNodeInfo node = getNode(root, key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue);
+	return setSelection(node, start, end);
+}

@@ -1,0 +1,82 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+import java.util.List;
+import bsh.This;
+
+/*──────────────────────────────────────────────────────────────
+  This code was generated and commented with the assistance of AI
+  ────────────────────────────────────────────────────────────── */
+
+/*───────────────────────────────────────────────────────────────
+    scrollTo(String key, String value, int scrollCount, double startY, double endY)
+    Scroll until a node is found.
+
+    Parameters:
+        - key → Target node selector type.
+        - value → Target node identifier.
+        - scrollCount → Number of times to scroll.
+        - startY → Starting scroll position (0.0 = top, 1.0 = bottom).
+        - endY → Target scroll position (0.0 = top, 1.0 = bottom).
+
+    Example:
+        scrollTo("text", "Details", 20, 0.8, 0.2);
+        scrollTo("text", "Details", 20);
+        scrollTo("text", "Details");
+  ───────────────────────────────────────────────────────────────*/
+scrollTo(String key, String value, int scrollCount, double startY, double endY, long duration) {
+	List nodes = new ArrayList();
+	for (int i = 0; i < scrollCount; i++) {
+		nodes = findNodes(key, value);
+		if (hasNode(nodes)) {
+			Object node = toNode(nodes);
+			showOnScreen(node);
+			break;
+		}
+		swipe(0.5, startY, 0.5, endY, duration, true);
+	}
+	if (hasNode(nodes)) return toNode(nodes);
+	return null;
+}
+
+scrollTo(String key, String value, int scrollCount, double startY, double endY)  {
+	return scrollTo(key, text, scrollCount, startY, endY, 200);
+}
+
+scrollTo(String text, int scrollCount, double startY, double endY) {
+	return scrollTo("text", text, scrollCount, startY, endY, 200);
+}
+
+scrollTo(String text, int scrollCount) {
+	return scrollTo("text", text, scrollCount, 0.8, 0.2, 200);
+}
+
+scrollTo(String key, String value, int scrollCount) {
+	return scrollTo(key, value, scrollCount, 0.8, 0.2, 200);
+}
+
+scrollTo(String key, String value) {
+	return scrollTo(key, value, 20, 0.8, 0.2, 200);
+}
+
+scrollTo(String text) {
+	return scrollTo("text", text, 20, 0.8, 0.2, 200);
+}
+
+scrollTo(This multiKeys) {
+	List nodes = new ArrayList();
+	int scrollCount = multiKeys.scrollCount == void ? 20 : multiKeys.scrollCount;
+	double startY = multiKeys.startY == void ? 0.8 : multiKeys.startY;
+	double endY = multiKeys.endY == void ? 0.2 : multiKeys.endY;
+	long duration = multiKeys.duration == void ? 200 : multiKeys.duration;	
+	for (int i = 0; i < scrollCount; i++) {
+		nodes = findNodes(multiKeys);
+		if (hasNode(nodes)) {
+			Object node = toNode(nodes);
+			showOnScreen(node);
+			break;
+		}
+		swipe(0.5, startY, 0.5, endY, duration, true);
+	}
+	if (hasNode(nodes)) return toNode(nodes);
+	return null;
+}

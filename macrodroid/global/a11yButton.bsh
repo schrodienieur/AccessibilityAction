@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+a11yButton() {
+	android.content.Context svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_ACCESSIBILITY_BUTTON);
+}

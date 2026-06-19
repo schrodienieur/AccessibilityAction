@@ -1,0 +1,628 @@
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
+import android.view.GestureDetector;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.view.Display;
+
+import com.google.android.material.button.MaterialButton;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.accessibilityservice.AccessibilityService;
+import android.view.accessibility.AccessibilityWindowInfo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+  dp(int value)
+  ───────────────────────────────────────────────────────────────*/
+public int dp(int value) {
+	return (int) TypedValue.applyDimension(
+		TypedValue.COMPLEX_UNIT_DIP,
+		value,
+		context.getResources().getDisplayMetrics()
+	);
+}
+
+/*───────────────────────────────────────────────────────────────
+	AssistBar(int initialX, int initialY)
+  ───────────────────────────────────────────────────────────────*/
+public This AssistBar(int initialX, int initialY) {
+
+	final This TOP = this;
+	This a11Y = getA11yInstance();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_ASSIST_BAR;
+	a11Y.viewControl.addView(TOP);
+	
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+	
+	// Properties
+	boolean useA11y = true;
+	This tm;
+	int padding = dp(4);
+	Context assistContext;
+	WindowManager windowManager;
+	int assistOverlayType = useA11y ?
+		WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY :
+		WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+	FrameLayout assistButton;
+	WindowManager.LayoutParams assistParams;
+	int screenheight;
+	DisplayMetrics displayMetrics;
+	LinearLayout container;
+	Handler mainHandler = new Handler(Looper.getMainLooper());
+	boolean isRemoved;
+	boolean isShown;
+	boolean hasShownOnce;
+	int selectedDisplayId;
+
+	// Instances
+	This structureOverlay;
+	This filterSheet;
+	This nodeSearch;
+	This displayMenu;
+	This scriptEditor;
+	This assistSetting;
+	This actionPicker;
+
+	// Buttons and Handle
+	GestureDetector detector;
+	List buttons = new ArrayList();
+	MaterialButton handle, scriptBtn, settingBtn, searchBtn, filterBtn, closeBtn;
+	float initialTouchX;
+	float initialTouchY;
+	int initialWinX;
+	int initialWinY;
+	This handleGesture;
+
+	setButtonColorState(MaterialButton btn, boolean isActive) {
+		int backgroundColor = tm.color("colorPrimary");
+		int iconColor = tm.color("colorOnPrimary");
+		if (!isActive) {
+			backgroundColor = Color.TRANSPARENT;
+			iconColor = tm.color("colorOnSurface");
+		}
+		btn.setSupportBackgroundTintList(android.content.res.ColorStateList.valueOf(backgroundColor));
+		btn.setIconTint(android.content.res.ColorStateList.valueOf(iconColor));
+	}
+
+	create() {
+		assistContext = getContext(useA11y);
+		windowManager = (WindowManager) assistContext.getSystemService(Context.WINDOW_SERVICE);
+
+		/* THEME */
+		tm = ThemeManager(assistContext);
+		tm.setThemeDark();
+
+		displayMetrics = getDisplayMetrics();
+		screenheight = displayMetrics.heightPixels;
+
+		/* ROOT & CONTAINER SETUP */
+		assistButton = new FrameLayout(assistContext);
+		container = new LinearLayout(assistContext);
+		container.setOrientation(LinearLayout.HORIZONTAL);
+
+		GradientDrawable bg = new GradientDrawable();
+		bg.setShape(GradientDrawable.RECTANGLE);
+		bg.setCornerRadius(dp(28));
+		bg.setColor(tm.color("colorSurfaceContainerHighest"));
+		container.setBackground(bg);
+		container.setPadding(padding, padding, padding, padding);
+
+		FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(-2, -2);
+		container.setLayoutParams(containerParams);
+		assistButton.addView(container);
+
+		container.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
+			public void onChildViewAdded(View parent, View child) {
+
+			}
+
+			public void onChildViewRemoved(View parent, View child) {
+				// This code runs when a view is removed
+			}
+		});
+
+		assistParams = new WindowManager.LayoutParams(
+			WindowManager.LayoutParams.WRAP_CONTENT,
+			WindowManager.LayoutParams.WRAP_CONTENT,
+			assistOverlayType,
+			WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+			WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+			WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
+			PixelFormat.TRANSLUCENT
+		);
+		assistParams.gravity = Gravity.TOP | Gravity.LEFT;
+		assistParams.x = initialX;
+		assistParams.y = initialY;
+	}
+
+	/*────────────────────────────
+	  UTILITY METHODS
+	────────────────────────────*/
+	getContext() {
+		return assistContext;
+	}
+	
+	removeStructure() {
+		if (structureOverlay != null && !structureOverlay.isRemoved()) {
+			structureOverlay.remove();
+		}
+	}
+
+	ensureLayout(View v) {
+		if (v.getLayoutParams() == null) {
+			v.setLayoutParams(new LinearLayout.LayoutParams(-2, -1));
+		}
+	}
+
+	refreshSize() {
+		int oldWidth = assistParams.width;
+		container.measure(
+			View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+			View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+		);
+		int measuredHeight = container.getMeasuredHeight();
+		int measuredWidth = container.getMeasuredWidth();
+
+		if (oldWidth > 0 && measuredWidth != oldWidth) {
+			assistParams.x = assistParams.x - (measuredWidth - oldWidth);
+		}
+
+		assistParams.height = measuredHeight;
+		assistParams.width = measuredWidth;
+
+		if (!isShown) return;
+		try {
+			windowManager.updateViewLayout(assistButton, (WindowManager.LayoutParams) assistParams);
+		} catch (e) {}
+	}
+
+	IconButton(Drawable drawable, boolean isActive) {
+		MaterialButton button = new MaterialButton(assistContext);
+		button.setIcon(drawable);
+		button.setIconSize(dp(24));
+		button.setIconPadding(0);
+		button.setInsetTop(0);
+		button.setInsetBottom(0);
+		button.setMinimumWidth(0);
+		button.setMinimumHeight(0);
+		button.setWidth(dp(40));
+		button.setHeight(dp(40));
+		button.setPadding(0, 0, 0, 0);
+		button.setGravity(Gravity.CENTER);
+		button.setIconGravity(2);
+		setButtonColorState(button, isActive);
+
+		int margin = padding;
+		boolean isFirst = (container.getChildCount() == 0);
+		int rightMargin = isFirst ? 0 : margin;
+		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(40), -1);
+		lp.setMargins(0, 0, rightMargin, 0);
+		button.setLayoutParams(lp);
+
+		container.addView(button, 0);
+		buttons.add(button);
+		refreshSize();
+		return button;
+	}
+
+	addButtons() {
+		/*────────────────────────────
+		HANDLE
+		────────────────────────────*/
+		handle = IconButton(tm.attr("mw_image_filter_center_focus"), true);
+
+		/*────────────────────────────
+		Edit Button - Adjusted Toggle
+		────────────────────────────*/
+		scriptBtn = IconButton(tm.attr("mw_action_code"), false);
+		scriptBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View view) {
+				if (assistSetting != null) assistSetting.remove();
+				if (structureOverlay != null) structureOverlay.remove();
+				if (scriptEditor != null) scriptEditor.toggle();
+			}
+		});
+
+		/*────────────────────────────
+		Settings Button - Adjusted Dismissal
+		────────────────────────────*/
+		settingBtn = IconButton(tm.attr("mw_action_settings"), false);
+		settingBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View view) {
+				// if (scriptEditor != null) scriptEditor.remove();
+				// if (structureOverlay != null) structureOverlay.remove();
+				if (assistSetting != null) assistSetting.toggle();
+			}
+		});
+
+		/*────────────────────────────
+		Filter Button
+		──────────────────────────── */
+		filterBtn = IconButton(tm.attr("mw_content_filter_list"), false);
+		// Remove at first;
+		container.removeView(filterBtn);
+		filterBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View view) {
+				if (filterSheet == null) {
+					filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
+					int filterY = (1 - filterSheet.config.maxHeight) * screenheight;
+					int assistY = assistParams.y + assistParams.height;
+					if (assistY > filterY) moveHandle(assistParams.x, filterY - assistParams.height);
+				}
+				structureOverlay.unhide();
+				if (filterSheet != null) filterSheet.toggle();
+				if (nodeSearch != null) nodeSearch.remove();
+			}
+		});
+
+		/*────────────────────────────
+		Close Button
+		────────────────────────────*/
+		closeBtn = IconButton(tm.attr("mw_navigation_close"), false);
+		closeBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View view) {
+				remove();
+			}
+		});	
+		
+		/*────────────────────────────
+		Search Button
+		────────────────────────────*/
+		searchBtn = IconButton(tm.attr("mw_action_search"), false);
+		// Remove at first;
+		container.removeView(searchBtn);
+		searchBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View view) {
+				toggleSearch();
+			}
+		});
+	}
+	
+
+	/*────────────────────────────
+	  Search Utils
+	────────────────────────────*/
+	showSearch() {
+		if (filterSheet != null) filterSheet.remove();
+		nodeSearch = NodeSearch(structureOverlay);
+		structureOverlay.hide();
+		nodeSearch.show();
+	}
+	
+	toggleSearch() {
+		Runnable runMe = new Runnable() {
+			run() {
+				try {
+
+					if (nodeSearch != null) {
+						if (structureOverlay != null && structureOverlay.isShown()) {
+							showSearch();
+						} else {
+							nodeSearch.remove();
+							nodeSearch = null;
+							structureOverlay.unhide();
+						}
+					} else {
+						showSearch();
+					}
+				} catch (e) {
+					tasker.showToast(e.getMessage());
+				}
+			}
+		};
+		runMe(runMe);
+	}
+
+	isSystemWindow() {
+		AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
+		if (focusedWindow == null) return false;
+		return focusedWindow.type == AccessibilityWindowInfo.TYPE_SYSTEM;
+	}
+
+	displayStructure() {
+		Runnable displayMe = new Runnable() {
+			run() {
+				try {
+					log("Displaying Structure Overlay for display " + selectedDisplayId, "INFO", TOP);
+					removeStructure();
+					AccessibilityWindowInfo focusedWindow = getFocusedWindow(selectedDisplayId);
+					boolean useA11yStructure = isSystemWindow();
+					if (useA11yStructure) remove();
+					This listener = createStructureOverlayListener();
+					structureOverlay = StructureOverlay(listener, useA11yStructure, focusedWindow);
+					structureOverlay.show();
+					if (useA11yStructure) show();
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP);
+					tasker.showToast("Failed to display structure overlay");
+				}
+			}
+		};
+		a11Y.post(displayMe);
+	}
+
+	toggleStructure() {
+		try {
+			boolean isSystemWindow = isSystemWindow();
+			if (structureOverlay == null) {
+				log("Displaying Structure Overlay From Toggle because null", "INFO", this);
+				scriptEditor.remove();
+				displayStructure();
+			}
+
+			else if (structureOverlay.isShown()) {
+				structureOverlay.remove();
+				log("Removing Structure Overlay From Toggle", "INFO", this);
+			} 
+			
+			else {
+				log("Displaying Structure Overlay From Toggle" + structureOverlay.isRemoved(), "INFO", this);
+				scriptEditor.remove();
+				displayStructure();
+			}
+		} catch (e) {
+			tasker.showToast(e.getMessage());
+		}
+	}
+
+	/*────────────────────────────
+	  Layout Utils
+	────────────────────────────*/
+	public void replaceView(View currentView, View newView) {
+		ViewGroup parent = (ViewGroup) currentView.getParent();
+		if (parent == null) return;
+		newView.setLayoutParams(currentView.getLayoutParams());
+		final int index = parent.indexOfChild(currentView);
+		parent.removeView(currentView);
+		parent.addView(newView, index);
+		refreshSize();
+	}
+
+	switchLayout(boolean isStructureShown) {
+		if (isStructureShown) {
+			replaceView(scriptBtn, searchBtn);
+			replaceView(settingBtn, filterBtn);
+		} else {
+			replaceView(searchBtn, scriptBtn);
+			replaceView(filterBtn, settingBtn);
+		}
+	}
+
+	// Listener for Structure Overlay to switch layout
+	createStructureOverlayListener() {
+		onViewAttachedToWindow(View view) {
+			
+		}
+		
+		onViewDetachedFromWindow(View view) {
+			log("Reset layout then remove structure overlay with node search & filter", TOP);
+			TOP.switchLayout(false);
+			try {
+				filterSheet.remove();
+				filterSheet = null;
+				nodeSearch.remove();
+				nodeSearch = null;
+			} catch (e) {
+
+			}
+		}
+
+		onStructureReady(This structureOverlay) {
+			log("Switching layout to use structure overlay", TOP);
+			TOP.switchLayout(true);
+		}
+
+		return this;
+	}
+
+	/*────────────────────────────
+	  Resources Control
+	────────────────────────────*/
+	setupResources() {
+		if (displayMenu == null) {
+			displayMenu = DisplayMenu();
+			listener() {
+				onClick(Object display) {
+					TOP.namespace.setVariable("selectedDisplayId", display.getDisplayId(), false);
+					showToast("Selected Display: " + display.getName());
+					TOP.displayStructure();
+				}
+				return this;
+			}
+			This listener = listener();
+			displayMenu.setOnClickListener(listener);
+		}
+		if (scriptEditor == null) scriptEditor = ScriptEditor();
+		if (assistSetting == null) assistSetting = AssistSetting();
+		if (actionPicker == null) actionPicker = ActionPicker();
+	}
+
+	clearResources() {
+		if (filterSheet != null) filterSheet.remove();
+		filterSheet = null;
+		if (nodeSearch != null) nodeSearch.remove();
+		nodeSearch = null;
+		if (displayMenu != null) displayMenu.remove();
+		displayMenu = null;
+		if (scriptEditor != null) scriptEditor.remove();
+		scriptEditor = null;
+		if (assistSetting != null) assistSetting.remove();
+		assistSetting = null;
+		// actionPicker = null;
+	}
+
+	/*────────────────────────────
+	  HANDLE LISTENER
+	────────────────────────────*/
+	handleListener() {
+		onLongPress() {
+			vibrate(assistButton);
+			Runnable runMe = new Runnable() {
+				run() {
+					removeStructure();
+					ActionsGroupDialog();
+				}
+			};
+			a11Y.execute(runMe);
+		}
+		onSingleTapConfirmed() {
+			toggleStructure();
+		}
+		onDoubleTap() {
+			if (structureOverlay != null) structureOverlay.unhideBoxes();
+			return true;
+		}
+		onShowPress() {}
+		return this;
+	}
+
+	moveHandle(int x, int y) {
+		assistParams.x = x;
+		assistParams.y = y;
+		try {
+			windowManager.updateViewLayout(assistButton, assistParams);
+		} catch (e) {}
+	}
+
+	onMove(View view, MotionEvent event) {
+		switch (event.getAction()) {
+			case 0: // ACTION_DOWN
+				int[] loc = new int[2];
+				assistButton.getLocationOnScreen(loc);
+				initialWinX = loc[0];
+				initialWinY = loc[1];
+				assistParams.x = initialWinX;
+				assistParams.y = initialWinY;
+				initialTouchX = event.getRawX();
+				initialTouchY = event.getRawY();
+				return false;
+			case 2: // ACTION_MOVE
+				int x = initialWinX + (int)(event.getRawX() - initialTouchX);
+				int y = initialWinY + (int)(event.getRawY() - initialTouchY);
+				moveHandle(x, y);
+				return false;
+		}
+		return false;
+	}
+
+	addListenerAndGesture() {
+		// handleGesture = SimpleGesture(handle, handleListener());
+		handle.setOnTouchListener(new View.OnTouchListener() {
+			onTouch(View view, MotionEvent event) {
+				// detector.onTouchEvent(event);
+				onMove(view, event);
+				return false;
+			}
+		});
+
+		assistButton.setOnTouchListener(new View.OnTouchListener() {
+			onTouch(View view, MotionEvent event) {
+				onMove(view, event);
+				return false;
+			}
+		});
+
+		assistButton.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+			onViewAttachedToWindow(View v) {
+				try {
+					hasShownOnce = true;
+					isShown = true;
+					if (isRemoved) isRemoved = false;
+					refreshSize();
+					setupResources();
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP, true);
+				}
+				
+			}
+			onViewDetachedFromWindow(View v) {
+				// try {
+					isShown = false;
+					isRemoved = true;
+					clearResources();
+					a11Y.clean();
+				// } catch (e) {
+				// 	log(e.getMessage(), "ERROR", TOP, true);
+				// }
+			}
+		});
+	}
+
+	isAdded() {
+		if (assistButton == null) return false;
+		return assistButton.getParent() != null && assistButton.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (assistButton == null) return false;
+		return assistButton.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (assistButton == null) return false;
+		return assistButton.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (assistButton == null) return false;
+		return !isAdded();
+	}
+
+	remove() {
+		removeStructure();
+		stuctureOverlay = null;
+		if (isShown) windowManager.removeView(assistButton);
+		isShown = false;
+		a11Y.clean();
+	}
+
+	show() {
+		if (assistButton == null) {
+			create();
+			addButtons();
+			addListenerAndGesture();
+		}
+		Runnable displayOverlay = new Runnable() {
+			run() {
+				if (detector == null) {
+					// detector = handleGesture.getDetector();
+				}
+				windowManager.addView(assistButton, assistParams);
+			}
+		};
+		if (!isShown) mainHandler.post(displayOverlay);
+	}
+
+	return this;
+}
+
+public This AssistBar(float x, float y) {
+	DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+	int width = metrics.widthPixels;
+	int height = metrics.heightPixels;
+	int finalX = (x >=0f && x <=1f) ? (int)(x * width) : (int) x;
+	int finalY = (y >=0f && y <=1f) ? (int)(y * height) : (int) y;
+	return AssistBar(finalX, finalY);
+}
+
+public This AssistBar(double x, double y) {
+	return AssistBar((float) x, (float) y);
+}

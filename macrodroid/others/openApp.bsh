@@ -1,0 +1,138 @@
+/*─────────────────────────────────────────────────────────────── 
+This content was generated using AI and refined with significant human oversight.
+───────────────────────────────────────────────────────────────*/
+
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.ComponentName;
+import android.content.pm.ApplicationInfo;
+import android.app.ActivityOptions; 
+import android.os.Bundle; 
+import java.util.List;
+import java.util.ArrayList;
+import bsh.This;
+import android.os.Build;
+import android.content.Context;
+
+/*───────────────────────────────────────────────────────────────
+ * openApp(packageName, className)
+ * Launch a specific className.
+ *──────────────────────────────────────────────────────────────*/
+openApp(String packageName, String className) {
+    if (packageName == null || className == null) return;
+
+    Intent intent = new Intent();
+    intent.setComponent(new ComponentName(packageName, className));
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    try {
+        int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+        if (displayId != 0) {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(displayId);
+            context.startActivity(intent, options.toBundle());
+        } else {
+            context.startActivity(intent);
+        }
+    } catch (Exception e) {
+        /* Failed to launch component (e.g., className not found) */
+        log("openApp(packageName, className): Failed to launch component " + packageName + "/" + className + ": ");
+    }
+}
+
+/*───────────────────────────────────────────────────────────────
+ * openApp(labelOrPackageName)
+ * Opens app by exact package OR precise case-insensitive label,
+ * OR a fully qualified className name (e.g., com.packageName.ActivityName)
+ *──────────────────────────────────────────────────────────────*/
+openApp(String labelOrPackageName) {
+    if (labelOrPackageName == null) return;
+	This a11Y = getA11yInstance();
+	This pm = a11Y.packageManager;
+    /* Fallback: treat as a package or label and find the main launch intent. */
+    String packageName = pm.resolvePackage(labelOrPackageName);
+
+    if (packageName == null) {
+        log("openApp: App not found → ");
+        return;
+    }
+
+    Intent intent = pm.getLaunchIntent(packageName);
+
+    if (intent == null) {
+        log("openApp: No launchable activity → ");
+        return;
+    }
+
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+    try {
+        if (displayId != 0) {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(displayId);
+            context.startActivity(intent, options.toBundle());
+        } else {
+            context.startActivity(intent);
+        }
+    } catch (Exception e) {
+        log("openApp: Failed to launch main intent for package " + packageName + ": " + e.getMessage());
+    }
+}
+
+/*───────────────────────────────────────────────────────────────
+ * launchAppInBackground(labelOrPackageName)
+ * Launches app behind the current task using ActivityOptions.
+ * Requires Android 5.0 (API 21) or higher.
+ *──────────────────────────────────────────────────────────────*/
+openApp(String labelOrPackageName, boolean background) {
+    if (labelOrPackageName == null) return;
+	This a11Y = getA11yInstance();
+	This pm = a11Y.packageManager;
+    /* Use existing logic to find the package name */
+    String packageName = pm.resolvePackage(labelOrPackageName);
+
+    if (packageName == null) {
+        log("launchAppInBackground: App not found → ");
+        return;
+    }
+
+    Intent intent = pm.getLaunchIntent(packageName);
+
+    if (intent == null) {
+        log("launchAppInBackground: No launchable activity → ");
+        return;
+    }
+
+    /*
+     * 1. Add required Tasker flag for context-less launch.
+     * 2. Add FLAG_ACTIVITY_NEW_DOCUMENT as recommended by the API docs.
+     */
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); 
+
+    try {
+        /* * This is the key: ActivityOptions.makeTaskLaunchBehind()
+         * NOTE: This requires Android 5.0 (API 21).
+         */
+        ActivityOptions options = ActivityOptions.makeTaskLaunchBehind();
+        int displayId = DISPLAY_ID == void ? 0 : DISPLAY_ID;
+        if (displayId != 0) options.setLaunchDisplayId(displayId);
+        Bundle optionsBundle = options.toBundle();
+        log("launchAppInBackground: Launching " + packageName + " in background.");
+        
+        // Use the Context.startActivity(Intent, Bundle) overload
+        context.startActivity(intent, optionsBundle); 
+        
+    } catch (Throwable e) {
+        /* Catch Throwable for compatibility on older Android versions where ActivityOptions might not be fully supported. */
+        log("launchAppInBackground: Failed to launch app behind: ");
+    }
+}
+
+/*───────────────────────────────────────────────────────────────
+ * Example:
+ * openApp("Vivaldi Browser"); // Foreground launch
+ * launchAppInBackground("Vivaldi Browser"); // Background launch (API 21+)
+ *──────────────────────────────────────────────────────────────*/
+ 

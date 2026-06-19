@@ -1,0 +1,18 @@
+    import io.reactivex.Completable;
+    import io.reactivex.schedulers.Schedulers;
+
+    /*───────────────────────────────────────────────────────────────
+    runMe(Action bgAction)
+    **Fire-and-Forget Background Execution**
+    Offloads logic to a computation thread completely asynchronously.
+    Does not block the script and safely routes errors to the log.
+
+    Arguments:
+
+    * bgAction → Logic to run on the computation thread.
+    ───────────────────────────────────────────────────────────────*/
+    public void runMe(Runnable bgAction) {
+        Completable.fromRunnable(bgAction)
+            .subscribeOn(Schedulers.computation())
+            .subscribe();
+    }

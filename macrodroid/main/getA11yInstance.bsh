@@ -1,0 +1,6 @@
+import bsh.This;
+
+This getA11yInstance() {
+    This a11Y = tasker.getJavaVariable("a11Y");
+    return a11Y;
+}

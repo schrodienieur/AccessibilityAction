@@ -1,0 +1,49 @@
+import android.view.accessibility.AccessibilityWindowInfo;
+
+setDisplay(int displayId) {
+	DISPLAY_ID = displayId;
+	return displayId;
+}
+
+import android.content.Context;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
+/*───────────────────────────────────────────────────────────────
+setDisplay(String displayName)
+**Finds Display by name and Maps to BeanShell Globals**
+Iterates over all available system displays, matching their names
+ignoring case. If a match is found, it injects the display ID directly
+into the global BeanShell evaluation workspace.
+
+Arguments:
+
+* displayName → The partial or complete displayName string of the display to find.
+───────────────────────────────────────────────────────────────*/
+public int setDisplay(String displayName) {
+	if (displayName == null) {
+		DISPLAY_ID = 0;
+		return 0;
+	}
+
+	DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+	if (displayManager == null) {
+		DISPLAY_ID = 0;
+		return 0;
+	}
+
+	Display[] displays = displayManager.getDisplays();
+	for (int i = 0; i < displays.length; i++) {
+		Display disp = displays[i];
+		String dispName = disp.getName();
+
+		if (dispName != null && dispName.toLowerCase().contains(displayName.toLowerCase())) {
+			int displayId = disp.getDisplayId();
+
+			/* Inject variable directly into BeanShell namespace */
+			DISPLAY_ID = displayId;
+			return displayId;
+		}
+	}
+	DISPLAY_ID = 0;
+	return 0;
+}

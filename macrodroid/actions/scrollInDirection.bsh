@@ -1,0 +1,99 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+/*───────────────────────────────────────────────────────────────
+ * scrollInDirection(String key, String value, Object direction)
+ * **Scroll in Direction**
+ * Scrolls the target node's scrollable parent in a direction ("up", "down", "forward", etc.).
+ *
+ * Arguments:
+ * * - key → Target node selector type.
+ * * - value → Target node identifier.
+ * * - direction → Scroll direction string or View.FOCUS_* int.
+ *
+ * Example:
+ * scrollInDirection("text", "Item 5", "down");
+ * ───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.View;
+import android.os.Bundle;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import bsh.This;
+
+scrollInDirection(AccessibilityNodeInfo node, String direction) {
+	// interpret direction
+	int dir_value = 0;
+	if (direction instanceof String) {
+		String dir_str = ((String) direction).toLowerCase().trim();
+		if (dir_str.equals("up")) dir_value = View.FOCUS_UP;
+		else if (dir_str.equals("down")) dir_value = View.FOCUS_DOWN;
+		else if (dir_str.equals("left")) dir_value = View.FOCUS_LEFT;
+		else if (dir_str.equals("right")) dir_value = View.FOCUS_RIGHT;
+		else if (dir_str.equals("forward")) dir_value = View.FOCUS_FORWARD;
+		else if (dir_str.equals("backward")) dir_value = View.FOCUS_BACKWARD;
+		else {
+			log("invalid scroll direction: ");
+			return null;
+		}
+	} else if (direction instanceof Number) {
+		dir_value = ((Number) direction).intValue();
+	} else {
+		log("unsupported direction type: ");
+		return null;
+	}
+
+	// climb up until scrollable node is found
+	AccessibilityNodeInfo scrollNode = node;
+	while (scrollNode != null && !scrollNode.isScrollable()) {
+		AccessibilityNodeInfo parent = scrollNode.getParent();
+		if (parent == null) break;
+		scrollNode = parent;
+	}
+
+	if (scrollNode == null || !scrollNode.isScrollable()) {
+		log("No scrollable parent found for node: ");
+		return null;
+	}
+
+	// prepare direction argument
+	Bundle args = new Bundle();
+	args.putInt("ACTION_ARGUMENT_DIRECTION_INT", dir_value);
+
+	// 16908384 = ACTION_SCROLL_IN_DIRECTION
+	boolean success = scrollNode.performAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_IN_DIRECTION.getId(), args);
+	if (success) scrollNode.refresh();
+	if (stepDelay > 0) wait(stepDelay);
+	return scrollNode;
+}
+
+scrollInDirection(This multiKeys) {
+	return scrollInDirection(getNode(multiKeys), multiKeys.direction);
+}
+
+scrollInDirection(ArrayList nodes, String direction) {
+	AccessibilityNodeInfo node = toNode(nodes);
+	if (node == null) return null;
+	return scrollInDirection(node);
+}
+
+scrollInDirection(HashMap nodes, String direction) {
+	AccessibilityNodeInfo node = toNode(nodes);
+	if (node == null) return null;
+	return scrollInDirection(node);
+}
+
+scrollInDirection(HashMap nodes, String key, String direction) {
+	AccessibilityNodeInfo node = toNode(nodes, key);
+	if (node == null) return null;
+	return scrollInDirection(node);
+}
+
+
+scrollInDirection(String key, String value, String direction) {
+	AccessibilityNodeInfo node = getNode(key, value, 0);
+	return scrollInDirection(node, direction);
+}

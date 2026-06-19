@@ -1,0 +1,219 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import android.graphics.Point;
+import bsh.This;
+/*───────────────────────────────────────────────────────────────
+click(...)
+**Performs Click Action**
+Finds a node using the provided criteria and performs a click on it
+or its closest clickable parent.
+
+Arguments:
+
+* node → The specific node or collection to click.
+* value → The text value to search for.
+* key → The attribute to search by (default is "text").
+* index → The instance index if multiple matches exist.
+* timeout → Max time to wait for the node.
+* parentLevel/sibling → Criteria for complex node location.
+
+Returns:
+
+* The AccessibilityNodeInfo that was clicked, or null/throws error.
+───────────────────────────────────────────────────────────────*/
+
+/* Base Click Logic */
+click(AccessibilityNodeInfo node) {
+    if (node == null) return null;
+    boolean success;
+    AccessibilityNodeInfo firstNode = node;
+    
+    if (limitParentLevel == 0) {
+        /* Directly target the node without searching upward */
+        if (node != null) {
+            showOnScreen(node);
+            debugMe(node);
+            success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    } else {
+        /* Traverse up to find a clickable parent if the current node isn't */
+		log("Traversing up to find a clickable parent.");
+        while (node != null && !node.isClickable()) {
+            node = node.getParent();
+        }
+
+        if (node != null) {
+            showOnScreen(node);
+            debugMe(node);
+            success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    }
+
+    if (!success) {
+        node = firstNode;
+        showOnScreen(node);
+        Point coor = getCoordinates(node);
+        debugMe(node);
+        success = tap(coor.x, coor.y);
+    } 
+
+    if (success) {
+        log("Click success.", node);
+        node.refresh();
+        if (stepDelay > 0) wait(stepDelay);
+        return node;
+    } else {
+        log("Click failed.", node);
+        return null;
+    }
+}
+
+click(This multiKeys) {
+	return click(getNode(multiKeys));
+}
+
+click(int x, int y) {
+	return tap(x, y);
+}
+
+click(float x, float y) {
+	return tap(x, y);
+
+}
+
+click(double x, double y) {
+	return tap(x, y);
+}
+
+/* Collection Overloads */
+click(ArrayList nodes) {
+	return click(toNode(nodes));
+}
+
+click(ArrayList nodes, int index) {
+	return click(toNode(nodeList, index));
+}
+
+click(HashMap nodesMap) {
+	return click(toNode(nodesMap));
+}
+
+click(HashMap nodesMap, String mapKey) {
+	return click(toNode(nodesMap, mapKey));
+}
+
+/* Basic Search Overloads (Text-based) */
+click(String text) {
+	return click(getNode(getRoot(), "text", text, 0));
+}
+
+click(String text, int index) {
+	return click(getNode(getRoot(), "text", text, index));
+}
+
+click(String text, long timeout) {
+	return click(getNode(getRoot(), "text", text, 0, timeout));
+}
+
+click(String text, int index, long timeout) {
+	return click(getNode(getRoot(), "text", text, index, timeout));
+}
+
+/* Key-Value Search Overloads */
+click(String key, String value) {
+	return click(getNode(getRoot(), key, value, 0));
+}
+
+click(String key, String value, int index) {
+	return click(getNode(getRoot(), key, value, index));
+}
+
+click(String key, String value, int index, long timeout) {
+	return click(getNode(getRoot(), key, value, index, timeout));
+}
+
+/* Complex Search Overloads (Root and Configs) */
+click(AccessibilityNodeInfo root, String value) {
+	return click(getNode(root, value));
+}
+
+click(String text, Object[][] argsConfigs) {
+	return click(getNode(getRoot(), "text", text, 0, waitNodesTimeout, argsConfigs));
+}
+
+click(String text, int parentLevel, String nearbyText) {
+	return click(getNode(getRoot(), "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+click(String key, String value, int parentLevel, String nearbyText) {
+	return click(getNode(getRoot(), key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+click(String key, String value, int parentLevel, String nearbyKey, String nearbyValue) {
+	return click(getNode(getRoot(), key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue));
+}
+
+click(String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	return click(getNode(getRoot(), key, value, index, timeout, parentLevel, nearbyKey, nearbyValue));
+}
+
+/* AccessibilityNodeInfo Root specific variants */
+click(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
+	return click(getNode(root, key, value, index, timeout));
+}
+
+/*───────────────────────────────────────────────────────────────
+click(AccessibilityNodeInfo root, ...)
+**New Overloads with Root Entry Parameter**
+These methods allow searching for and clicking nodes relative to
+a specific parent node instead of the global root.
+───────────────────────────────────────────────────────────────*/
+
+click(AccessibilityNodeInfo root, String text) {
+	return click(getNode(root, "text", text, 0));
+}
+
+click(AccessibilityNodeInfo root, String text, int index) {
+	return click(getNode(root, "text", text, index));
+}
+
+click(AccessibilityNodeInfo root, String text, long timeout) {
+	return click(getNode(root, "text", text, 0, timeout));
+}
+
+click(AccessibilityNodeInfo root, String text, int index, long timeout) {
+	return click(getNode(root, "text", text, index, timeout));
+}
+
+click(AccessibilityNodeInfo root, String key, String value) {
+	return click(getNode(root, key, value, 0));
+}
+
+click(AccessibilityNodeInfo root, String key, String value, int index) {
+	return click(getNode(root, key, value, index));
+}
+
+click(AccessibilityNodeInfo root, String key, String value, int index, long timeout) {
+	return click(getNode(root, key, value, index, timeout));
+}
+
+click(AccessibilityNodeInfo root, String text, Object[][] argsConfigs) {
+	return click(getNode(root, "text", text, 0, waitNodesTimeout, argsConfigs));
+}
+
+click(AccessibilityNodeInfo root, String text, int parentLevel, String nearbyText) {
+	return click(getNode(root, "text", text, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+click(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyText) {
+	return click(getNode(root, key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyText));
+}
+
+click(AccessibilityNodeInfo root, String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	return click(getNode(root, key, value, index, timeout, parentLevel, nearbyKey, nearbyValue));
+}

@@ -1,0 +1,449 @@
+import java.util.function.Consumer;
+import android.app.Activity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.Gravity;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.FrameLayout;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.text.InputType;
+import android.text.TextWatcher;
+import android.text.Editable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.view.Display;
+
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.textview.MaterialTextView;
+
+import android.content.Context;
+import bsh.This;
+
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+/*───────────────────────────────────────────────────────────────
+  dp(int val)
+  **Density Converter**
+  Converts pixels to density-independent pixels.
+ ───────────────────────────────────────────────────────────────*/
+public int dp(int val) {
+	return (int)(val * context.getResources().getDisplayMetrics().density);
+}
+
+/*───────────────────────────────────────────────────────────────
+  addSpacer(Context ctx, ViewGroup container)
+  **Layout Spacer**
+  Adds a vertical 8dp gap between views.
+ ───────────────────────────────────────────────────────────────*/
+public void addSpacer(Context ctx, ViewGroup container) {
+	int spacerHeight = dp(8);
+	View spacer = new View(ctx);
+	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, spacerHeight);
+	spacer.setLayoutParams(params);
+	container.addView(spacer);
+}
+
+
+
+/*───────────────────────────────────────────────────────────────
+  ScriptEditor()
+  **Main UI Class**
+  Handles the creation and logic of the floating script editor.
+ ───────────────────────────────────────────────────────────────*/
+ScriptEditor() {
+
+	if (ENV == void || ENV == null) ENV = Environment();
+	ENV.checkMaterialLib(this);
+
+	final This TOP = this;
+	This a11Y = getA11yInstance();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_SCRIPT_EDITOR;
+	a11Y.viewControl.addView(TOP);
+
+	Activity activity;
+	TextInputEditText editText;
+	FrameLayout baseRoot;
+	boolean isRemoved;
+	boolean hasShown;
+	boolean isActionEdit;
+	String codeText;
+	int selectedDisplayId = a11Y.assistBar.selectedDisplayId;
+
+	isActionEdit() {
+		return getUsageEvents() { "className" }.equals("net.dinglisch.android.taskerm.ActionEdit");
+	}
+
+	isGenericAction() {
+		return getUsageEvents() { "className" }.equals("com.joaomgcd.taskerm.genericaction.ActivityGenericAction");
+	}
+
+	paste(String script, boolean append) {
+		if (isGenericAction()) {
+			remove();
+			wait(500);
+		}
+		if (isActionEdit) {
+			String actionId = "android:id/action_bar";
+			nodes = findNodes("id", actionId);
+			isJava = findNodes(toNode(nodes), "text", "Java Code");
+			if (hasNode(isJava)) {
+				boolean oldDebugMe = a11Y.debugMe;
+				This a11Y = getA11yInstance();
+				a11Y.debugMe = false;
+				script = appendHeader(script);
+				setText("id", "net.dinglisch.android.taskerm:id/edittext", script, 0);
+				a11Y.debugMe = oldDebugMe;
+				return;
+			}
+		}
+		showToast("Not in Java code action" + getUsageEvents() { "className" });
+
+	}
+
+
+	copy() {
+		if (codeText != null) {
+			editText.setText(codeText);
+			return;
+		}
+		showToast("Not in Java code action" + getUsageEvents() { "className" });
+	}
+
+	remove() {
+		if (activity != null) {
+			activity.finish();
+		}
+		isRemoved = true;
+	}
+
+	getLines() {
+		String fullText = editText.getText().toString();
+		int start = editText.getSelectionStart();
+		int end = editText.getSelectionEnd();
+		int lineStart = fullText.lastIndexOf('\n', start - 1) + 1;
+		int lineEnd = fullText.indexOf('\n', end);
+		if (lineEnd == -1) lineEnd = fullText.length();
+		return fullText.substring(lineStart, lineEnd);
+	}
+
+	hasSetDisplay(String script) {
+		return script.contains("setDisplay(");
+	}
+
+	hasA11y(String script) {
+		return script.contains("a11Y.set();");
+	}
+
+	appendHeader(String script) {
+		script = script.trim();
+		String header = "";
+		if (!hasA11y(script)) {
+			header += "a11Y.set();\n";
+		}
+		if (!hasSetDisplay(script) && selectedDisplayId != 0) {
+			header += "setDisplay(" + selectedDisplayId + ");\n";
+		}
+		if (header.length() > 0) {
+			script = header + script;
+		}
+		return script.trim();
+	}
+
+	sanitize(String script) {
+		script = script.trim();
+		if (hasA11y(script)) {
+			script = script.replace("a11Y.set();", "");
+		}
+		return script.trim();
+	}
+						
+	layout(Activity act) {
+		selectedDisplayId = a11Y.assistBar.selectedDisplayId;
+		activity = act;
+		float density = activity.getResources().getDisplayMetrics().density;
+		This displayInfos = DisplayInfos();
+		Display[] displays = displayInfos.displayManager.getDisplays();
+		window = activity.getWindow();
+		window.requestFeature(Window.FEATURE_NO_TITLE);
+		window.setBackgroundDrawableResource(android.R.color.transparent);
+		window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS 
+            | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS 
+            | WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        
+		WindowManager.LayoutParams windParams = window.getAttributes();
+		windParams.gravity = Gravity.BOTTOM;
+		windParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+		windParams.dimAmount = 0.5f;
+		window.setAttributes(windParams);
+
+		This tm = ThemeManager(activity);
+		tm.setThemeDark();
+
+		baseRoot = new FrameLayout(activity);
+
+		/* Apply requested shape to baseRoot */
+		GradientDrawable shape = new GradientDrawable();
+		shape.setCornerRadius(28 * density);
+		shape.setColor((int) tm.color("colorSurface"));
+		baseRoot.setBackground(shape);
+		baseRoot.setClipToOutline(true);
+
+		root = new FloatingToolbarLayout(activity);
+		root.setBackgroundColor(Color.TRANSPARENT);
+
+		final LinearLayout main = new LinearLayout(activity);
+		main.setOrientation(LinearLayout.VERTICAL);
+
+		FrameLayout.LayoutParams mainParams = new FrameLayout.LayoutParams(-1, -2);
+		mainParams.gravity = Gravity.BOTTOM;
+		main.setLayoutParams(mainParams);
+
+		/* Background already set on baseRoot per request */
+
+		toolbar = new MaterialToolbar(activity);
+		toolbar.setTitle("Script Editor");
+		toolbar.setTitleCentered(true);
+		main.addView(toolbar);
+
+		ScrollView scroller = new ScrollView(activity);
+		scroller.setVerticalScrollBarEnabled(false);
+
+		LinearLayout content = new LinearLayout(activity);
+		content.setOrientation(LinearLayout.VERTICAL);
+		int p = (int)(20 * density);
+		// 		content.setPadding(p, p, p, p);
+		scroller.addView(content);
+
+		main.addView(scroller, new LinearLayout.LayoutParams(-1, 0, 1.0f));
+
+		TextInputLayout inputLayout = new TextInputLayout(activity);
+
+		editText = new TextInputEditText(inputLayout.getContext());
+		This a11Y = getA11yInstance();
+		String initialText = "";
+		String startText = (a11Y.scriptEditor != void && a11Y.scriptEditor != null) ? a11Y.scriptEditor : initialText;
+
+		editText.setText(startText);
+		editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+		editText.setMaxLines(15);
+
+		editText.addTextChangedListener(new TextWatcher() {
+			beforeTextChanged(CharSequence s, int start, int count, int after) {}
+			onTextChanged(CharSequence s, int start, int before, int count) {
+				This a11Y = getA11yInstance();
+				a11Y.namespace.setVariable("scriptEditor", s.toString(), false);
+			}
+			afterTextChanged(Editable s) {}
+		});
+
+		inputLayout.addView(editText);
+		content.addView(inputLayout);
+		addSpacer(activity, content);
+
+		ChipGroup chipGroup = new ChipGroup(activity);
+		int spacing = (int) (-4 * density);
+		chipGroup.setChipSpacingVertical(spacing);
+		
+		Chip lineChip = new Chip(activity);
+		lineChip.setText("Run Line");
+		lineChip.setCheckable(false);
+		lineChip.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				String code = getLines();
+				remove();
+				runScript(code, 100, selectedDisplayId);
+			}
+		});
+		chipGroup.addView(lineChip);
+
+		Chip setChip;
+		Chip copyChip;
+		if (isActionEdit) {
+			setChip = new Chip(activity);
+			setChip.setText("Set to code");
+			setChip.setCheckable(false);
+			setChip.setOnClickListener(new View.OnClickListener() {
+				onClick(View v) {
+					Runnable pasteRun = new Runnable() {
+						run() {
+							String script = editText.getText().toString();
+							paste(script, true);	
+						}
+					};
+					a11Y.execute(pasteRun);
+				}
+			});
+			chipGroup.addView(setChip);
+
+			copyChip = new Chip(activity);
+			copyChip.setText("Copy");
+			copyChip.setOnClickListener(new View.OnClickListener() {
+				onClick(View v) {
+					copy();
+				}
+			});
+			chipGroup.addView(copyChip);
+
+		} else {}
+
+		Chip clearChip = new Chip(activity);
+		clearChip.setText("Clear");
+		clearChip.setCheckable(false);
+		clearChip.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				editText.setText("");
+			}
+		});
+		chipGroup.addView(clearChip);
+		content.addView(chipGroup);
+
+		ChipGroup displayGroup = new ChipGroup(activity);
+		displayGroup.setSingleSelection(true);
+		if (displays.length > 1) {
+			addSpacer(activity, content);
+			MaterialTextView runOnTitle = new MaterialTextView(activity);
+			runOnTitle.setText("Target Display");
+			runOnTitle.setTypeface(null, 1);
+			// runOnTitle.setTextSize(ENV.Settings.GROUP_TITLE_TEXT_SIZE);
+			runOnTitle.setTextColor(tm.color("colorPrimary"));
+			content.addView(runOnTitle);
+			for(Display display: displays) {
+				Chip displayChip = new Chip(activity);
+				String name = display.getName();
+				int id = display.getDisplayId();
+				displayChip.setText(name);
+				displayChip.setCheckable(true); 
+				if (selectedDisplayId == id) displayChip.setChecked(true);
+				displayChip.setOnClickListener(new View.OnClickListener() {
+					onClick(View v) {
+						displayChip.setChecked(true);
+						selectedDisplayId = id;
+					}
+				});
+				displayGroup.addView(displayChip);
+			}
+			content.addView(displayGroup);
+			log("Multiple displays detected", "INFO", TOP);
+		} else {
+			log("Single display detected", "INFO", TOP);
+		}
+		addSpacer(activity, content);
+
+		MaterialButton runAllBtn = new MaterialButton(activity);
+		runAllBtn.setText("RUN ALL");
+		runAllBtn.setOnClickListener(new View.OnClickListener() {
+			onClick(View v) {
+				Runnable runAll = new Runnable() {
+					run() {
+						String script = editText.getText().toString();
+						remove();
+						runScript(script, 100, selectedDisplayId);
+					}
+				};
+				a11Y.execute(runAll);
+				
+			}
+		});
+		content.addView(runAllBtn);
+
+		root.addView(main);
+		baseRoot.addView(root);
+		activity.setContentView(baseRoot);
+
+		activity.getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+			onViewAttachedToWindow(View v) {
+				isRemoved = false;
+				hasShown = true;
+			}
+			onViewDetachedFromWindow(View v) {
+				isRemoved = true;
+				hasShown = false;
+				activity.finish();
+			}
+		});
+
+	}
+
+	java.util.function.Consumer uiLogic = new java.util.function.Consumer() {
+		accept(Object activityObj) {
+			layout((Activity) activityObj);
+		}
+	};
+
+	show() {
+		codeText = null;
+		isActionEdit = isActionEdit();
+		boolean oldDebugMe = debugMe;
+		debugMe = false;
+		List actionNodes = findNodes("id", "android:id/action_bar");
+		if (hasNode(actionNodes)) {
+			List isJava;
+			isJava = findNodes(toNode(actionNodes), "text", "Java Code");
+			if (hasNode(isJava)) {
+				List edits = findNodes("id", "net.dinglisch.android.taskerm:id/edittext");
+				if (!hasNode(edits)) return;
+				codeText = getText(edits);
+				codeText = codeText.trim();
+				codeText = sanitize(codeText);
+			}
+		}
+		debugMe = oldDebugMe;
+		if (!hasShown) {
+			isRemoved = false;
+			hasShown = true;
+			tasker.doWithActivity(uiLogic);
+		}
+	}
+
+	toggle() {
+		if (!hasShown) {
+			show();
+		} else {
+			remove();
+		}
+	}
+
+	isAdded() {
+		if (baseRoot == null) return false;
+		return baseRoot.getParent() != null && baseRoot.isAttachedToWindow();
+	}
+
+	isHidden() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.GONE && isAdded();
+	}
+
+	isShown() {
+		if (baseRoot == null) return false;
+		return baseRoot.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	isRemoved() {
+		if (baseRoot == null) return false;
+		return !isAdded();
+	}
+
+
+	return this;
+}
+
+// if (MAIN_DIRECTORY == void) {
+// 	This a11Y = getA11yInstance();
+// 	a11Y.set();
+// 	editor = ScriptEditor();
+// 	editor.show();
+// }

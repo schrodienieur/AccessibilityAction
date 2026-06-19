@@ -1,0 +1,219 @@
+import bsh.This;
+import android.content.Context;
+import android.content.res.Resources;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import java.lang.reflect.Field;
+import bsh.NameSpace;
+import bsh.This;
+
+/*───────────────────────────────────────────────────────────────
+Environment()
+**Environment Detection Object**
+Identifies whether the script is executing within Tasker,
+MacroDroid, or an unknown automation environment using strictly
+typed internal variables as requested.
+
+Exposed Fields:
+
+* TYPE_UNKNOWN		(int : 0)
+* TYPE_TASKER		(int : 1)
+* TYPE_MACRODROID	(int : 2)
+* TYPE_KID_APP		(int : 3)
+* currentType		(int)
+* currentName		(String)
+* packageName		(String)
+
+Example:
+env = Environment();
+───────────────────────────────────────────────────────────────*/
+Environment() {
+	/* Define Enviromentironment Constants */
+	final int TYPE_UNKNOWN = 0;
+	final int TYPE_TASKER = 1;
+	final int TYPE_MACRODROID = 2;
+	final int TYPE_KID_APP = 3;
+
+	final int TYPE_ACTION = 0;
+	final int TYPE_ACTION_OVERLOAD = 1;
+	final int TYPE_UTILS = 2;
+	final int TYPE_UTILS_OVERLOAD = 3;
+	final int TYPE_ASSIST = 4;
+	final int TYPE_OTHER = 5;
+	final int TYPE_OTHER_OVERLOAD = 6;
+
+	// Layout constants
+	Layout() {
+		final int TYPE_NONE = 1;
+		final int TYPE_ASSIST_BAR = 1 << 0;
+		final int TYPE_STRUCTURE_OVERLAY = 1 << 1;
+		final int TYPE_SETTINGS = 1 << 2;
+		final int TYPE_NODE_SEARCH = 1 << 3;
+		final int TYPE_FILTER_SHEET = 1 << 4;
+		final int TYPE_SCRIPT_EDITOR = 1 << 5;
+		final int TYPE_ACTION_PICKER = 1 << 6;
+		final int TYPE_INFO_SHEET = 1 << 7;
+		final int TYPE_INFO_TOAST = 1 << 8;
+		final int TYPE_DISPLAY_MENU = 1 << 9;
+		final int TYPE_DISPLAY_INFO = 1 << 10;
+		final int TYPE_NODE_BOX = 1 << 11;
+
+		// Besides TYPE_NONE and TYPE_ASSIST_BAR
+		final int TYPE_ALL_ASSIST = TYPE_ACTION_PICKER | TYPE_STRUCTURE_OVERLAY | TYPE_SETTINGS | TYPE_NODE_SEARCH | TYPE_FILTER_SHEET | TYPE_SCRIPT_EDITOR | TYPE_INFO_SHEET | TYPE_DISPLAY_MENU;
+		return this;
+	}
+
+	Settings() {
+		final int GROUP_TITLE_TEXT_SIZE = 24;
+		final int SPACER_HEIGHT = 0;
+		final int PADDING = 16;
+		final float TEXT_SIZE_MULTIPLIER = 1.05f;
+		return this;
+	}
+
+	This Layout = Layout();
+	This Settings = Settings();
+
+	/* Initialize Defaults */
+	int currentType = TYPE_UNKNOWN;
+	boolean hasMaterialColor;
+	boolean hasMaterialLib;
+	boolean hasMaterialFallback;
+	Context envContext;
+	String currentName = "UNKNOWN";
+	String packageName = "unknown";
+
+	/* Check for Tasker Enviromentironment */
+	if (tasker != void && context != void) {
+		envContext = context;
+		packageName = envContext.getPackageName();
+		if (packageName.equals("net.dinglisch.android.taskerm")) {
+			currentType = TYPE_TASKER;
+			currentName = "TASKER";
+		} else {
+			currentType = TYPE_KID_APP;
+			currentName = "KID_APP";
+		}
+	}
+
+	/* Check for MacroDroid Enviromentironment */
+	if (magicText != void && variableSetter != void) {
+		try {
+			envContext = com.arlosoft.macrodroid.AppContext.getContext();
+			if (envContext != null) {
+				packageName = envContext.getPackageName();
+				if (packageName.equals("com.arlosoft.macrodroid")) {
+					currentType = TYPE_MACRODROID;
+					currentName = "MACRODROID";
+				}
+			}
+		} catch (Exception e) {
+			currentType = TYPE_MACRODROID;
+			currentName = "MACRODROID";
+			packageName = "com.arlosoft.macrodroid";
+		}
+	}
+
+
+	try {
+		Class.forName("com.google.android.material.textview.MaterialTextView", false, envContext.getClass().getClassLoader());
+		hasMaterialLib = true;
+	} catch (e) {}
+
+	String themeIdentifier = "Theme.Material3.DynamicColors.Dark";
+	Resources baseRes = envContext.getResources();
+	String pkg = envContext.getPackageName();
+
+	// Check for Material Color
+	int themeId = baseRes.getIdentifier(themeIdentifier, "style", pkg);
+	hasMaterialColor = themeId != 0;
+
+	// Check for Material Fallback
+	String token = "system_accent1_900";
+	int resId = baseRes.getIdentifier(token, "color", "android");
+	if (resId != 0) {
+		try {
+			baseRes.getColor(resId);
+			hasMaterialFallback = true;
+		} catch (Exception e) {}
+	}
+
+	isTasker() {
+		return currentType == TYPE_TASKER;
+	}
+
+	isMacrodroid() {
+		return currentType == TYPE_MACRODROID;
+	}
+
+	isUnknown() {
+		return currentType == TYPE_UNKNOWN;
+	}
+
+	isKidApp() {
+		return currentType == TYPE_KID_APP;
+	}
+
+	final boolean TASKER = isTasker();
+	final boolean MACRODROID = isMacrodroid();
+	final boolean KID_APP = isKidApp();
+	final boolean UNKNOWN = isUnknown();
+	final boolean TASKER_OR_KID_APP = isTasker() || isKidApp();
+	final boolean HAS_MATERIAL_COLOR = hasMaterialColor;
+	final boolean HAS_MATERIAL_LIB = hasMaterialLib;
+	final boolean HAS_MATERIAL_COLOR_FALLBACK = hasMaterialFallback;
+
+	hasMaterialColor() {
+		return HAS_MATERIAL_COLOR;
+	}
+
+	hasMaterialLib() {
+		return HAS_MATERIAL_LIB;
+	}
+
+	hasMaterialFallback() {
+		return HAS_MATERIAL_COLOR_FALLBACK;
+	}
+
+	checkMaterialLib(This object) {
+		if (TASKER_OR_KID_APP && !HAS_MATERIAL_LIB) {
+			throw new Exception("Can't run " + object.namespace.getName() + " : Missing Material Library");
+		} else if (MACRODROID) {
+
+		}
+	}
+
+	checkMaterialColor(This object) {
+		if (!HAS_MATERIAL_COLOR) {
+			throw new Exception("Can't run " + object.namespace.getName() + " : Missing Material Color");
+		}
+	}
+
+	checkMaterialColorFallback(This object) {
+		if (!HAS_MATERIAL_COLOR_FALLBACK) {
+			throw new Exception("Can't run " + object.namespace.getName() + " : Missing Material Fallback");
+		}
+	}
+
+	checkMaterialColorAndFallback(This object) {
+		checkMaterialColor(object);
+		checkMaterialFallback(object);
+	}
+
+	Field isMethod = bsh.NameSpace.class.getDeclaredField("isMethod");
+	isMethod.setAccessible(true);
+
+	isMethod(NameSpace target) {
+		return isMethod.get(target);
+	}
+
+	isMethod(This target) {
+		return isMethod.get(target.namespace);
+	}
+
+	test() {
+		return isMethod(this.namespace);
+	}
+
+	return this;
+
+}

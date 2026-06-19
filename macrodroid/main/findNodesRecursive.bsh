@@ -1,0 +1,90 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.List;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.xml.soap.Node;
+
+import java.lang.CharSequence;
+import android.text.Spanned;
+
+/*───────────────────────────────────────────────────────────────
+  findNodesRecursive(AccessibilityNodeInfo root, String key, String value)
+  **Find Multiple Nodes**
+  Finds all UI nodes matching a selector ("id", "text", "regex", "focus", "class") 
+  using a manual recursive stack-based approach for maximum reliability 
+  in the BeanShell environment.
+ 
+  Arguments:
+   - root  → The starting node for the search.
+   - key   → Selector type ("id", "text", "class", "regex", "focus").
+   - value → Selector value to match.
+ 
+  Example:
+  List buttons = findNodesRecursive(getRoot(), "text", "Save");
+  ───────────────────────────────────────────────────────────────*/
+List findNodesRecursive(AccessibilityNodeInfo root, String key, String value) {
+	List nodes = new ArrayList();
+	if (root == null || key == null || value == null) {
+		log("Invalid arguments for findNodesRecursive: " + key + ", " + value, "INFO");
+		return nodes;
+	}
+	/* Use a stack for manual recursion to avoid deep nesting and handle the tree efficiently */
+	List stack = new ArrayList();
+	List hasTextNodes = new ArrayList();
+	stack.add(root);
+
+	/* Pre-process values for performance */	
+	Object targetVal;
+
+	switch (key) {
+		case "text":
+			targetVal = (String) value.toLowerCase();
+			break;
+		case "regex":
+			targetVal = Pattern.compile(value);
+			break;
+		case "flags":
+			targetVal = Integer.parseInt(value);
+			break;
+		default:
+			targetVal = value;
+	}
+			
+	while (!stack.isEmpty()) {
+		/* Pop the first element from our manual stack */
+		AccessibilityNodeInfo node = (AccessibilityNodeInfo) stack.remove(0);
+		if (node == null) {
+			continue;
+		}
+		
+		boolean isMatch = isMatch(node, key, targetVal);
+
+		/* If we found a match, add to list. 
+		   Note: Recycle does nothing since SDK 33
+		   link: https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeInfo#recycle()		
+		*/
+		if (isMatch) {
+			nodes.add(node);
+			if (findFirstForRecursive != void && findFirstForRecursive) return nodes;
+		} 
+
+		/* Add children to the stack to continue recursion */
+		for (int i = 0; i < node.getChildCount(); i++) {
+			AccessibilityNodeInfo child = node.getChild(i);
+			if (child != null) {
+				stack.add(child);
+			}
+		}
+	}
+
+	return nodes;
+}
+
+List findNodesRecursive(key, value) {
+	return findNodesRecursive(getRoot(), key, value);
+}

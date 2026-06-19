@@ -1,0 +1,116 @@
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+/*───────────────────────────────────────────────────────────────
+  CompletableImpl()
+  **Scripted Object simulating CompletableSubject mechanics**
+  Works cross-platform between Tasker (via RxJava) and MacroDroid (via CountDownLatch).
+ 
+  Methods:
+   - hasComplete() → boolean
+   - onComplete() → void
+   - blockingAwait() → void (Throws RuntimeException if onError occurred)
+   - blockingAwait(long, TimeUnit) → boolean (Returns false on timeout, throws if onError occurred)
+   - onError(RuntimeException) → void
+  ───────────────────────────────────────────────────────────────*/
+CompletableImpl() {
+    boolean isTasker = ENV.TASKER_OR_KID_APP;
+    Object subject;
+    RuntimeException sharedError = null; // Captures background errors for MacroDroid
+
+    if (isTasker) {
+        // Fully qualified path avoids class-loading syntax errors in MacroDroid
+        subject = io.reactivex.subjects.CompletableSubject.create();
+    } else {
+        subject = new CountDownLatch(1);
+    }
+
+    hasComplete() {
+        if (isTasker) {
+            return subject.hasComplete();
+        } else {
+            return subject.getCount() == 0;
+        }
+    }
+
+    onComplete() {
+        if (isTasker) {
+            subject.onComplete();
+        } else {
+            subject.countDown();
+        }
+    }
+
+    blockingAwait() {
+        if (isTasker) {
+            subject.blockingAwait();
+        } else {
+            try {
+                subject.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Thread interrupted while awaiting completion", e);
+            }
+            // If an error was signaled by a background thread, throw it to the consumer here
+            if (sharedError != null) {
+                throw sharedError;
+            }
+        }
+    }
+
+    boolean blockingAwait(long timeout, TimeUnit unit) {
+        if (isTasker) {
+            return subject.blockingAwait(timeout, unit);
+        } else {
+            try {
+                boolean completed = subject.await(timeout, unit);
+                // Prioritize throwing any captured background errors over the timeout status
+                if (sharedError != null) {
+                    throw sharedError;
+                }
+                return completed;
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Thread interrupted while awaiting completion", e);
+            }
+        }
+    }
+
+    onError(RuntimeException exception) {
+        if (isTasker) {
+            subject.onError(exception);
+        } else {
+            sharedError = exception;
+            subject.countDown(); // Safely unblock the consumer thread so it can catch the error
+        }
+    }
+
+    return this;
+}
+
+// * EXAMPLE
+// import java.util.concurrent.TimeUnit;
+
+// signal = CompletableImpl();
+
+// print("Main thread: Spawning a slow worker...");
+
+// worker = new Thread(new Runnable() {
+//     run() {
+//         try {
+//             // Task takes 5 seconds, which is longer than our timeout limit
+//             Thread.sleep(5000); 
+//             signal.onComplete();
+//         } catch (Exception e) {}
+//     }
+// });
+// worker.start();
+
+// print("Main thread: Waiting with a 2-second timeout...");
+
+// // Await completion up to 2 seconds. Returns true if completed, false if timeout.
+// hasCompletedInTime = signal.blockingAwait(1, TimeUnit.SECONDS);
+
+// if (hasCompletedInTime) {
+//     return "Main thread: Work completed successfully within time!";
+// } else {
+//     return "Main thread: Alert! The operation timed out.";
+// }

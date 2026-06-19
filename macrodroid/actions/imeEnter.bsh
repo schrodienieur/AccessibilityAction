@@ -1,0 +1,103 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import bsh.This;
+
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+/*───────────────────────────────────────────────────────────────
+ * imeEnter(String key, String value, int index)
+ * **Perform IME Enter using selector**
+ * Finds a node and sends ACTION_IME_ENTER to it.
+ *
+ * Arguments:
+ * - key → selector type (id, text, desc, focus, etc.)
+ * - value → selector value
+ * - index → which match to use
+ *
+ * Example:
+ * imeEnter("id", "message_input", 0);
+ * imeEnter(node);
+ * ───────────────────────────────────────────────────────────────*/
+
+imeEnter(AccessibilityNodeInfo node) {
+	if (node == null) return null;
+	showOnScreen(node);
+	debugMe(node);
+	boolean success = node.performAction(0x00040000);
+	if (success) node.refresh();
+	if (stepDelay > 0) wait(stepDelay);
+	return node;
+}
+
+imeEnter(This multiKeys) {
+	return imeEnter(getNode(multiKeys));
+}
+
+imeEnter(ArrayList nodes) {
+	AccessibilityNodeInfo node = toNode(nodes);
+	if (node == null) return null;
+	return imeEnter(node);
+}
+
+imeEnter(HashMap nodesMap) {
+	AccessibilityNodeInfo node = toNode(nodesMap);
+	if (node == null) return null;
+	return imeEnter(node);
+}
+
+imeEnter(HashMap nodesMap, String key) {
+	AccessibilityNodeInfo node = toNode(nodesMap, key);
+	if (node == null) return null;
+	return imeEnter(node);
+}
+
+imeEnter(String key, String value, int index) {
+	AccessibilityNodeInfo root_before = getRoot();
+	AccessibilityNodeInfo node = getNode(root_before, key, value, index);
+	return imeEnter(node);
+}
+
+imeEnter(String key, String value) {
+	AccessibilityNodeInfo root_before = getRoot();
+	AccessibilityNodeInfo node = getNode(root_before, key, value, 0);
+	return imeEnter(node);
+}
+
+imeEnter() {
+	AccessibilityNodeInfo root_before = getRoot();
+	AccessibilityNodeInfo node = getNode(root_before, "focus", null, 0);
+	return imeEnter(node);
+}
+
+import android.view.accessibility.AccessibilityNodeInfo;
+
+/*───────────────────────────────────────────────────────────────
+imeEnter(AccessibilityNodeInfo root, ...)
+**New Overloads with Root Entry Parameter**
+These methods allow sending the IME Enter action to nodes found
+relative to a specific AccessibilityNodeInfo root instead of
+the global root.
+───────────────────────────────────────────────────────────────*/
+
+imeEnter(AccessibilityNodeInfo root, String key, String value, int index) {
+	AccessibilityNodeInfo node = getNode(root, key, value, index);
+	return imeEnter(node);
+}
+
+imeEnter(AccessibilityNodeInfo root, String key, String value) {
+	AccessibilityNodeInfo node = getNode(root, key, value, 0);
+	return imeEnter(node);
+}
+
+imeEnter(AccessibilityNodeInfo root, String text) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, 0);
+	return imeEnter(node);
+}
+
+imeEnter(AccessibilityNodeInfo root, String text, int index) {
+	AccessibilityNodeInfo node = getNode(root, "text", text, index);
+	return imeEnter(node);
+}

@@ -1,0 +1,252 @@
+import android.content.ContentResolver;
+import android.provider.Settings;
+import android.view.accessibility.AccessibilityManager;
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import java.util.ArrayList;
+import java.util.List;
+
+A11yController() {
+
+	AccessibilityManager am = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+	PackageManager pm = context.getPackageManager();
+	ContentResolver cr = context.getContentResolver();
+
+	/*───────────────────────────────────────────────────────────────
+	  [Private Helper] resolveMatchingComponents(String query)
+	  Matches a query against full path, package name, or service label.
+	  Returns an ArrayList containing full component names ("pkg/.Class").
+	 ───────────────────────────────────────────────────────────────*/
+	ArrayList resolveMatchingComponents(String query) {
+		ArrayList matches = new ArrayList();
+		if (query == null || query.length() == 0 || am == null) {
+			return matches;
+		}
+
+		// If it's explicitly a full path containing a slash, return it directly
+		if (query.indexOf("/") != -1) {
+			matches.add(query);
+			return matches;
+		}
+
+		List installedServices = am.getInstalledAccessibilityServiceList();
+		if (installedServices == null) {
+			return matches;
+		}
+
+		for (int i = 0; i < installedServices.size(); i++) {
+			AccessibilityServiceInfo info = (AccessibilityServiceInfo) installedServices.get(i);
+			if (info != null && info.getResolveInfo() != null && info.getResolveInfo().serviceInfo != null) {
+				String packageName = info.getResolveInfo().serviceInfo.packageName;
+				String className = info.getResolveInfo().serviceInfo.name;
+
+				String label = "";
+				try {
+					CharSequence loadLabel = info.getResolveInfo().loadLabel(pm);
+					if (loadLabel != null) {
+						label = loadLabel.toString();
+					}
+				} catch (Exception e) {
+					// Ignore loading errors
+				}
+
+				if (packageName.equalsIgnoreCase(query) || label.equalsIgnoreCase(query)) {
+					matches.add(packageName + "/" + className);
+				}
+			}
+		}
+		return matches;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getService(String query)
+	  Returns the FIRST matching AccessibilityServiceInfo object found.
+	 ───────────────────────────────────────────────────────────────*/
+	getService(String query) {
+		if (query == null || query.length() == 0 || am == null) {
+			return null;
+		}
+
+		List installedServices = am.getInstalledAccessibilityServiceList();
+		if (installedServices == null) {
+			return null;
+		}
+
+		String targetPkg = "";
+		String targetClass = "";
+		if (query.indexOf("/") != -1) {
+			String[] parts = query.split("/");
+			targetPkg = parts[0];
+			if (parts.length > 1) {
+				targetClass = parts[1];
+			}
+		}
+
+		for (int i = 0; i < installedServices.size(); i++) {
+			AccessibilityServiceInfo info = (AccessibilityServiceInfo) installedServices.get(i);
+			if (info != null && info.getResolveInfo() != null && info.getResolveInfo().serviceInfo != null) {
+				String packageName = info.getResolveInfo().serviceInfo.packageName;
+				String className = info.getResolveInfo().serviceInfo.name;
+
+				if (targetPkg.length() > 0) {
+					if (packageName.equalsIgnoreCase(targetPkg) && (targetClass.length() == 0 || className.endsWith(targetClass))) {
+						return info;
+					}
+				} else {
+					String label = "";
+					try {
+						CharSequence loadLabel = info.getResolveInfo().loadLabel(pm);
+						if (loadLabel != null) {
+							label = loadLabel.toString();
+						}
+					} catch (Exception e) {}
+
+					if (packageName.equalsIgnoreCase(query) || label.equalsIgnoreCase(query)) {
+						return info;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getAllServices()
+	  Returns a raw ArrayList containing all system-installed services.
+	 ───────────────────────────────────────────────────────────────*/
+	getAllServices() {
+		ArrayList list = new ArrayList();
+		if (am == null) {
+			return list;
+		}
+
+		List installedServices = am.getInstalledAccessibilityServiceList();
+		if (installedServices == null) {
+			return list;
+		}
+
+		for (int i = 0; i < installedServices.size(); i++) {
+			AccessibilityServiceInfo info = (AccessibilityServiceInfo) installedServices.get(i);
+			if (info != null && info.getResolveInfo() != null && info.getResolveInfo().serviceInfo != null) {
+				list.add(info.getResolveInfo().serviceInfo.packageName + "/" + info.getResolveInfo().serviceInfo.name);
+			}
+		}
+		return list;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getEnabledServices()
+	  Returns a raw ArrayList containing all currently enabled services.
+	 ───────────────────────────────────────────────────────────────*/
+	getEnabledServices() {
+		ArrayList list = new ArrayList();
+		String currentServices = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+
+		if (currentServices == null || currentServices.length() == 0) {
+			return list;
+		}
+
+		String[] servicesArray = currentServices.split(":");
+		for (int i = 0; i < servicesArray.length; i++) {
+			list.add(servicesArray[i]);
+		}
+		return list;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  enableService(String query)
+	  Enables all accessibility services matching full path, pkg or label.
+	 ───────────────────────────────────────────────────────────────*/
+	enableService(String query) {
+		ArrayList targets = resolveMatchingComponents(query);
+		if (targets.size() == 0) {
+			log("No service found to add matching: " + query);
+			return;
+		}
+
+		String currentServices = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+		if (currentServices == null) {
+			currentServices = "";
+		}
+
+		boolean changed = false;
+		for (int i = 0; i < targets.size(); i++) {
+			String servicePath = (String) targets.get(i);
+			if (currentServices.indexOf(servicePath) == -1) {
+				if (currentServices.length() > 0) {
+					currentServices = currentServices + ":";
+				}
+				currentServices = currentServices + servicePath;
+				changed = true;
+				log("Added service: " + servicePath);
+			} else {
+				log("Service already enabled: " + servicePath);
+			}
+		}
+
+		if (changed) {
+			Settings.Secure.putString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, currentServices);
+			Settings.Secure.putString(cr, Settings.Secure.ACCESSIBILITY_ENABLED, "1");
+		}
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  disableService(String query)
+	  Disables all accessibility services matching full path, pkg or label.
+	 ───────────────────────────────────────────────────────────────*/
+	disableService(String query) {
+		ArrayList targets = resolveMatchingComponents(query);
+		if (targets.size() == 0) {
+			log("No service found to remove matching: " + query);
+			return;
+		}
+
+		String currentServices = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+		if (currentServices == null || currentServices.length() == 0) {
+			log("No services are currently enabled.");
+			return;
+		}
+
+		String[] servicesArray = currentServices.split(":");
+		StringBuffer sb = new StringBuffer();
+		boolean first = true;
+		boolean changed = false;
+
+		for (int i = 0; i < servicesArray.length; i++) {
+			String service = servicesArray[i];
+			boolean shouldRemove = false;
+
+			for (int j = 0; j < targets.size(); j++) {
+				if (service.equals((String) targets.get(j))) {
+					shouldRemove = true;
+					break;
+				}
+			}
+
+			if (shouldRemove) {
+				changed = true;
+				log("Removed service: " + service);
+				continue;
+			}
+
+			if (!first) {
+				sb.append(":");
+			}
+			sb.append(service);
+			first = false;
+		}
+
+		if (changed) {
+			String newServices = sb.toString();
+			Settings.Secure.putString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, newServices);
+			if (newServices.length() == 0) {
+				Settings.Secure.putString(cr, Settings.Secure.ACCESSIBILITY_ENABLED, "0");
+			}
+		} else {
+			log("None of the targeted services were enabled.");
+		}
+	}
+
+	return this;
+}

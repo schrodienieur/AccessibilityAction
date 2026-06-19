@@ -1,0 +1,499 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was generated with the assistance of AI Tools.
+───────────────────────────────────────────────────────────────*/
+
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.widget.Toast;
+import bsh.This;
+import java.io.File;
+import java.io.FileWriter;
+import java.lang.Class;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.function.Consumer;
+import android.accessibilityservice.AccessibilityService;
+import android.app.Activity;
+import com.arlosoft.macrodroid.java.ActivityCallback;
+import java.util.function.Consumer;
+import bsh.NameSpace;
+import com.arlosoft.macrodroid.AppContext;
+import com.google.gson.Gson;
+import android.content.Context;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.content.ContentUris;
+import android.database.Cursor;
+
+/*
+com.arlosoft.macrodroid.java.AccessibilityServiceAccessImpl.dispatchGesture(android.accessibilityservice.GestureDescription,android.accessibilityservice.AccessibilityService$GestureResultCallback,android.os.Handler)
+public android.view.accessibility.AccessibilityNodeInfo com.arlosoft.macrodroid.java.AccessibilityServiceAccessImpl.getRootInActiveWindow()
+public java.util.List com.arlosoft.macrodroid.java.AccessibilityServiceAccessImpl.getWindows()
+public boolean com.arlosoft.macrodroid.java.AccessibilityServiceAccessImpl.isAvailable()
+public boolean com.arlosoft.macrodroid.java.AccessibilityServiceAccessImpl.performGlobalAction(int)
+
+public android.content.Intent com.arlosoft.macrodroid.java.ActivityHelperImpl.startActivityForResult(android.content.Intent,long)
+public void com.arlosoft.macrodroid.java.ActivityHelperImpl.withActivity(com.arlosoft.macrodroid.java.ActivityCallback)
+*/
+
+macrodroidHelper() {
+	int intentTimeout = 30000;
+	final This TOP = this;
+
+	getContext() {
+		return com.arlosoft.macrodroid.AppContext.getContext();
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	writeFile(String content, String filePath)
+	Writes content to a file, appending with a live timestamp and newline to imitate tasker.log();
+
+	Arguments:
+	 - content → Text to write into the file
+	 - filePath → Full path of the file to write to
+
+	Returns:
+	 - true if write succeeded, false otherwise
+	───────────────────────────────────────────────────────────────*/
+	writeFile(String content, String filePath) {
+		try {
+			File file = new File(filePath);
+			File parent = file.getParentFile();
+			if (parent != null && !parent.exists()) {
+				parent.mkdirs(); /* Create parent directories if needed */
+			}
+
+			/* Generate current timestamp: yyyy-MM-dd HH:mm:ss.SSS */
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+			String timestamp = sdf.format(new Date());
+
+			/* true -> append mode */
+			FileWriter writer = new FileWriter(file, true);
+			writer.write(timestamp + " " + content + "\n");
+			writer.close();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	/*───────────────────────────────────────────────────────────────
+	  callTask(java.lang.String, java.util.HashMap)
+	  ───────────────────────────────────────────────────────────────*/
+	public boolean callTask(String taskName, HashMap variables) {
+		return false;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  clearGlobalJavaVariables()
+	  ───────────────────────────────────────────────────────────────*/
+	public void clearGlobalJavaVariables() {
+		globals.clearAll();
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  convertToRealFilePath(android.net.Uri)
+	  ───────────────────────────────────────────────────────────────*/
+	public String convertToRealFilePath(Uri uri) {
+		return getPath(getContext(), uri);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  doWithActivity(java.util.function.Consumer)
+	  ───────────────────────────────────────────────────────────────*/
+	public void doWithActivity(Consumer consumer) {
+		activityHelper.withActivity(new ActivityCallback() {
+			public void onActivity(Activity activity) {
+				consumer.accept(activity);
+			}
+		});
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getAccessibilityEvents()
+	  ───────────────────────────────────────────────────────────────*/
+	public getAccessibilityEvents() {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getAccessibilityService()
+	  ───────────────────────────────────────────────────────────────*/
+	public getAccessibilityService() {
+		return accessibility;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getJavaVariable(java.lang.String)
+	  ───────────────────────────────────────────────────────────────*/
+	public Object getJavaVariable(String varName) {
+		return globals.get(varName);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getJavaVariables()
+	  ───────────────────────────────────────────────────────────────*/
+	public Map getJavaVariables() {
+		String[] list = globals.listAll();
+		Map map = new HashMap();
+		if (list.length == 0) return map;
+		for (String varName: list) {
+			map.put(varName, globals.get(varName));
+		}
+		return map;
+	}
+
+
+	/*───────────────────────────────────────────────────────────────
+	  getGlobalJavaVariables()
+	  ───────────────────────────────────────────────────────────────*/
+	public Map getGlobalJavaVariables() {
+		return getJavaVariables();
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getLocalJavaVariables()
+	  ───────────────────────────────────────────────────────────────*/
+	public Map getLocalJavaVariables() {
+		return getJavaVariables();
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getNotificationListener()
+	  ───────────────────────────────────────────────────────────────*/
+	public Object getNotificationListener() {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getNotificationUpdates()
+	  ───────────────────────────────────────────────────────────────*/
+	public getNotificationUpdates() {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getShizukuService(java.lang.String)
+	  ───────────────────────────────────────────────────────────────*/
+	public getShizukuService(String serviceName) {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getTask()
+	  ───────────────────────────────────────────────────────────────*/
+	public getTask() {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getTaskVariables()
+	  ───────────────────────────────────────────────────────────────*/
+	public Bundle getTaskVariables() {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getVariable(java.lang.String)
+	  ───────────────────────────────────────────────────────────────*/
+	public String getVariable(String varName) {
+		return magicText.evalueuateString("{lv=" + varName + "}");
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  getWithActivityForResult(android.content.Intent)
+	  ───────────────────────────────────────────────────────────────*/
+	public getWithActivityForResult(Intent intent) {
+		return activityHelper.startActivityForResult(intent, intentTimeout);;
+	}
+
+	public getWithActivityForResult(Intent intent, long timeout) {
+		return activityHelper.startActivityForResult(intent, timeout);;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  implementClass(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public Object implementClass(Class clazz, Object impl) {
+		return null;
+	}
+
+	public Object implementClass(Class clazz, Object impl, Class[] params, Object[] args) {
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  isSceneV2Active(java.lang.String)
+	  ───────────────────────────────────────────────────────────────*/
+	public boolean isSceneV2Active(String sceneName) {
+		return false;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  log(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public void log(String msg) {
+		writeFile(msg, "/storage/emulated/0/log.txt");
+	}
+
+	public void log(String msg, String path) {
+		writeFile(msg, path);
+	}
+
+	public void log(String msg, String path, String level) {
+		writeFile(msg, path);
+	}
+
+	public void log(String msg, String path, String level, String tag) {
+		writeFile(msg, path);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  logAndToast(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public logAndToast(CharSequence text) {
+		log(text);
+		showToast(text);
+		return null;
+	}
+
+	public logAndToast(CharSequence text, String path) {
+		log(text, path);
+		showToast(text);
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  sendCommand(java.lang.String)
+	  ───────────────────────────────────────────────────────────────*/
+	public void sendCommand(String command) {
+		// Send intent broad instead
+		Intent intent = new Intent();
+		// Replace all invalid cahracters with .
+		String finalCommand = command.replaceAll("[^a-zA-Z0-9]", ".");
+		// Remove multiple dots in a row
+		finalCommand = finalCommand.replaceAll("[.]+", ".");
+		intent.setAction(finalCommand);
+		Context context = getContext();
+		intent.setPackage(context.getPackageName());
+		context.sendBroadcast(intent);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  setJavaVariable(java.lang.String, java.lang.Object)
+	  ───────────────────────────────────────────────────────────────*/
+	public void setJavaVariable(String name, Object value) {
+		globals.set(name, value);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  setVariable(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public void setVariable(String name, Object value) {
+		if (!(value instanceof String)) value = value.toString();
+		variableSetter.setString(name, value);
+	}
+
+	public void setVariable(String name, Object value, boolean force) {
+		setVariable(name, value);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  showToast(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public showToast(CharSequence text) {
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			public void run() {
+				Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+			}
+		});
+		return null;
+	}
+
+	public showToast(CharSequence text, CharSequence title) {
+		showToast(text);
+		return null;
+	}
+
+	public showToast(CharSequence text, CharSequence title, Drawable icon) {
+		showToast(text);
+		return null;
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	  toJson(...)
+	  ───────────────────────────────────────────────────────────────*/
+	public String toJson(Object obj) {
+		Gson gson = new Gson();
+		return gson.v(obj);
+	}
+
+	public String toJson(Object obj, boolean pretty) {
+		String json = toJson(obj);
+		return json;
+	}
+
+	set() {
+		This CALLER = this.caller;
+		CALLER.namespace.setVariable("tasker", TOP, false);
+		CALLER.namespace.setVariable("context", getContext(), false);
+	}
+
+	/*───────────────────────────────────────────────────────────────
+	getPath(Context context, Uri uri)
+	**Get Absolute File Path from Uri**
+	Converts content Uris (including Document & Tree Uris) or file Uris
+	into a standard absolute file path executable within BeanShell.
+	───────────────────────────────────────────────────────────────*/
+	String getPath(Context context, Uri uri) {
+		if (context == null || uri == null) {
+			return null;
+		}
+
+		boolean isKitKat = Build.VERSION.SDK_INT >= 19;
+		boolean isLollipop = Build.VERSION.SDK_INT >= 21;
+
+		/* Nested helper methods within the main namespace to encapsulate all logic */
+		getDataColumn(Context ctx, Uri u, String sel, String[] selArgs) {
+			Cursor cursor = null;
+			String column = "_data";
+			String[] projection = new String[] { column };
+			try {
+				cursor = ctx.getContentResolver().query(u, projection, sel, selArgs, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					int index = cursor.getColumnIndexOrThrow(column);
+					return cursor.getString(index);
+				}
+			} catch (Exception e) {
+				return null;
+			} finally {
+				if (cursor != null) {
+					cursor.close();
+				}
+			}
+			return null;
+		}
+
+		isExternalStorageDocument(Uri u) {
+			return "com.android.externalstorage.documents".equals(u.getAuthority());
+		}
+
+		isDownloadsDocument(Uri u) {
+			return "com.android.providers.downloads.documents".equals(u.getAuthority());
+		}
+
+		isMediaDocument(Uri u) {
+			return "com.android.providers.media.documents".equals(u.getAuthority());
+		}
+
+		isGooglePhotosUri(Uri u) {
+			return "com.google.android.apps.photos.content".equals(u.getAuthority());
+		}
+
+		/* 1. Handle Tree URIs (Folders / SAF Storage Access Framework trees) */
+		if (isLollipop && DocumentsContract.isTreeUri(uri)) {
+			String treeId = DocumentsContract.getTreeDocumentId(uri);
+			if (isExternalStorageDocument(uri) && treeId != null) {
+				String[] split = treeId.split(":");
+				String type = split[0];
+				String pathSuffix = "";
+				if (split.length > 1) {
+					pathSuffix = split[1];
+				}
+
+				if ("primary".equalsIgnoreCase(type)) {
+					return Environment.getExternalStorageDirectory() + "/" + pathSuffix;
+				} else {
+					return "/storage/" + type + "/" + pathSuffix;
+				}
+			}
+		}
+
+		/* 2. DocumentProvider check (Individual files) */
+		if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+
+			/* ExternalStorageProvider processing */
+			if (isExternalStorageDocument(uri)) {
+				String docId = DocumentsContract.getDocumentId(uri);
+				String[] split = docId.split(":");
+				String type = split[0];
+				String pathSuffix = "";
+
+				if (split.length > 1) {
+					pathSuffix = split[1];
+				}
+
+				if ("primary".equalsIgnoreCase(type)) {
+					return Environment.getExternalStorageDirectory() + "/" + pathSuffix;
+				} else {
+					return "/storage/" + type + "/" + pathSuffix;
+				}
+			}
+
+			/* DownloadsProvider processing */
+			if (isDownloadsDocument(uri)) {
+				String id = DocumentsContract.getDocumentId(uri);
+				if (id != null && id.startsWith("raw:")) {
+					return id.substring(4);
+				}
+				try {
+					Uri contentUri = ContentUris.withAppendedId(
+						Uri.parse("content://downloads/public_downloads"),
+						Long.valueOf(id)
+					);
+					return getDataColumn(context, contentUri, null, null);
+				} catch (Exception ex) {
+					return null;
+				}
+			}
+
+			/* MediaProvider processing */
+			if (isMediaDocument(uri)) {
+				String docId = DocumentsContract.getDocumentId(uri);
+				String[] split = docId.split(":");
+				String type = split[0];
+
+				Uri contentUri = null;
+				if ("image".equals(type)) {
+					contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+				} else if ("video".equals(type)) {
+					contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+				} else if ("audio".equals(type)) {
+					contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+				}
+
+				String selection = "_id=?";
+				String[] selectionArgs = new String[] { split[1] };
+
+				return getDataColumn(context, contentUri, selection, selectionArgs);
+			}
+		}
+
+		/* MediaStore and generic content providers */
+		if ("content".equalsIgnoreCase(uri.getScheme())) {
+			if (isGooglePhotosUri(uri)) {
+				return uri.getLastPathSegment();
+			}
+			return getDataColumn(context, uri, null, null);
+		}
+
+		/* Standard raw file protocol */
+		if ("file".equalsIgnoreCase(uri.getScheme())) {
+			return uri.getPath();
+		}
+
+		return null;
+	}
+
+	
+
+	return this;
+}

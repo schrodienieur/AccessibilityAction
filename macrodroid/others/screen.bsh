@@ -1,0 +1,37 @@
+import android.accessibilityservice.AccessibilityService;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import android.os.PowerManager;
+import android.content.Context;
+import android.os.PowerManager$WakeLock;
+/*───────────────────────────────────────────────────────────────
+screen(boolean turnOn)
+**Controls Screen Power State via Accessibility**
+Turns the screen on using a WakeLock or off using the
+Accessibility Service's GLOBAL_ACTION_LOCK_SCREEN.
+
+Arguments:
+
+* turnOn → true to wake the screen, false to lock/turn off.
+
+Example:
+screen(true);  // Wakes device
+screen(false); // Locks device
+───────────────────────────────────────────────────────────────*/
+screen(boolean turnOn) {
+	/* Handle Turning Screen ON using PowerManager */
+	if (turnOn) {
+		PowerManager pm = context.getSystemService(Context.POWER_SERVICE);
+		/* ACQUIRE_CAUSES_WAKEUP forces the screen to turn on */
+		int flags = PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE;
+		PowerManager$WakeLock  wl = pm.newWakeLock(flags, "Tasker:ScreenOn");
+		wl.acquire();
+		/* Release immediately as the screen trigger is already sent */
+		if (wl.isHeld()) {
+			wl.release();
+		}
+		return;
+	}
+
+	android.content.Context as = getService();
+	as.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN);
+}

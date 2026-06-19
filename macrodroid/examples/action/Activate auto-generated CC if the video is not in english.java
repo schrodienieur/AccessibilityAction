@@ -1,0 +1,15 @@
+a11Y.set();
+app = currentPackage();
+if (!app.contains("youtube")) return "not in youtube!";
+click("id", app + ":id/player_view");
+click("id", app + ":id/player_overflow_button");
+click("text", "Captions");
+wait(20);
+nodes = waitNodes("text", "auto-generated", 1000);
+text = getText(toNode(nodes));
+if (!text.contains("English")) {
+	click("text", "Auto-translate");
+	click("text", "English");
+} else {
+	back();
+}

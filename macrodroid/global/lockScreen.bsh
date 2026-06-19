@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+lockScreen() {
+	android.content.Context svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN);
+}

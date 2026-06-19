@@ -1,0 +1,101 @@
+import android.content.Context;
+import android.content.ClipboardManager;
+import android.content.ClipData;
+import android.graphics.PixelFormat;
+import android.view.View;
+import android.view.WindowManager;
+import android.os.Handler;
+import android.os.Looper;
+
+/*───────────────────────────────────────────────────────────────
+getClipboard()
+**Retrieves Clipboard Text via Focus Trigger**
+Creates a transparent overlay to gain window focus. 
+
+Returns:
+* String → The clipboard text directly, or null if it fails or is empty.
+───────────────────────────────────────────────────────────────*/
+public String getClipboard() {
+	Object resultText = null;
+	Object lock = new Object();
+	
+	if (context == void || context == null) {
+		context = com.arlosoft.macrodroid.AppContext.getContext();
+	}
+	
+	WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+	ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+	Handler handler = new Handler(Looper.getMainLooper());
+	
+	WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+		1, 1,
+		WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+		WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+		PixelFormat.TRANSLUCENT
+	);
+	params.alpha = 0.0f;
+	
+	View overlayView = new View(context);
+	overlayView.setFocusable(true);
+	overlayView.setFocusableInTouchMode(true);
+	
+	overlayView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+		onFocusChange(View v, boolean hasFocus) {
+			if (!hasFocus) { return; }
+			
+			try {
+				if (clipboardManager.hasPrimaryClip()) {
+					ClipData clip = clipboardManager.getPrimaryClip();
+					if (clip != null && clip.getItemCount() > 0) {
+						ClipData.Item item = clip.getItemAt(0);
+						CharSequence text = item.getText();
+						if (text != null) {
+							resultText = text.toString();
+						}
+					}
+				}
+			} catch (Exception e) {
+				// Fall through to keep resultText as null on exception
+			}
+
+			synchronized(lock) {
+				lock.notify();
+			}
+		}
+	});
+	
+	handler.post(new Runnable() {
+		run() {
+			try {
+				windowManager.addView(overlayView, params);
+				overlayView.requestFocus();
+			} catch (Exception e) {
+				synchronized(lock) {
+					lock.notify();
+				}
+			}
+		}
+	});
+	
+	synchronized(lock) {
+		if (resultText == null) {
+			try {
+				lock.wait(5000);
+			} catch (Exception e) {
+				// Interrupted, returns current state (null)
+			}
+		}
+	}
+	
+	handler.post(new Runnable() {
+		run() {
+			try {
+				if (overlayView.getWindowToken() != null) {
+					windowManager.removeViewImmediate(overlayView);
+				}
+			} catch (Exception e) {}
+		}
+	});
+	
+	return (String) resultText;
+}

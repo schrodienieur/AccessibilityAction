@@ -1,0 +1,6 @@
+import android.accessibilityservice.AccessibilityService;
+
+screenshot() {
+	android.content.Context svc = getService();
+	svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT);
+}

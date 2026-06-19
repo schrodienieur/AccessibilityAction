@@ -1,0 +1,280 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was generated using AI and refined with significant human oversight.
+───────────────────────────────────────────────────────────────*/
+import android.content.Context;
+import android.content.res.Resources;
+import bsh.This;
+
+MaterialColorFallback() {
+	This TOP = this;
+
+	int colorSecondaryFixed = -2301191;
+	int colorOnTertiaryFixed = -14020052;
+	int colorSurfaceContainerHighest = -13421510;
+	int colorSurfaceContainer = -14803163;
+	int colorTertiary = -2049059;
+	int colorSurface = -15592680;
+	int colorOnPrimaryFixedVariant = -13679240;
+	int colorSecondary = -4143396;
+	int colorError = -870219;
+	int colorSurfaceContainerHigh = -14144977;
+	int colorOnError = -10480624;
+	int colorErrorContainer = -7594728;
+	int colorOnSecondaryFixedVariant = -12564903;
+	int colorOutline = -7368551;
+	int colorSurfaceContainerLowest = -15987181;
+	int colorSecondaryFixedDim = -4143396;
+	int colorOnSecondary = -14012350;
+	int colorOnSurfaceInverse = -15066336;
+	int colorSurfaceBright = -13092545;
+	int colorPrimaryContainer = -13679240;
+	int colorPrimaryFixed = -2497793;
+	int colorSecondaryContainer = -12564903;
+	int colorTertiaryFixedDim = -2049059;
+	int colorTertiaryContainer = -10928807;
+	int colorOnTertiary = -12507326;
+	int colorSurfaceContainerLow = -15066336;
+	int colorOnSecondaryContainer = -2301191;
+	int colorOnTertiaryFixedVariant = -10928807;
+	int colorPrimary = -5191937;
+	int colorOutlineVariant = -11975345;
+	int colorBackground = 0;
+	int colorSurfaceVariant = -12302769;
+	int colorOnSecondaryFixed = -15394004;
+	int colorOnPrimaryFixed = -16770747;
+	int colorOnErrorContainer = -401700;
+	int colorOnSurface = -1907991;
+	int colorSurfaceInverse = -329473;
+	int colorOnBackground = -1907991;
+	int colorOnTertiaryContainer = -141318;
+	int colorSurfaceDim = -15592680;
+	int colorOnPrimary = -15389088;
+	int colorTertiaryFixed = -141318;
+	int colorOnSurfaceVariant = -3815728;
+	int colorPrimaryInverse = -12100206;
+	int colorOnPrimaryContainer = -2497793;
+	int colorPrimaryFixedDim = -5191937;
+
+	Object[][] map = new Object[][] {
+		{
+			"colorPrimary",
+			"system_accent1_600"
+		},
+		{
+			"colorOnPrimary",
+			"system_accent1_0"
+		},
+		{
+			"colorPrimaryContainer",
+			"system_accent1_100"
+		},
+		{
+			"colorOnPrimaryContainer",
+			"system_accent1_900"
+		},
+		{
+			"colorPrimaryInverse",
+			"system_accent1_200"
+		},
+		{
+			"colorPrimaryFixed",
+			"system_accent1_100"
+		},
+		{
+			"colorPrimaryFixedDim",
+			"system_accent1_200"
+		},
+		{
+			"colorOnPrimaryFixed",
+			"system_accent1_900"
+		},
+		{
+			"colorOnPrimaryFixedVariant",
+			"system_accent1_700"
+		},
+		{
+			"colorSecondary",
+			"system_accent2_600"
+		},
+		{
+			"colorOnSecondary",
+			"system_accent2_0"
+		},
+		{
+			"colorSecondaryContainer",
+			"system_accent2_100"
+		},
+		{
+			"colorOnSecondaryContainer",
+			"system_accent2_900"
+		},
+		{
+			"colorSecondaryFixed",
+			"system_accent2_100"
+		},
+		{
+			"colorSecondaryFixedDim",
+			"system_accent2_200"
+		},
+		{
+			"colorOnSecondaryFixed",
+			"system_accent2_900"
+		},
+		{
+			"colorOnSecondaryFixedVariant",
+			"system_accent2_700"
+		},
+		{
+			"colorTertiary",
+			"system_accent3_600"
+		},
+		{
+			"colorOnTertiary",
+			"system_accent3_0"
+		},
+		{
+			"colorTertiaryContainer",
+			"system_accent3_100"
+		},
+		{
+			"colorOnTertiaryContainer",
+			"system_accent3_900"
+		},
+		{
+			"colorTertiaryFixed",
+			"system_accent3_100"
+		},
+		{
+			"colorTertiaryFixedDim",
+			"system_accent3_200"
+		},
+		{
+			"colorOnTertiaryFixed",
+			"system_accent3_900"
+		},
+		{
+			"colorOnTertiaryFixedVariant",
+			"system_accent3_700"
+		},
+		{
+			"colorError",
+			"system_error_dark"
+		},
+		{
+			"colorOnError",
+			"white"
+		},
+		{
+			"colorErrorContainer",
+			"system_error_container_dark"
+		},
+		{
+			"colorOnErrorContainer",
+			"system_on_error_container_dark"
+		},
+		{
+			"colorOutline",
+			"system_neutral2_500"
+		},
+		{
+			"colorOutlineVariant",
+			"system_neutral2_200"
+		},
+		{
+			"colorBackground",
+			"system_background_dark"
+		},
+		{
+			"colorOnBackground",
+			"system_neutral1_900"
+		},
+		{
+			"colorSurface",
+			"system_surface_dark"
+		},
+		{
+			"colorOnSurface",
+			"system_neutral1_900"
+		},
+		{
+			"colorSurfaceVariant",
+			"system_neutral2_100"
+		},
+		{
+			"colorOnSurfaceVariant",
+			"system_neutral2_700"
+		},
+		{
+			"colorSurfaceInverse",
+			"system_neutral1_800"
+		},
+		{
+			"colorOnSurfaceInverse",
+			"system_neutral1_50"
+		},
+		{
+			"colorSurfaceBright",
+			"system_surface_bright_dark"
+		},
+		{
+			"colorSurfaceDim",
+			"system_surface_dim_dark"
+		},
+		{
+			"colorSurfaceContainer",
+			"system_surface_container_dark"
+		},
+		{
+			"colorSurfaceContainerLow",
+			"system_surface_container_low_dark"
+		},
+		{
+			"colorSurfaceContainerLowest",
+			"system_surface_container_lowest_dark"
+		},
+		{
+			"colorSurfaceContainerHigh",
+			"system_surface_container_high_dark"
+		},
+		{
+			"colorSurfaceContainerHighest",
+			"system_surface_container_highest_dark"
+		}
+
+	};
+
+
+	int getColor(String id) {
+		res = context.getResources();
+		int resId = res.getIdentifier(id, "color", "android");
+		int colorInt = res.getColor(resId);
+		return colorInt != 0 ? colorInt : getFallback(id);
+	}
+
+	load() {
+		for (int i = 0; i < map.length; i++) {
+			Object[] item = map[i];
+			int colorInt = getColor(item[1]);
+			if (colorInt != 0) TOP.namespace.setVariable(item[0], colorInt, false);
+		}
+	}
+
+	int color(String colorName) {
+		return TOP.namespace.getVariable(colorName);
+	}
+
+	String toHex(int colorInt) {
+		return String.format("#%06X", new Object[] {
+			(0xFFFFFF & colorInt)
+		});
+	}
+
+	String toHex(String colorName) {
+		int colorInt = color(colorName);
+		return String.format("#%06X", new Object[] {
+			(0xFFFFFF & colorInt)
+		});
+	}
+
+	return this;
+}

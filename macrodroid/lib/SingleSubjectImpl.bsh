@@ -1,0 +1,78 @@
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+/*───────────────────────────────────────────────────────────────
+  SingleSubjectImpl()
+  **Scripted Object simulating SingleSubject mechanics**
+  Tailored exclusively for MacroDroid using a pure Java CountDownLatch fallback.
+  
+  Methods:
+   - onSuccess(Object) → void
+   - onError(RuntimeException) → void
+   - blockingGet() → Object (Throws RuntimeException if onError occurred)
+   - hasValue() → boolean
+ ───────────────────────────────────────────────────────────────*/
+SingleSubjectImpl() {
+    // MacroDroid specific state representation
+    CountDownLatch latch = new CountDownLatch(1);
+    Object value = null;
+    RuntimeException sharedError = null;
+
+    onSuccess(Object result) {
+        value = result;
+        latch.countDown();
+    }
+
+    onError(RuntimeException exception) {
+        sharedError = exception;
+        latch.countDown(); // Safely unblock the consumer thread so it can catch the error
+    }
+
+    Object blockingGet() {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Thread interrupted while awaiting single value", e);
+        }
+        
+        // If an error was signaled by a background thread, throw it to the consumer here
+        if (sharedError != null) {
+            throw sharedError;
+        }
+        
+        return value;
+    }
+
+    boolean hasValue() {
+        return latch.getCount() == 0 && sharedError == null;
+    }
+
+    return this;
+}
+
+// ==========================================
+// * EXAMPLE USAGE
+// ==========================================
+// import java.util.concurrent.TimeUnit;
+//
+// singleSignal = SingleSubjectImpl();
+//
+// print("Main thread: Spawning background data fetcher...");
+//
+// worker = new Thread(new Runnable() {
+//     run() {
+//         try {
+//             Thread.sleep(2000); // Simulate background work (e.g. HTTP call)
+//             singleSignal.onSuccess("Hello from MacroDroid background thread!");
+//         } catch (Exception e) {
+//             singleSignal.onError(new RuntimeException("Background task failed", e));
+//         }
+//     }
+// });
+// worker.start();
+//
+// print("Main thread: Blocking to get the result...");
+// 
+// // This blocks until onSuccess or onError is called
+// Object result = singleSignal.blockingGet();
+// print("Main thread received data: " + result);

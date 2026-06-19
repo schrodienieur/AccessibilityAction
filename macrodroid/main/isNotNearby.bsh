@@ -1,0 +1,42 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.util.ArrayList;
+
+/*───────────────────────────────────────────────────────────────
+isNearby(AccessibilityNodeInfo sourceNode, int parentLevel, String key, String value)
+**Verify Proximity**
+Checks if node matching the criteria doesn't exist within the specified search range.
+
+Arguments:
+
+* sourceNode → Reference node to start from.
+* parentLevel → Tree levels to climb before searching (0 = immediate siblings).
+* key/value → Selector and value to match.
+
+Example:
+if (isNotNearby(node, 0, "text", "Price")) { }
+───────────────────────────────────────────────────────────────*/
+boolean isNotNearby(AccessibilityNodeInfo sourceNode, int parentLevel, String key, String value) {
+	boolean isNotNearby= true;
+	if (key == null) key = "text";
+	if (parentLevel == null) parentLevel = 0;
+	if (value == null || sourceNode == null) return isNotNearby; 
+	List nearbyNodes = findNearbyNodes(sourceNode, parentLevel, key, value);
+	if (!nearbyNodes.isEmpty()) isNotNearby = true;
+	return isNotNearby;
+}
+
+boolean isNotNearby(AccessibilityNodeInfo sourceNode, int parentLevel, String text) {
+	return isNotNearby(sourceNode, parentLevel, "text", text);
+}
+
+boolean isNotNearby(AccessibilityNodeInfo sourceNode, String key, String value) {
+	return isNotNearby(sourceNode, 0, key, value);
+}
+
+boolean isNotNearby(AccessibilityNodeInfo sourceNode, String text) {
+	return isNotNearby(sourceNode, 0, "text", text);
+}

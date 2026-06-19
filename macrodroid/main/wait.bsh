@@ -1,0 +1,22 @@
+/*─────────────────────────────────────────────────────────────── 
+This code was primarily generated using AI with minimal human editing.
+───────────────────────────────────────────────────────────────*/
+
+import java.util.concurrent.TimeUnit;
+import io.reactivex.Completable;
+
+/*───────────────────────────────────────────────────────────────
+ * wait(long milliseconds)
+ * **Waits for Delay**
+ * Suspends execution for a specified duration in milliseconds.
+ *
+ * Arguments:
+ * * - milliseconds → Duration to wait in milliseconds.
+ *
+ * Example:
+ * // Wait for half a second
+ * wait(500);
+ * ───────────────────────────────────────────────────────────────*/
+void wait(long milliseconds) {
+	Thread.sleep(milliseconds);
+}

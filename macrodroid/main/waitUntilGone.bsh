@@ -1,0 +1,186 @@
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import bsh.This;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+
+/*───────────────────────────────────────────────────────────────
+waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone)
+Waits until specific nodes are no longer present on the screen.
+
+Arguments:
+
+* argsConfigs → {{"idName", "selector", "value"}, {"btn1", "text", "OK"}}
+* timeout → Timeout in milliseconds.
+* allGone → If true, waits until ALL configs disappear. If false, waits until ANY one disappears.
+
+Returns: Boolean true if condition met, false/Exception if timeout.
+───────────────────────────────────────────────────────────────*/
+import java.util.Map;
+import java.util.HashMap;
+import android.view.accessibility.AccessibilityNodeInfo;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+/*───────────────────────────────────────────────────────────────
+  waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone)
+  **Waits for Accessibility Nodes to Disappear**
+  Monitors accessibility events or polls the screen layout until the 
+  specified elements are gone or the timeout limit is reached.
+  ───────────────────────────────────────────────────────────────*/
+boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
+	AccessibilityNodeInfo root = getRoot();
+	Map currentNodes = findNodes(root, argsConfigs, true);
+
+	/* Check immediate state before starting subscription */
+	if (allGone) {
+		if (currentNodes.isEmpty()) return true;
+	} else {
+		if (currentNodes.keySet().size() < argsConfigs.length) return true;
+	}
+
+	boolean oldDebug = debugMe;
+	if (oldDebug == true) debugMe = false;
+
+	Exception executionException = null;
+	boolean result = false;
+
+		long startTime = System.currentTimeMillis();
+		long whileDelay = stepDelay > 200 ? stepDelay : 200;
+		while (System.currentTimeMillis() - startTime < timeout) {
+			AccessibilityNodeInfo rootNode = getRoot();
+			if (rootNode != null) {
+				Map found = findNodes(rootNode, argsConfigs, true);
+				boolean goneState = allGone ? found.isEmpty() : found.keySet().size() < argsConfigs.length;
+				rootNode.recycle();
+				if (goneState) {
+					result = true;
+					break;
+				}
+			}
+			try {
+				Thread.sleep(whileDelay);
+			} catch (InterruptedException e) {
+				executionException = new Exception("Timeout reached while waiting for nodes to disappear: " + e.getMessage());
+				break;
+			}
+		}
+		
+		if (executionException == null && !result) {
+			executionException = new Exception("Timeout reached while waiting for nodes to disappear");
+		}
+
+	debugMe = oldDebug;
+
+	if (executionException != null) {
+		log(executionException.getMessage(), "ERROR");
+		throw executionException;
+	}
+
+	return result;
+}
+
+/*───────────────────────────────────────────────────────────────
+Overloads for waitUntilGone
+───────────────────────────────────────────────────────────────*/
+
+boolean waitUntilGone(Object[][] argsConfigs, long timeout) {
+	return waitUntilGone(argsConfigs, timeout, true);
+}
+
+/* Equivalent to waitNodes(key, value, configs, timeout) but for disappearing */
+boolean waitUntilGone(String key, String value, Object[][] argsConfigs, long timeout) {
+	Object[][] config = new Object[][] {
+		{ "default", key, value, argsConfigs }
+	};
+	return waitUntilGone(config, timeout, true);
+}
+
+boolean waitUntilGone(String key, String value, long timeout) {
+	return waitUntilGone(key, value, null, timeout);
+}
+
+boolean waitUntilGone(String key, String value) {
+	return waitUntilGone(key, value, null, waitNodesTimeout);
+}
+
+boolean waitUntilGone(String text, long timeout) {
+	return waitUntilGone("text", text, null, timeout);
+}
+
+boolean waitUntilGone(String text) {
+	return waitUntilGone("text", text, null, waitNodesTimeout);
+}
+
+boolean waitUntilGone(String key, String value, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	Object[][] config = new Object[][] {
+		{ parentLevel, nearbyKey, nearbyValue }
+	};
+	return waitUntilGone(key, value, config, timeout);
+}
+
+boolean waitUntilGone(String text, long timeout, int parentLevel, String nearbyKey, String nearbyValue) {
+	return waitUntilGone("text", text, timeout, parentLevel, nearbyKey, nearbyValue);
+}
+
+boolean waitUntilGone(String key, String value, long timeout, int parentLevel, String nearbyText) {
+	return waitUntilGone(key, value, timeout, parentLevel, "text", nearbyText);
+}
+
+boolean waitUntilGone(String text, long timeout, int parentLevel, String nearbyText) {
+	return waitUntilGone("text", text, timeout, parentLevel, "text", nearbyText);
+}
+
+/*───────────────────────────────────────────────────────────────
+waitUntilGone(AccessibilityNodeInfo node, long timeout)
+Monitors a specific node object to see when it becomes invalid or detached.
+
+Arguments:
+
+* node → The specific AccessibilityNodeInfo to watch.
+* timeout → Timeout in milliseconds.
+
+Returns: Boolean true if node is gone, false/Exception if timeout.
+───────────────────────────────────────────────────────────────*/
+boolean waitUntilGone(AccessibilityNodeInfo node, long timeout) {
+	if (node == null) return true;
+
+	if (ENV.TASKER || ENV.KID_APP) {
+		try {
+			return (Boolean) tasker.getAccessibilityEvents()
+				.map(new io.reactivex.functions.Function() {
+					apply(Object event) {
+						/* Check if node is still refreshed/valid in the window */
+						try {
+							/* Refresh returns false if node is no longer visible/exists */
+							return !node.refresh();
+						} catch (Exception e) {
+							return true;
+						}
+					}
+				})
+				.filter(new io.reactivex.functions.Predicate() {
+					test(Object isGone) {
+						return (Boolean) isGone;
+					}
+				})
+				.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
+				.firstOrError()
+				.blockingGet();
+		} catch (Exception e) {
+			throw new Exception("Timeout waiting for specific node to disappear");
+			return false;
+		}
+	}
+	return !node.refresh();
+
+}
+
+boolean waitUntilGone(AccessibilityNodeInfo node) {
+	return waitUntilGone(node, waitNodesTimeout);
+}

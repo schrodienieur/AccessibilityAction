@@ -1,0 +1,149 @@
+import bsh.This;
+import bsh.Variable;
+
+Config(String filePath) {
+	source(filePath);
+	final This TOP = this;
+	List PRESET = new ArrayList();
+	
+	// { Group Name, key, default value, description, showInSettings }
+    Object[][] keysConfig = new Object[][] {
+		// --- Debugging ---
+        { "Debugging", "debugMe", true, "Enable debug mode", true },
+        { "Debugging", "logIncludeNode", false, "Include node information in logs", true },
+        { "Debugging", "debugSteps", true, "Show debugging information on a toast", false },
+        { "Debugging", "debugInfo", true, "Show debugging information on a toast", true }, 
+        { "Debugging", "useA11yOffset", true, "Use offset for Accessibility", true},
+        { "Debugging", "useA11yStructure", true, "Use accessibility for structure overlay", true },
+        { "Debugging", "useOffset", true, "Use offset for normal overlay" ,true},
+        { "Debugging", "debugDelay", (long) 1000, "Debug highlight duration (ms)", true },
+        { "Debugging", "findDelay", (long) 100, "Find hint duration (ms)", true },
+
+        // --- Action ---
+        { "Action", "findFirstForRecursive", true, "Return first node for recursive search", true },
+		{ "Action", "limitParentLevel", (int) 1, "Limit parent level before fallback for click & long click", true },
+        { "Action", "longClickFallBackDuration", (long) 500, "Long click fallback duration (ms)", true },
+        { "Action", "stepDelay", (long) 100, "Step delay (ms)", true },
+        { "Action", "waitNodesTimeout", (long) 10000, "Waiting nodes timeout (ms)", true },
+
+        // --- Assist ---
+        { "Assist", "actionPickerAddToEditor", true, "Action picker append to editor or copy to clipboard", true },
+        { "Assist", "includeAllMethods", false, "Include all methods for quick mode", true },
+        { "Assist", "quickAddMode", true, "Long press a box enter quick mode instead of opening copy dialog", true },
+        { "Assist", "actionPickerReminderDelay", (long) 120000, "Action picker reminder delay (ms)", true },
+
+        // --- Other ---
+        { "Other", "updatePreRelease", false, "Update to pre-release version", true },
+        { "Other", "useDarkTheme", true, "Use dark theme or light", false }
+    };
+
+	
+	InputPreset(Object[] config) {
+		String groupName = config[0];
+		String key = config[1];
+		Object defaultValue = config[2];
+		String description = config[3];
+		boolean showInSettings = config[4];
+		return this;
+	}
+
+	String[] keys = new String[keysConfig.length];
+	for (int i = 0; i < keysConfig.length; i++) {
+		keys[i] = (String) keysConfig[i][1];
+		This inputPreset = InputPreset(keysConfig[i]);
+		PRESET.add(inputPreset);
+	}
+
+
+	Map getSettings() {
+		Map settings = new HashMap();
+		for (Object[] config: keysConfig) {
+			This inputPreset = InputPreset(config);
+			List settingRows = (List) settings.get(inputPreset.groupName);
+			if (settingRows == null) {
+				settingRows = new ArrayList();
+				settings.put(inputPreset.groupName, settingRows);
+			}
+			settingRows.add(inputPreset);
+		}
+		return settings;
+	}
+	
+	save() {
+		List keyList = Arrays.asList(TOP.keys);
+		String text = "";
+		Variable[] vars = TOP.namespace.getDeclaredVariables();
+		Arrays.sort(vars, new java.util.Comparator() {
+			public int compare(Object a, Object b) {
+				try {
+					Variable va = (Variable) a;
+					Variable vb = (Variable) b;
+					int typeCmp = va.getType().toString().compareTo(vb.getType().toString());
+					if (typeCmp != 0) return typeCmp;
+					return va.getName().compareTo(vb.getName());
+				} catch(e) {
+					return 0;
+				}
+			}
+		});
+		for (Variable var: vars) {
+			String name = var.getName();
+			if (!keyList.contains(name)) continue;
+			Object value = TOP.namespace.getVariable(var.getName());
+			text += value.getClass().getSimpleName() + " " + name + " = " + value + ";\n";
+		}
+
+		File file = new File(filePath);
+		FileWriter writer = new FileWriter(file);
+		writer.write(text);
+		writer.flush();
+		writer.close();
+	}
+
+	setTo(This source, This target) {
+		for (String key: keys) {
+			Object value = source.namespace.getVariable(key);
+			target.namespace.setVariable(key, value , false);
+		}
+	}
+
+	setTo(This target) {
+		for (String key: keys) {
+			Object value = TOP.namespace.getVariable(key);
+			target.namespace.setVariable(key, value, false);
+		}
+	}
+
+	loadFrom(This source) {
+		for (String key: keys) {
+			TOP.namespace.setVariable(key, source.namespace.getVariable(key), false);
+		}
+	}
+
+	updateMissing(This source) {
+		List sourceVars = Arrays.asList(source.variables);
+		boolean found = false;
+		for (This preset: PRESET) {
+			if (sourceVars.contains(preset.key)) continue;
+			Object defaultValue = new bsh.Primitive(preset.defaultValue);
+			source.namespace.setTypedVariable(preset.key, defaultValue.getClass(), defaultValue, false);
+			if (!found) found = true;
+		}
+		return found;
+	}
+
+	load() {
+		File file = new File(filePath);
+		if (!file.exists()) {
+			return;
+		}
+		source(filePath);
+		boolean foundMissing = updateMissing(this);
+		if (foundMissing) {
+			source(filePath);
+		}
+		loadFrom(this);
+	}
+
+	return this;
+}
