@@ -161,7 +161,7 @@ A11yController() {
 	enableService(String query) {
 		ArrayList targets = resolveMatchingComponents(query);
 		if (targets.size() == 0) {
-			tasker.log("No service found to add matching: " + query);
+			log("No service found to add matching: " + query);
 			return;
 		}
 
@@ -179,9 +179,9 @@ A11yController() {
 				}
 				currentServices = currentServices + servicePath;
 				changed = true;
-				tasker.log("Added service: " + servicePath);
+				log("Added service: " + servicePath);
 			} else {
-				tasker.log("Service already enabled: " + servicePath);
+				log("Service already enabled: " + servicePath);
 			}
 		}
 
@@ -198,13 +198,13 @@ A11yController() {
 	disableService(String query) {
 		ArrayList targets = resolveMatchingComponents(query);
 		if (targets.size() == 0) {
-			tasker.log("No service found to remove matching: " + query);
+			log("No service found to remove matching: " + query);
 			return;
 		}
 
 		String currentServices = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
 		if (currentServices == null || currentServices.length() == 0) {
-			tasker.log("No services are currently enabled.");
+			log("No services are currently enabled.");
 			return;
 		}
 
@@ -226,7 +226,7 @@ A11yController() {
 
 			if (shouldRemove) {
 				changed = true;
-				tasker.log("Removed service: " + service);
+				log("Removed service: " + service);
 				continue;
 			}
 
@@ -244,7 +244,7 @@ A11yController() {
 				Settings.Secure.putString(cr, Settings.Secure.ACCESSIBILITY_ENABLED, "0");
 			}
 		} else {
-			tasker.log("None of the targeted services were enabled.");
+			log("None of the targeted services were enabled.");
 		}
 	}
 

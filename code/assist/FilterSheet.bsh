@@ -21,7 +21,7 @@ config()
 FilterSheet(This structure) {
 
 	final This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_FILTER_SHEET;
 	a11Y.viewControl.addView(TOP);
 	This structureHelper = StructureHelper(structure);

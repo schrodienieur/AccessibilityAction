@@ -20,7 +20,7 @@ ViewControl() {
 	// Stores view bsh.This containing show(), hide(), remove() and isShown, isRemoved, isHidden
 	Map viewMap = new HashMap();
 	// Get a11Y to use stored flag constants
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	Object[][] showRules = new Object[][] {
 	
 		/* * view, int mustHideViews, mustRemoveViews

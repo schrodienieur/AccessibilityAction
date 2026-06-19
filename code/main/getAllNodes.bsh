@@ -11,27 +11,12 @@ import java.util.ArrayList;
  * Retrieves all accessibility nodes from the active window recursively.
  *
  * Returns:
- *   ArrayList → List of all nodes found (empty if unavailable).
+ *   List → List of all nodes found (empty if unavailable).
  *
  * Example:
  *   nodes = getAllNodes();
  *───────────────────────────────────────────────────────────────*/
-ArrayList getAllNodes() {
-	AccessibilityService service = getService();
-	AccessibilityNodeInfo root = getRoot();
-	if (root == null) {
-		log("No active root node (screen inaccessible).");
-		return new ArrayList();
-	}
-	ArrayList nodes = service.getChildrenRecursive(root);
-	if (nodes == null) {
-		log("No nodes found.");
-		return new ArrayList();
-	}
-	return nodes;
-}
-
-ArrayList getAllNodes(AccessibilityNodeInfo node) {
+List getAllNodes(AccessibilityNodeInfo node) {
 	AccessibilityService service = getService();
 	if (service == null) {
 		log("Accessibility service not active!");
@@ -41,7 +26,7 @@ ArrayList getAllNodes(AccessibilityNodeInfo node) {
 		log("No nodes found.");
 		return new ArrayList();
 	}
-	ArrayList nodes = service.getChildrenRecursive(node);
+	List nodes = service.getChildrenRecursive(node);
 	if (nodes == null) {
 		log("No nodes found.");
 		return new ArrayList();
@@ -49,19 +34,24 @@ ArrayList getAllNodes(AccessibilityNodeInfo node) {
 	return nodes;
 }
 
-ArrayList getAllNodes(ArrayList nodes) {
+List getAllNodes() {
+	AccessibilityNodeInfo root = getRoot();
+	return getAllNodes(root);
+}
+
+List getAllNodes(List nodes) {
 	return getAllNodes(toNode(nodes));
 }
 
-ArrayList getAllNodes(ArrayList nodes, int index) {
+List getAllNodes(List nodes, int index) {
 	return getAllNodes(toNode(nodes, index));
 }
 
-ArrayList getAllNodes(HashMap nodesMap) {
+List getAllNodes(HashMap nodesMap) {
 	return getAllNodes(toNode(nodesMap));
 }
 
-ArrayList getAllNodes(HashMap nodesMap, String key) {
+List getAllNodes(HashMap nodesMap, String key) {
 	return getAllNodes(toNode(nodesMap, key));
 }
 

@@ -13,9 +13,7 @@ import bsh.This;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
-import io.reactivex.disposables.Disposable;
 
 /*───────────────────────────────────────────────────────────────
 waitNodes(Object[][] argsConfigs, long timeout, boolean hasAll)
@@ -34,47 +32,41 @@ waitNodes(Object[][] argsConfigs, long timeout, boolean allFound) {
 	Map NO_RESULT = new HashMap();
 	AccessibilityNodeInfo root = getRoot();
 	Map nodesMap = findNodes(root, argsConfigs, allFound);
-
 	if (nodesMap.keySet().size() > 0) return nodesMap;
 
-	if (ENV.TASKER || ENV.KID_APP) {
-		boolean oldDebug = debugMe;
-		if (oldDebug == true) debugMe = false;
-
-		try {
-			nodesMap = tasker.getAccessibilityEvents()
-				.map(new io.reactivex.functions.Function() {
-					apply(Object event) {
-						root = getRoot();
-						return findNodes(root, argsConfigs, allFound);
-					}
-				})
-				.filter(new io.reactivex.functions.Predicate() {
-					test(Object resultMap) {
-						return resultMap.keySet().size() > 0;
-					}
-				})
-				.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
-				.firstOrError()
-				.blockingGet();
-		} catch (Exception e) {
-			debugMe = oldDebug;
-			String message = "Timeout waiting for nodes: " + stringifyObject(argsConfigs) + " : " + e.getMessage();
-			log(message, "ERROR");
-			throw new JavaCodeException(message);
-			return NO_RESULT;
-		}
-
+	boolean oldDebug = debugMe;
+	if (oldDebug == true) debugMe = false;
+	try {
+		nodesMap = tasker.getAccessibilityEvents()
+			.map(new io.reactivex.functions.Function() {
+				apply(Object event) {
+					root = getRoot();
+					return findNodes(root, argsConfigs, allFound);
+				}
+			})
+			.filter(new io.reactivex.functions.Predicate() {
+				test(Object resultMap) {
+					return resultMap.keySet().size() > 0;
+				}
+			})
+			.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
+			.firstOrError()
+			.blockingGet();
+	} catch (Exception e) {
 		debugMe = oldDebug;
-		if (!nodesMap.isEmpty()) {
-			debugMe(nodesMap);
-		}
-
-		return nodesMap;
-	} else if (ENV.MACRODROID) {
-		root = getRoot();
-		return findNodes(root, argsConfigs, allFound);
+		Exception executionException = new JavaCodeException("Timeout waiting for nodes: " + stringifyObject(argsConfigs) + " : " + e.getMessage());
+		log(executionException.getMessage(), "ERROR");
+		throw executionException;
 	}
+
+	debugMe = oldDebug;
+
+	if (nodesMap != null && !nodesMap.isEmpty()) {
+		debugMe(nodesMap);
+		return nodesMap;
+	}
+
+	return NO_RESULT;
 }
 
 Map waitNodes(Object[][] argsConfigs, long timeout) {

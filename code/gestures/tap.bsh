@@ -64,25 +64,19 @@ public boolean tap(double x, double y, long duration) {
 		Handler handler = new Handler(handlerThread.getLooper());
 
 		CompletableSubject signal = CompletableSubject.create();
-
-		ClassImplementation impl = new ClassImplementation() {
-			run(Callable supercaller, String methodName, Object[] args) {
-				if (methodName.equals("onCompleted")) {
-					signal.onComplete();
-				} else if (methodName.equals("onCancelled")) {
-					signal.onError(new RuntimeException("Tap cancelled"));
-				}
-				return null;
-			}
-		};
-
-		Object callbackObj = tasker.implementClass(
+		AccessibilityService.GestureResultCallback callback = tasker.implementClass(
 			AccessibilityService.GestureResultCallback.class,
-			impl
+			new ClassImplementation() {
+				run(Callable supercaller, String methodName, Object[] args) {
+					if (methodName.equals("onCompleted")) {
+						signal.onComplete();
+					} else if (methodName.equals("onCancelled")) {
+						signal.onError(new RuntimeException("Tap cancelled"));
+					}
+					return null;
+				}
+			}
 		);
-
-		AccessibilityService.GestureResultCallback callback =
-			(AccessibilityService.GestureResultCallback) callbackObj;
 
 		service.dispatchGesture(gesture, callback, handler);
 
@@ -92,8 +86,6 @@ public boolean tap(double x, double y, long duration) {
 	} catch (Exception e) {
 		return false;
 	}
-
-
 
 }
 
@@ -237,7 +229,7 @@ boolean tap(AccessibilityNodeInfo root, String key, String value, long duration)
 }
 
 boolean tap(AccessibilityNodeInfo root, String key, String value, int index, long duration) {
-	node = getNode(root, key, value, index);
+	AccessibilityNodeInfo node = getNode(root, key, value, index);
 	if (node == null) {
 		throw new com.joaomgcd.taskerm.action.java.JavaCodeException("No node found for key=" + key + ", value=" + value + " under provided root");
 	}

@@ -1,8 +1,6 @@
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
-import io.reactivex.subjects.CompletableSubject;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers; // NEW: Needed for thread control
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;

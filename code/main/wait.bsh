@@ -18,13 +18,9 @@ import io.reactivex.Completable;
  * wait(500);
  * ───────────────────────────────────────────────────────────────*/
 void wait(long milliseconds) {
-	if (ENV.TASKER || ENV.KID_APP) {
-		try {
-			Completable.timer(milliseconds, TimeUnit.MILLISECONDS).blockingAwait();
-		} catch (Exception e) {
-			log("wait interrupted: " + e.getMessage(), "ERROR");
-		}
-	} else if (ENV.MACRODROID) {
-		Thread.sleep(milliseconds);
+	try {
+		Completable.timer(milliseconds, TimeUnit.MILLISECONDS).blockingAwait();
+	} catch (Exception e) {
+		log("wait interrupted: " + e.getMessage(), "ERROR");
 	}
 }

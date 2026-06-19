@@ -47,7 +47,7 @@ Returns:
 ──────────────────────────────────────────────────────────────── */
 public boolean gesture(Object[][] points, Paint paint) {
 	if (points == null || points.length == 0) return false;
-	AccessibilityService service = (AccessibilityService) getService();
+	AccessibilityService service = getService();
 
 	AccessibilityNodeInfo root = getRoot();
 	if (root == null) {
@@ -68,6 +68,7 @@ public boolean gesture(Object[][] points, Paint paint) {
 
 	Handler mainHandler = new Handler(Looper.getMainLooper());
 	ImageView overlayRef;
+
 	CompletableSubject uiInitSignal = CompletableSubject.create();
 	mainHandler.post(new Runnable() {
 		run() {
@@ -77,6 +78,7 @@ public boolean gesture(Object[][] points, Paint paint) {
 		}
 	});
 	uiInitSignal.blockingAwait();
+
 
 	WindowManager.LayoutParams params = new WindowManager.LayoutParams(
 		WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
@@ -149,8 +151,9 @@ public boolean gesture(Object[][] points, Paint paint) {
 				}
 
 				final Path drawPath = p;
+				
 				CompletableSubject stepSignal = CompletableSubject.create();
-				Object callback = tasker.implementClass(AccessibilityService.GestureResultCallback.class, new ClassImplementation() {
+				AccessibilityService.GestureResultCallback callback = tasker.implementClass(AccessibilityService.GestureResultCallback.class, new ClassImplementation() {
 					run(Callable supercaller, String methodName, Object[] args) {
 						if (methodName.equals("onCompleted")) {
 							if (showTrail) {
@@ -160,16 +163,19 @@ public boolean gesture(Object[][] points, Paint paint) {
 								});
 							}
 							stepSignal.onComplete();
-						} else { stepSignal.onError(new RuntimeException("Cancelled")); }
+						} else {
+							stepSignal.onError(new RuntimeException("Cancelled"));
+						}
 						return null;
 					}
 				});
 
+
 				GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
 				gestureBuilder.addStroke(currentStroke);
 				gestureBuilder.setDisplayId(targetDisplayId);
+				service.dispatchGesture(gestureBuilder.build(), callback, a11yHandler);
 
-				service.dispatchGesture(gestureBuilder.build(), (AccessibilityService.GestureResultCallback) callback, a11yHandler);
 				stepSignal.blockingAwait();
 
 				lastX = currentStepX;
@@ -186,7 +192,11 @@ public boolean gesture(Object[][] points, Paint paint) {
 		return true;
 	} catch (Exception ex) {
 		if (showTrail) mainHandler.post(new Runnable() {
-			run() { try { windowManager.removeView(overlayRef); } catch (Exception e) {} }
+			run() {
+				try {
+					windowManager.removeView(overlayRef);
+				} catch (Exception e) {}
+			}
 		});
 		return false;
 	}

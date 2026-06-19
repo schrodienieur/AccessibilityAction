@@ -20,7 +20,7 @@ ActionPicker() {
 
 	// parameter from top variable
 	if (includeAllMethods == void) includeAllMethods = false;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	This inspector = a11Y.inspector; // instance of MethodInspector
 	DisplayManager displayManager = context.getSystemService(Context.DISPLAY_SERVICE);
 	int displayId = a11Y.assistBar.selectedDisplayId != void ? a11Y.assistBar.selectedDisplayId : 0;
@@ -404,7 +404,7 @@ ActionPicker() {
 	  **Executes code**
 	 ───────────────────────────────────────────────────────────────*/
 	public void executeDialog(String text) {
-		This a11Y = tasker.getJavaVariable("a11Y");
+		This a11Y = getA11yInstance();
 		long defaultTimeout = 5000;
 		execute(This THIS) {
 			String title = "Run now";

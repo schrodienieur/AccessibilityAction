@@ -164,7 +164,7 @@ ThemeManager(Context ctx) {
 			Context taskerContext = useCtx.createPackageContext(pkg, Context.CONTEXT_IGNORE_SECURITY);
 			int resId = taskerContext.getResources().getIdentifier(attrName, "drawable", pkg);
 			if (resId == 0) {
-				tasker.log("Resource not found: " + attrName);
+				log("Resource not found: " + attrName);
 				return null;
 			}
 			return taskerContext.getResources().getDrawable(resId);
@@ -210,7 +210,7 @@ ThemeManager(Context ctx) {
 
 	int color(String attrName, boolean useFallback) {
 		if (useFallback) {
-			This a11Y = tasker.getJavaVariable("a11Y");
+			This a11Y = getA11yInstance();
 			return a11Y.materialColorFallback.color(attrName);
 		}
 		

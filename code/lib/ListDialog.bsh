@@ -62,7 +62,8 @@ ListDialog(This config) {
 	boolean isMulti = config.multiSelect == void ? false : config.multiSelect;
 	List preSelect = config.preSelect == void ? null : config.preSelect;
 	long timeout = config.timeout == void ? 0 : config.timeout;
-	
+	int iconSize = config.iconSize == void ? 40 : config.iconSize;
+
 	/* Height Logic Setup */
 	Object rawMaxH = config.maxHeight == void ? 0.8 : config.maxHeight;
 	Object rawMaxL = config.maxHeightList == void ? 0.5 : config.maxHeightList;
@@ -92,7 +93,7 @@ ListDialog(This config) {
 		if (activity != null) {
 			activity.finish();
 		}
-		
+
 		isRemoved = true;
 		if (timeout != 0 && !waitTimeout.hasComplete()) waitTimeout.onComplete();
 	}
@@ -109,7 +110,7 @@ ListDialog(This config) {
 		// 		activityContext = activity.createDisplayContext(targetDisplay);
 		// 	}
 		// }
-		
+
 		android.content.pm.PackageManager pm = activity.getPackageManager();
 
 		Window window = activity.getWindow();
@@ -162,7 +163,7 @@ ListDialog(This config) {
 		ListView listView = new ListView(activityContext);
 		listView.setDivider(null);
 		listView.setDividerHeight(0);
-		
+
 		LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(-1, -2, 1.0f);
 		listView.setLayoutParams(listLp);
 
@@ -195,7 +196,9 @@ ListDialog(This config) {
 					LinearLayout row;
 					ImageView iconView;
 					TextView titleTextView, subtitleTextView;
-					
+					Drawable iconDrawable = itemData.get("icon");
+					boolean hasIcon = iconDrawable != null && iconDrawable != void;
+
 					if (adapterView == null) {
 						row = new LinearLayout(activityContext);
 						row.setOrientation(0);
@@ -203,7 +206,7 @@ ListDialog(This config) {
 						row.setPadding(dp(0), dp(12), dp(0), dp(12));
 
 						iconView = new ImageView(activityContext);
-						iconView.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
+						iconView.setLayoutParams(new LinearLayout.LayoutParams(dp(iconSize), dp(iconSize)));
 						iconView.setPadding(0, 0, dp(16), 0);
 						row.addView(iconView);
 
@@ -257,7 +260,15 @@ ListDialog(This config) {
 						checkBox.setChecked(found);
 					}
 
-					if ("app".equals(itemData.get("type")) && sub != null) {
+					if (hasIcon) {
+						try {
+							iconView.setImageDrawable((Drawable) iconDrawable);
+						} catch (Exception e) {
+							// iconView.setImageDrawable(null);
+							iconView.setVisibility(View.GONE);
+						}
+					}
+					else if ("app".equals(itemData.get("type")) && sub != null) {
 						iconView.setVisibility(0);
 						Drawable dr = (Drawable) iconCache.get(sub.toString());
 						if (dr == null) {
@@ -267,7 +278,7 @@ ListDialog(This config) {
 							} catch (Exception e) {}
 						}
 						iconView.setImageDrawable(dr);
-					} else {
+					} else if (!hasIcon) {
 						iconView.setVisibility(8);
 					}
 					return row;
@@ -311,7 +322,7 @@ ListDialog(This config) {
 			});
 			buttonsContainer.addView(okButton);
 		}
-		
+
 		mainContainer.addView(buttonsContainer);
 
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -322,9 +333,9 @@ ListDialog(This config) {
 					int index = -1;
 					/* FIX: Use object identity to handle items with duplicate titles correctly */
 					for (int i = 0; i < selectedItems.size(); i++) {
-						if (selectedItems.get(i) == clicked) { 
-							index = i; 
-							break; 
+						if (selectedItems.get(i) == clicked) {
+							index = i;
+							break;
 						}
 					}
 					if (index != -1) selectedItems.remove(index);
@@ -357,7 +368,7 @@ ListDialog(This config) {
 				afterTextChanged(Editable sequence) {}
 			});
 		}
-		
+
 		root.addView(mainContainer);
 		activity.setContentView(root);
 
@@ -372,12 +383,12 @@ ListDialog(This config) {
 				if (hasDetach) config.onDetach();
 			}
 		});
-		
-		
+
+
 	}
 
 	show() {
-		if (!hasShown) {
+		if (!isAdded()) {
 			isRemoved = false;
 			hasShown = true;
 			tasker.doWithActivity(new java.util.function.Consumer() {
@@ -419,54 +430,3 @@ ListDialog(This config) {
 
 	return this;
 }
-
-
-/*───────────────────────────────────────────────────────────────
-  Execution Logic
-  ───────────────────────────────────────────────────────────────*/
-// a11Y.set();
-// dialog(This THIS) {
-// 	String title = "Select Actions";
-// 	boolean showFilter = true;
-// 	boolean multiSelect = true;
-// 	List preSelect = new ArrayList();
-// 	// 	preSelect.add("Flashlight");
-// 	long timeout = 30000;
-// 	List itemList = new ArrayList();
-// 	String[] titles = new String[] { "Wifi Toggle", "Bluetooth Toggle", "Flashlight", "Airplane Mode", "Do Not Disturb" };
-// 	String[] subs = new String[] { "System Action", "System Action", "Hardware Action", "Network Action", "Sound Action" };
-
-// 	for (int i = 0; i < titles.length; i++) {
-// 		Map item = new HashMap();
-// 		item.put("title", titles[i]);
-// 		item.put("subtitle", subs[i]);
-// 		itemList.add(item);
-// // 		itemList.add(item);
-// // 		itemList.add(item);
-// 	}
-
-// 	onSuccess(List list) {
-// 		THIS.result = list;
-// 		tasker.showToast(tasker.toJson(list, true));
-// 	}
-
-// 	onSuccess(Map map) {
-// 		THIS.result = map;
-// 		tasker.showToast(tasker.toJson(map, true));
-// 	}
-
-// 	onCancel() {
-// 		tasker.showToast("Cancel");
-// 	}
-	
-// 	onTimeout() {
-// 		tasker.showToast("Timeout");
-// 	}
-
-// 	return this;
-// }
-// This config = dialog(this);
-
-// dialog = ListDialog(config);
-// dialog.show();
-// return result;

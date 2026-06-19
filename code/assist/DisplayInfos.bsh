@@ -13,7 +13,6 @@ import android.os.Looper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import io.reactivex.Completable;
 import bsh.This;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,7 @@ import android.view.ViewParent;
 
 DisplayInfos() {
 	final This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_DISPLAY_INFO;
 	a11Y.viewControl.addView(TOP);
 	

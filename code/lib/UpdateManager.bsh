@@ -2,11 +2,12 @@
 This code was primarily generated using AI with minimal human editing.
 ───────────────────────────────────────────────────────────────*/
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.MediaType;
-import okhttp3.Response;
+import android.app.DownloadManager;
+import android.database.Cursor;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -33,6 +34,7 @@ import io.reactivex.subjects.SingleSubject;
 import android.view.KeyEvent;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import android.app.Activity;
 
 UpdateManager() {
 	String repo = "AccessibilityAction";
@@ -40,7 +42,6 @@ UpdateManager() {
 	String targetFile = "AccessibilityAction.zip";
 	String[] urls = { "https://github.com/" + owner + "/" + repo + "/releases/latest/download/" + targetFile };
 	String directoryPath;
-	OkHttpClient client = new OkHttpClient();
 
 	/*───────────────────────────────────────────────────────────────
 	  browseUrl(String url)
@@ -53,63 +54,58 @@ UpdateManager() {
 	}
 
 	/*───────────────────────────────────────────────────────────────
-	  makeRequest(OkHttpClient client, String url, String method, String token, String bodyJson)
-	  Handles synchronous HTTP requests via OkHttp.
+	  httpGet(String urlString)
+	  Replaces OkHttp for simple JSON API GET requests.
 	───────────────────────────────────────────────────────────────*/
-	public Response makeRequest(OkHttpClient client, String url, String method, String token, String bodyJson) {
-		MediaType JSON_TYPE = MediaType.parse("application/json; charset=utf-8");
-		Request.Builder builder = new Request.Builder()
-			.url(url)
-			.addHeader("Accept", "application/vnd.github+json")
-			.addHeader("X-GitHub-Api-Version", "2022-11-28");
+	public String httpGet(String urlString) {
+		StringBuilder result = new StringBuilder();
+		try {
+			URL url = new URL(urlString);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/vnd.github+json");
+			conn.setRequestProperty("X-GitHub-Api-Version", "2022-11-28");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-		if (token != null) {
-			builder.addHeader("Authorization", "Bearer " + token);
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String line;
+			while ((line = rd.readLine()) != null) {
+				result.append(line);
+			}
+			rd.close();
+		} catch (Exception e) {
+			throw new RuntimeException("HTTP GET Failed: " + e.getMessage());
 		}
-
-		if (method.equals("POST")) {
-			builder.post(RequestBody.create(JSON_TYPE, bodyJson));
-		} else if (method.equals("PATCH")) {
-			builder.patch(RequestBody.create(JSON_TYPE, bodyJson));
-		} else {
-			builder.get();
-		}
-
-		Response response = client.newCall(builder.build()).execute();
-		if (!response.isSuccessful()) {
-			throw new JavaCodeException("HTTP Error (" + response.code() + "): " + response.message());
-		}
-		return response;
+		return result.toString();
 	}
 
-    
-    /*───────────────────────────────────────────────────────────────
-      clearDirectory(File dir)
-      Recursively clears and deletes a directory.
-    ───────────────────────────────────────────────────────────────*/
-    public void clearDirectory(File dir) {
-        if (dir != null && dir.isDirectory()) {
-            File[] children = dir.listFiles();
-            if (children != null) {
-                for (int i = 0; i < children.length; i++) {
-                    File child = children[i];
-                    if (child.isDirectory()) {
-                        clearDirectory(child);
-                    } else {
-                        child.delete();
-                    }
-                }
-            }
-            dir.delete();
-        }
-    }
+	/*───────────────────────────────────────────────────────────────
+	  clearDirectory(File dir)
+	  Recursively clears and deletes a directory.
+	───────────────────────────────────────────────────────────────*/
+	public void clearDirectory(File dir) {
+		if (dir != null && dir.isDirectory()) {
+			File[] children = dir.listFiles();
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					File child = children[i];
+					if (child.isDirectory()) {
+						clearDirectory(child);
+					} else {
+						child.delete();
+					}
+				}
+			}
+			dir.delete();
+		}
+	}
 
 
 	/*───────────────────────────────────────────────────────────────
 	  unzipFile(File zipFile, String targetFolderPath)
-      Extracts a ZIP file to a target directory. Reads the ZIP first to 
-      identify top-level folders and clears them in the target directory 
-      if they exist, leaving non-matching folders intact.
+	  Extracts a ZIP file to a target directory. Reads the ZIP first to 
+	  identify top-level folders and clears them in the target directory 
+	  if they exist, leaving non-matching folders intact.
 	───────────────────────────────────────────────────────────────*/
 	public String unzipFile(File zipFile, String targetFolderPath) {
 		File baseDest = new File(targetFolderPath);
@@ -117,39 +113,39 @@ UpdateManager() {
 			baseDest.mkdirs();
 		}
 
-        /* First Pass: Identify top-level folders in the ZIP */
-        List topFolders = new ArrayList();
-        ZipInputStream zisScan = new ZipInputStream(new FileInputStream(zipFile));
-        ZipEntry entryScan = zisScan.getNextEntry();
-        
-        while (entryScan != null) {
-            String name = entryScan.getName();
-            int slashIndex = name.indexOf("/");
-            if (slashIndex != -1) {
-                String topFolder = name.substring(0, slashIndex);
-                if (!topFolders.contains(topFolder)) {
-                    topFolders.add(topFolder);
-                }
-            } else if (entryScan.isDirectory()) {
-                if (!topFolders.contains(name)) {
-                    topFolders.add(name);
-                }
-            }
-            zisScan.closeEntry();
-            entryScan = zisScan.getNextEntry();
-        }
-        zisScan.close();
+		/* First Pass: Identify top-level folders in the ZIP */
+		List topFolders = new ArrayList();
+		ZipInputStream zisScan = new ZipInputStream(new FileInputStream(zipFile));
+		ZipEntry entryScan = zisScan.getNextEntry();
 
-        /* Clear matching top-level folders in the destination directory */
-        for (int i = 0; i < topFolders.size(); i++) {
-            String folderName = (String) topFolders.get(i);
-            File targetFolder = new File(baseDest, folderName);
-            if (targetFolder.exists() && targetFolder.isDirectory()) {
-                clearDirectory(targetFolder);
-            }
-        }
+		while (entryScan != null) {
+			String name = entryScan.getName();
+			int slashIndex = name.indexOf("/");
+			if (slashIndex != -1) {
+				String topFolder = name.substring(0, slashIndex);
+				if (!topFolders.contains(topFolder)) {
+					topFolders.add(topFolder);
+				}
+			} else if (entryScan.isDirectory()) {
+				if (!topFolders.contains(name)) {
+					topFolders.add(name);
+				}
+			}
+			zisScan.closeEntry();
+			entryScan = zisScan.getNextEntry();
+		}
+		zisScan.close();
 
-        /* Second Pass: Extract files */
+		/* Clear matching top-level folders in the destination directory */
+		for (int i = 0; i < topFolders.size(); i++) {
+			String folderName = (String) topFolders.get(i);
+			File targetFolder = new File(baseDest, folderName);
+			if (targetFolder.exists() && targetFolder.isDirectory()) {
+				clearDirectory(targetFolder);
+			}
+		}
+
+		/* Second Pass: Extract files */
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
 		ZipEntry entry = zis.getNextEntry();
 
@@ -186,14 +182,9 @@ UpdateManager() {
 
 	/*───────────────────────────────────────────────────────────────
 	  downloadFile(String url, String destinationPath)
-	  Downloads a file and handles filename sniffing and renaming.
+	  Downloads a file natively using Android's DownloadManager.
 	───────────────────────────────────────────────────────────────*/
 	public String downloadFile(String url, String destinationPath) {
-		Response response = makeRequest(client, url, "GET", null, null);
-
-		String contentType = response.header("Content-Type");
-		String contentDisp = response.header("Content-Disposition");
-
 		File dest = new File(destinationPath);
 		File finalFile = null;
 
@@ -203,23 +194,13 @@ UpdateManager() {
 			}
 
 			String fileName = null;
-
-			if (contentDisp != null && contentDisp.contains("filename=")) {
-				int index = contentDisp.indexOf("filename=");
-				fileName = contentDisp.substring(index + 9).replace("\"", "");
-			}
-
-			if (fileName == null) {
+			try {
 				String uriPath = new java.net.URI(url).getPath();
 				fileName = uriPath.substring(uriPath.lastIndexOf('/') + 1);
-			}
+			} catch (Exception e) {}
 
 			if (fileName == null || fileName.length() == 0 || fileName.equals("raw")) {
-				if (contentType != null && contentType.contains("application/zip")) {
-					fileName = "downloaded.zip";
-				} else {
-					fileName = "downloaded.txt";
-				}
+				fileName = "downloaded.zip";
 			}
 
 			finalFile = new File(dest, fileName);
@@ -231,29 +212,64 @@ UpdateManager() {
 			finalFile = dest;
 		}
 
-		InputStream is = response.body().byteStream();
-		FileOutputStream os = new FileOutputStream(finalFile);
-		byte[] buffer = new byte[4096];
-		int bytesRead;
-		while ((bytesRead = is.read(buffer)) != -1) {
-			os.write(buffer, 0, bytesRead);
+		// Prevent DownloadManager from appending "-1" to the filename if it exists
+		if (finalFile.exists()) {
+			finalFile.delete();
 		}
-		os.flush();
-		os.close();
-		is.close();
-		response.close();
+
+		DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+		Uri downloadUri = Uri.parse(url);
+		DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+
+		request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+		request.setTitle("Downloading " + finalFile.getName());
+		request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+		request.setDestinationUri(Uri.fromFile(finalFile));
+
+		long downloadId = dm.enqueue(request);
+		boolean downloading = true;
+
+		while (downloading) {
+			DownloadManager.Query query = new DownloadManager.Query();
+			query.setFilterById(new long[] { downloadId });
+
+			Cursor cursor = dm.query(query);
+			if (cursor != null && cursor.moveToFirst()) {
+				int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+				int status = cursor.getInt(statusIndex);
+
+				if (status == DownloadManager.STATUS_SUCCESSFUL) {
+					downloading = false;
+				} else if (status == DownloadManager.STATUS_FAILED) {
+					downloading = false;
+					int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
+					int reason = cursor.getInt(reasonIndex);
+					cursor.close();
+					throw new RuntimeException("Native Download Failed. Reason Code: " + reason);
+				}
+				cursor.close();
+			}
+
+			if (downloading) {
+				try {
+					java.lang.Thread.sleep(1000);
+				} catch (Exception e) {}
+			}
+		}
 
 		if (finalFile.getName().endsWith(".txt")) {
-			FileInputStream fis = new FileInputStream(finalFile);
-			byte[] headerSniff = new byte[4];
-			fis.read(headerSniff);
-			fis.close();
-			if (headerSniff[0] == 0x50 && headerSniff[1] == 0x4B) {
-				String newPath = finalFile.getAbsolutePath().replaceAll("(?i)\\.txt$", ".zip");
-				File renamed = new File(newPath);
-				finalFile.renameTo(renamed);
-				return renamed.getAbsolutePath();
-			}
+			try {
+				FileInputStream fis = new FileInputStream(finalFile);
+				byte[] headerSniff = new byte[4];
+				fis.read(headerSniff);
+				fis.close();
+				if (headerSniff[0] == 0x50 && headerSniff[1] == 0x4B) {
+					String newPath = finalFile.getAbsolutePath().replaceAll("(?i)\\.txt$", ".zip");
+					File renamed = new File(newPath);
+					finalFile.renameTo(renamed);
+					return renamed.getAbsolutePath();
+				}
+			} catch (Exception e) {}
 		}
 
 		return finalFile.getAbsolutePath();
@@ -335,7 +351,6 @@ UpdateManager() {
 		java.util.function.Consumer myActivityConsumer = new java.util.function.Consumer() {
 			accept(Object activity) {
 				final Activity currentActivity = (Activity) activity;
-
 				DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
 					onClick(DialogInterface dialog, int which) {
 						String result = "canceled";
@@ -358,7 +373,7 @@ UpdateManager() {
 					}
 				};
 
-				AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity);
+				AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 				builder.setTitle(title);
 				builder.setMessage(message);
 				builder.setPositiveButton(positiveText, onClickListener);
@@ -391,8 +406,7 @@ UpdateManager() {
 
 	getLatestUrls() {
 		String preReleaseUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/releases";
-		Response response = makeRequest(client, preReleaseUrl, "GET", null, null);
-		String bodyJson = response.body().string();
+		String bodyJson = httpGet(preReleaseUrl);
 		JSONArray jsonArray = new JSONArray(bodyJson);
 		JSONArray assetsArray = jsonArray.getJSONObject(0).getJSONArray("assets");
 		List latestUrls = new ArrayList();
@@ -412,7 +426,7 @@ UpdateManager() {
 			return null;
 		}
 		List preReleaseUrl = getLatestUrls();
-		for (String url : preReleaseUrl) {
+		for (String url: preReleaseUrl) {
 			downloadAndUnzip(url, directoryPath);
 		}
 		return directoryPath;

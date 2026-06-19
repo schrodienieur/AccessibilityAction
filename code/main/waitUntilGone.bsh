@@ -9,9 +9,6 @@ import bsh.This;
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
 
 /*───────────────────────────────────────────────────────────────
 waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone)
@@ -25,6 +22,17 @@ Arguments:
 
 Returns: Boolean true if condition met, false/Exception if timeout.
 ───────────────────────────────────────────────────────────────*/
+import java.util.Map;
+import java.util.HashMap;
+import android.view.accessibility.AccessibilityNodeInfo;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+/*───────────────────────────────────────────────────────────────
+  waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone)
+  **Waits for Accessibility Nodes to Disappear**
+  Monitors accessibility events or polls the screen layout until the 
+  specified elements are gone or the timeout limit is reached.
+  ───────────────────────────────────────────────────────────────*/
 boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 	AccessibilityNodeInfo root = getRoot();
 	Map currentNodes = findNodes(root, argsConfigs, true);
@@ -36,48 +44,35 @@ boolean waitUntilGone(Object[][] argsConfigs, long timeout, boolean allGone) {
 		if (currentNodes.keySet().size() < argsConfigs.length) return true;
 	}
 
-	if (ENV.TASKER || ENV.KID_APP ) {
-		boolean oldDebug = debugMe;
-		if (oldDebug == true) debugMe = false;
+	boolean oldDebug = debugMe;
+	if (oldDebug == true) debugMe = false;
 
-		try {
-			boolean result = (Boolean) tasker.getAccessibilityEvents()
-				.map(new io.reactivex.functions.Function() {
-					apply(Object event) {
-						root = getRoot();
-						Map found = findNodes(root, argsConfigs, true);
-
-						if (allGone) {
-							return found.isEmpty();
-						} else {
-							return found.keySet().size() < argsConfigs.length;
-						}
-					}
-				})
-				.filter(new io.reactivex.functions.Predicate() {
-					test(Object isGone) {
-						return (Boolean) isGone;
-					}
-				})
-				.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
-				.firstOrError()
-				.blockingGet();
-
-			debugMe = oldDebug;
-			return result;
-
-		} catch (Exception e) {
-			debugMe = oldDebug;
-			throw new JavaCodeException("Timeout reached while waiting for nodes to disappear: " + e.getMessage());
-			return false;
-		}
-	} else if (ENV.MACRODROID) {
-		root = getRoot();
-		Map found = findNodes(root, argsConfigs, true);
-		return allGone ? found.isEmpty() : found.keySet().size() < argsConfigs.length;
+	boolean result = false;
+	try {
+		result = (Boolean) tasker.getAccessibilityEvents()
+			.map(new io.reactivex.functions.Function() {
+				apply(Object event) {
+					root = getRoot();
+					Map found = findNodes(root, argsConfigs, true);
+					return allGone ? found.isEmpty() : found.keySet().size() < argsConfigs.length;
+				}
+			})
+			.filter(new io.reactivex.functions.Predicate() {
+				test(Object isGone) {
+					return (Boolean) isGone;
+				}
+			})
+			.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
+			.firstOrError()
+			.blockingGet();
+	} catch (Exception e) {
+		Exception executionException = new JavaCodeException("Timeout reached while waiting for nodes to disappear: " + e.getMessage());
+		log(executionException.getMessage(), "ERROR");
+		throw executionException;
 	}
-	return false;
 
+	debugMe = oldDebug;
+	return result;
 }
 
 /*───────────────────────────────────────────────────────────────
@@ -145,32 +140,30 @@ Returns: Boolean true if node is gone, false/Exception if timeout.
 boolean waitUntilGone(AccessibilityNodeInfo node, long timeout) {
 	if (node == null) return true;
 
-	if (ENV.TASKER || ENV.KID_APP) {
-		try {
-			return (Boolean) tasker.getAccessibilityEvents()
-				.map(new io.reactivex.functions.Function() {
-					apply(Object event) {
-						/* Check if node is still refreshed/valid in the window */
-						try {
-							/* Refresh returns false if node is no longer visible/exists */
-							return !node.refresh();
-						} catch (Exception e) {
-							return true;
-						}
+	try {
+		return (Boolean) tasker.getAccessibilityEvents()
+			.map(new io.reactivex.functions.Function() {
+				apply(Object event) {
+					/* Check if node is still refreshed/valid in the window */
+					try {
+						/* Refresh returns false if node is no longer visible/exists */
+						return !node.refresh();
+					} catch (Exception e) {
+						return true;
 					}
-				})
-				.filter(new io.reactivex.functions.Predicate() {
-					test(Object isGone) {
-						return (Boolean) isGone;
-					}
-				})
-				.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
-				.firstOrError()
-				.blockingGet();
-		} catch (Exception e) {
-			throw new JavaCodeException("Timeout waiting for specific node to disappear");
-			return false;
-		}
+				}
+			})
+			.filter(new io.reactivex.functions.Predicate() {
+				test(Object isGone) {
+					return (Boolean) isGone;
+				}
+			})
+			.timeout(timeout, java.util.concurrent.TimeUnit.MILLISECONDS)
+			.firstOrError()
+			.blockingGet();
+	} catch (Exception e) {
+		throw new JavaCodeException("Timeout waiting for specific node to disappear");
+		return false;
 	}
 	return !node.refresh();
 

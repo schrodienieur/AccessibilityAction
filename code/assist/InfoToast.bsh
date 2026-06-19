@@ -49,7 +49,7 @@ InfoToast(AccessibilityNodeInfo node, Context overlayContext, int overlayType) {
 	if (node == null) return null;
 
 	This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_INFO_TOAST;
 	a11Y.viewControl.addView(TOP);
 	

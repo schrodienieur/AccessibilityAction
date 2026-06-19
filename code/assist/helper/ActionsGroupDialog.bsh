@@ -3,7 +3,7 @@ import bsh.This;
 ActionsGroupDialog() {
 	final This TOP = this;
 	long defaultTimeout = 60000;
-	final This a11Y = tasker.getJavaVariable("a11Y");
+	final This a11Y = getA11yInstance();
 	This dialogInstance;
 	This dialogConfig;
 

@@ -25,9 +25,6 @@ Exposed Fields:
 
 Example:
 env = Environment();
-if (env.currentType == env.TYPE_TASKER) {
-tasker.log("Running in: " + env.currentName);
-}
 ───────────────────────────────────────────────────────────────*/
 Environment() {
 	/* Define Enviromentironment Constants */
@@ -81,12 +78,14 @@ Environment() {
 	boolean hasMaterialColor;
 	boolean hasMaterialLib;
 	boolean hasMaterialFallback;
+	Context envContext;
 	String currentName = "UNKNOWN";
 	String packageName = "unknown";
 
 	/* Check for Tasker Enviromentironment */
 	if (tasker != void && context != void) {
-		packageName = context.getPackageName();
+		envContext = context;
+		packageName = envContext.getPackageName();
 		if (packageName.equals("net.dinglisch.android.taskerm")) {
 			currentType = TYPE_TASKER;
 			currentName = "TASKER";
@@ -99,9 +98,9 @@ Environment() {
 	/* Check for MacroDroid Enviromentironment */
 	if (magicText != void && variableSetter != void) {
 		try {
-			Context macroContext = com.arlosoft.macrodroid.AppContext.getContext();
-			if (macroContext != null) {
-				packageName = macroContext.getPackageName();
+			envContext = com.arlosoft.macrodroid.AppContext.getContext();
+			if (envContext != null) {
+				packageName = envContext.getPackageName();
 				if (packageName.equals("com.arlosoft.macrodroid")) {
 					currentType = TYPE_MACRODROID;
 					currentName = "MACRODROID";
@@ -116,13 +115,13 @@ Environment() {
 
 
 	try {
-		Class.forName("com.google.android.material.textview.MaterialTextView", false, context.getClass().getClassLoader());
+		Class.forName("com.google.android.material.textview.MaterialTextView", false, envContext.getClass().getClassLoader());
 		hasMaterialLib = true;
 	} catch (e) {}
 
 	String themeIdentifier = "Theme.Material3.DynamicColors.Dark";
-	Resources baseRes = context.getResources();
-	String pkg = context.getPackageName();
+	Resources baseRes = envContext.getResources();
+	String pkg = envContext.getPackageName();
 
 	// Check for Material Color
 	int themeId = baseRes.getIdentifier(themeIdentifier, "style", pkg);

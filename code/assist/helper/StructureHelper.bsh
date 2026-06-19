@@ -6,7 +6,7 @@ import android.graphics.Color;
 import java.lang.reflect.Field;
 
 This StructureHelper(This structure) {
-    This a11Y = tasker.getJavaVariable("a11Y");
+    This a11Y = getA11yInstance();
 	if (!structure.namespace.name.equals("StructureOverlay")) {
 		throw new JavaCodeException("Can't be called from " + structure.namespace.name + ". " + "Please call with StructureOverlay");
 	}

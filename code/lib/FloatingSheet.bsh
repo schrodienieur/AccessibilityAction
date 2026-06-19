@@ -50,7 +50,7 @@ FloatingSheet(This config) {
 		throw new Exception("No view found");
 	}
 
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final This TOP = this;
 
 	if (ENV == void || ENV == null) ENV = Environment();

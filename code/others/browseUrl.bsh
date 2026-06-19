@@ -35,7 +35,7 @@ browseUrl(String url, String labelOrPackageName) {
 	if (url.startsWith("www.")) {
 		url = "http://" + url;
 	}
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	This pm = a11Y.packageManager;
     String packageName;
 	if (labelOrPackageName != null) packageName = pm.resolvePackage(labelOrPackageName);

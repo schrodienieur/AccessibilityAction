@@ -107,7 +107,7 @@ public boolean swipeShizuku(double startX, double startY, double endX, double en
 
 		return true;
 	} catch (Exception e) {
-		tasker.log("swipeShizuku Error: " + e.toString());
+		log("swipeShizuku Error: " + e.toString());
 		return false;
 	}
 

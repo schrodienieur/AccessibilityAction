@@ -58,7 +58,7 @@ import android.view.accessibility.AccessibilityWindowInfo;
 ──────────────────────────────────────────────────────────────── */
 StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 	final This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_STRUCTURE_OVERLAY;
 	a11Y.viewControl.addView(TOP);
 	// Always uses accessibility service for non main screen
@@ -292,13 +292,13 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		onLongPress(This nodeBox) {
 			vibrate(nodeBox.view);
 			addHistory(nodeBox);
-			if (tasker.getJavaVariable("a11Y").quickAddMode) {
+			if (getA11yInstance().quickAddMode) {
 				This nodeData = SimilarNodes(root, map, nodeBox);
 				remove();
 				a11Y.executor.submit(new Runnable() {
 					run() {
 						try {
-							tasker.getJavaVariable("a11Y").set();
+							getA11yInstance().set();
 							if (a11Y.assistBar == null) return;
 							if (a11Y.assistBar.actionPicker == null) return;
 							Map result = a11Y.assistBar.actionPicker.selectNodeActions(nodeData);

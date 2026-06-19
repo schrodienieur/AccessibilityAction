@@ -22,7 +22,7 @@ public void openFile(File file, String packageName, String className) {
 		return;
 	}
 	if (!file.exists()) {
-		tasker.log("File does not exist: " + file.getAbsolutePath());
+		log("File does not exist: " + file.getAbsolutePath());
 		return;
 	}
 

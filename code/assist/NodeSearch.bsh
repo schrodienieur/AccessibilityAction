@@ -8,7 +8,7 @@ import android.graphics.Point;
 NodeSearch(This structureOverlay) {
     
     final This TOP = this;
-    This a11Y = tasker.getJavaVariable("a11Y");
+    This a11Y = getA11yInstance();
     final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_SEARCH;
     a11Y.viewControl.addView(TOP);
 

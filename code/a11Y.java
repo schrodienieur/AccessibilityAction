@@ -1,10 +1,10 @@
 String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath();
+LOG_FILE = ENV_PATH + "/log.txt";
+
 addClassPath(ENV_PATH);
 importCommands("lib");
 importCommands("lib.file");
 importCommands("main");
-LOG_FILE = ENV_PATH + "/log.txt";
-
 import bsh.This;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -16,13 +16,15 @@ import java.lang.reflect.Field;
 import android.os.Handler;
 import android.os.Looper;
 
+This ENV = Environment();
+
 a11Y() {
 	// Retrieve the previous instance from Tasker's memory
-	This old = tasker.getJavaVariable("a11Y");
+	This old = getA11yInstance();
 	if (old != null) {
 		try {
-			boolean hasRemoveBoolean = old.namespace.getMethod("remove", new Class[] { Boolean.class } ) != null;
-			boolean hasRemove = old.namespace.getMethod("remove", new Class[] { } ) != null ;
+			boolean hasRemoveBoolean = old.namespace.getMethod("remove", new Class[] { Boolean.class }) != null;
+			boolean hasRemove = old.namespace.getMethod("remove", new Class[] {}) != null;
 			if (hasRemoveBoolean) {
 				old.remove(false);
 			} else if (hasRemove) {
@@ -273,7 +275,7 @@ a11Y() {
 		tasker.setJavaVariable("a11E", null);
 		if (clearA11Y) tasker.setJavaVariable("a11Y", null);
 	}
-	
+
 	remove() {
 		remove(true);
 	}
@@ -302,9 +304,6 @@ a11Y() {
 log("Initializing a11Y");
 This a11Y = a11Y();
 a11Y.setEnvPath(ENV_PATH);
-LOG_FILE = ENV_PATH + "/log.txt";
-
-This ENV = Environment();
 a11Y.setEnv(ENV);
 
 This viewControl = ViewControl();
@@ -346,6 +345,7 @@ a11Y.namespace.setVariable("assistBar", assistBar, false);
 
 if (!ENV.HAS_MATERIAL_COLOR && ENV.HAS_MATERIAL_COLOR_FALLBACK) {
 	This mcf = MaterialColorFallback();
+	a11Y.namespace.setVariable("materialColorFallback", mcf, false);
 	mcf.load();
 	log("Using fallback material color.");
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");

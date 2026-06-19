@@ -48,7 +48,7 @@ openApp(String packageName, String className) {
  *──────────────────────────────────────────────────────────────*/
 openApp(String labelOrPackageName) {
     if (labelOrPackageName == null) return;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	This pm = a11Y.packageManager;
     /* Fallback: treat as a package or label and find the main launch intent. */
     String packageName = pm.resolvePackage(labelOrPackageName);
@@ -87,7 +87,7 @@ openApp(String labelOrPackageName) {
  *──────────────────────────────────────────────────────────────*/
 openApp(String labelOrPackageName, boolean background) {
     if (labelOrPackageName == null) return;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	This pm = a11Y.packageManager;
     /* Use existing logic to find the package name */
     String packageName = pm.resolvePackage(labelOrPackageName);

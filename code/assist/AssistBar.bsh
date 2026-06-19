@@ -45,7 +45,7 @@ public int dp(int value) {
 public This AssistBar(int initialX, int initialY) {
 
 	final This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_ASSIST_BAR;
 	a11Y.viewControl.addView(TOP);
 	

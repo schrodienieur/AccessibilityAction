@@ -73,7 +73,7 @@ tapShizuku(double x, double y, long duration) {
 		return true;
 
 	} catch (Exception e) {
-		tasker.log("tapShizuku direct error: " + e.getMessage());
+		log("tapShizuku direct error: " + e.getMessage());
 		return false;
 	}
 }

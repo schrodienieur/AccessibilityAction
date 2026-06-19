@@ -142,7 +142,7 @@ public This InfoDialog(AccessibilityNodeInfo targetNode, Context ctx, int overla
 	final Handler mainHandler = new Handler(Looper.getMainLooper());
 
 	final This TOP = this;
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_INFO_SHEET;
 	a11Y.viewControl.addView(TOP);
 

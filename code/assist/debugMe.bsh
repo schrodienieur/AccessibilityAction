@@ -3,7 +3,6 @@ import android.os.Looper;
 import android.graphics.Color;
 import bsh.This;
 import android.view.accessibility.AccessibilityNodeInfo;
-import io.reactivex.subjects.SingleSubject;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Callable;
 import io.reactivex.subjects.CompletableSubject;
@@ -39,7 +38,7 @@ debugMe(List nodes) {
 		mainHandler.post(run);
 	}
 
-	This a11Y = tasker.getJavaVariable("a11Y");
+	This a11Y = getA11yInstance();
 	This callerThis = this.caller;
 	String callerName = callerThis.namespace.getName();
 	String invocationText = line(this.caller.caller);
@@ -196,7 +195,7 @@ public void debugMe(double x, double y) {
 					}
 				}, debugDelay);
 			} catch (Exception e) {
-				tasker.log("debugMe Main Thread Error: " + e.getMessage());
+				log("debugMe Main Thread Error: " + e.getMessage());
 			}
 		}
 	};

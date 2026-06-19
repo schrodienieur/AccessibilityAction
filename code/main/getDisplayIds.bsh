@@ -25,7 +25,6 @@ Example:
 ArrayList displays = getDisplayIds();
 for (int i = 0; i < displays.size(); i++) {
 int id = ((Integer) displays.get(i)).intValue();
-tasker.log("Found display: " + id);
 }
 ───────────────────────────────────────────────────────────────*/
 public ArrayList getDisplayIds() {

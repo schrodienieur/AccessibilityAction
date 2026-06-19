@@ -142,7 +142,7 @@ public boolean gestureShizuku(Object[][] points, Paint paint) {
 		}
 		return true;
 	} catch (Exception e) {
-		tasker.log("gestureShizuku Error: " + e.toString());
+		log("gestureShizuku Error: " + e.toString());
 		return false;
 	}
 
