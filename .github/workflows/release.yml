@@ -25,10 +25,10 @@ jobs:
 
       - name: Create Zip Archive
         run: |
-          # 1. Enter the folder
+          # 1. Enter the code folder
           cd code
           
-          # 2. Create the zip (using ** for recursive exclusion patterns)
+          # 2. Create the zip
           zip -r AccessibilityAction.zip . \
           -x "**/*.sync-conflict*" \
           "**/~syncthing~*" \
@@ -47,13 +47,37 @@ jobs:
           # 3. MOVE the zip to the root workspace
           mv AccessibilityAction.zip ../AccessibilityAction.zip
 
+          # 4. Go back to root and enter the folder for Macrodroid
+          cd ../macrodroid
+          
+          # 5. Create the Macrodroid zip
+          zip -r Macrodroid-release.zip . \
+          -x "**/*.sync-conflict*" \
+          "**/~syncthing~*" \
+          "**/log.txt" \
+          "*.db" \
+          "*.mp4" \
+          "*.java.cache" \
+          "*.disk" \
+          "**/.demo/*" \
+          "**/.dev/*" \
+          "**/cache/*" \
+          "**/.git/*" \
+          "**/.github/*" \
+          "**/.*"
+
+          # 6. MOVE the zip to the root workspace
+          mv Macrodroid-release.zip ../Macrodroid-release.zip
+
       - name: Create Release and Upload Asset
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          files: AccessibilityAction.zip
+          files: |
+            AccessibilityAction.zip
+            Macrodroid-release.zip
           body_path: releases/${{ github.ref_name }}/release_notes.md
           append_body: true
           generate_release_notes: true
@@ -65,5 +89,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: AccessibilityAction-Manual
-          path: AccessibilityAction.zip
+          path: |
+            AccessibilityAction.zip
+            Macrodroid-release.zip
           if-no-files-found: error
