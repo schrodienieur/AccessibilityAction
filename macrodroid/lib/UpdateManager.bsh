@@ -235,99 +235,134 @@ UpdateManager() {
     }
 
     /*───────────────────────────────────────────────────────────────
-      downloadFile(String url, String destinationPath)
-      Downloads a file natively using Android's DownloadManager.
-    ───────────────────────────────────────────────────────────────*/
-    public String downloadFile(String url, String destinationPath) {
-        File dest = new File(destinationPath);
-        File finalFile = null;
+	  downloadFile(String url, String destinationPath)
+	  Downloads a file natively using Android's DownloadManager.
+	───────────────────────────────────────────────────────────────*/
+	public String downloadFile(String url, String destinationPath) {
+		File dest = new File(destinationPath);
+		File finalFile = null;
 
-        if (destinationPath.endsWith("/") || (dest.exists() && dest.isDirectory())) {
-            if (!dest.exists()) {
-                dest.mkdirs();
-            }
+		if (destinationPath.endsWith("/") || (dest.exists() && dest.isDirectory())) {
+			if (!dest.exists()) {
+				dest.mkdirs();
+			}
 
-            String fileName = null;
-            try {
-                String uriPath = new java.net.URI(url).getPath();
-                fileName = uriPath.substring(uriPath.lastIndexOf('/') + 1);
-            } catch (Exception e) {}
+			String fileName = null;
+			try {
+				String uriPath = new java.net.URI(url).getPath();
+				fileName = uriPath.substring(uriPath.lastIndexOf('/') + 1);
+			} catch (Exception e) {}
 
-            if (fileName == null || fileName.length() == 0 || fileName.equals("raw")) {
-                fileName = "downloaded.zip";
-            }
+			if (fileName == null || fileName.length() == 0 || fileName.equals("raw")) {
+				fileName = "downloaded.zip";
+			}
 
-            finalFile = new File(dest, fileName);
-        } else {
-            File parent = dest.getParentFile();
-            if (parent != null && !parent.exists()) {
-                parent.mkdirs();
-            }
-            finalFile = dest;
-        }
+			finalFile = new File(dest, fileName);
+		} else {
+			File parent = dest.getParentFile();
+			if (parent != null && !parent.exists()) {
+				parent.mkdirs();
+			}
+			finalFile = dest;
+		}
 
-        // Prevent DownloadManager from appending "-1" to the filename if it exists
-        if (finalFile.exists()) {
-            finalFile.delete();
-        }
+		/* Enforce downloading to /storage/emulated/0/Download first */
+		File downloadDir = new File("/storage/emulated/0/Download");
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
+		File dlFile = new File(downloadDir, finalFile.getName());
 
-        DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri downloadUri = Uri.parse(url);
-        DownloadManager.Request request = new DownloadManager.Request(downloadUri);
-        
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-        request.setTitle("Downloading " + finalFile.getName());
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-        request.setDestinationUri(Uri.fromFile(finalFile));
+		/* Prevent DownloadManager from appending "-1" to the filename if it exists */
+		if (dlFile.exists()) {
+			dlFile.delete();
+		}
 
-        long downloadId = dm.enqueue(request);
-        boolean downloading = true;
+		DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+		Uri downloadUri = Uri.parse(url);
+		DownloadManager.Request request = new DownloadManager.Request(downloadUri);
 
-        while (downloading) {
-            DownloadManager.Query query = new DownloadManager.Query();
-            query.setFilterById(new long[] { downloadId });
+		request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+		request.setTitle("Downloading " + finalFile.getName());
+		request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+		request.setDestinationUri(Uri.fromFile(dlFile));
 
-            Cursor cursor = dm.query(query);
-            if (cursor != null && cursor.moveToFirst()) {
-                int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                int status = cursor.getInt(statusIndex);
+		long downloadId = dm.enqueue(request);
+		boolean downloading = true;
 
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    downloading = false;
-                } else if (status == DownloadManager.STATUS_FAILED) {
-                    downloading = false;
-                    int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
-                    int reason = cursor.getInt(reasonIndex);
-                    cursor.close();
-                    throw new RuntimeException("Native Download Failed. Reason Code: " + reason);
-                }
-                cursor.close();
-            }
+		while (downloading) {
+			DownloadManager.Query query = new DownloadManager.Query();
+			query.setFilterById(new long[] { downloadId });
 
-            if (downloading) {
-                try {
-                    java.lang.Thread.sleep(1000);
-                } catch (Exception e) {}
-            }
-        }
+			Cursor cursor = dm.query(query);
+			if (cursor != null && cursor.moveToFirst()) {
+				int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+				int status = cursor.getInt(statusIndex);
 
-        if (finalFile.getName().endsWith(".txt")) {
-            try {
-                FileInputStream fis = new FileInputStream(finalFile);
-                byte[] headerSniff = new byte[4];
-                fis.read(headerSniff);
-                fis.close();
-                if (headerSniff[0] == 0x50 && headerSniff[1] == 0x4B) {
-                    String newPath = finalFile.getAbsolutePath().replaceAll("(?i)\\.txt$", ".zip");
-                    File renamed = new File(newPath);
-                    finalFile.renameTo(renamed);
-                    return renamed.getAbsolutePath();
-                }
-            } catch (Exception e) {}
-        }
+				if (status == DownloadManager.STATUS_SUCCESSFUL) {
+					downloading = false;
+				} else if (status == DownloadManager.STATUS_FAILED) {
+					downloading = false;
+					int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
+					int reason = cursor.getInt(reasonIndex);
+					cursor.close();
+					if (dlFile.exists()) {
+						dlFile.delete();
+					}
+					throw new RuntimeException("Native Download Failed. Reason Code: " + reason);
+				}
+				cursor.close();
+			}
 
-        return finalFile.getAbsolutePath();
-    }
+			if (downloading) {
+				try {
+					java.lang.Thread.sleep(1000);
+				} catch (Exception e) {}
+			}
+		}
+
+		/* Move downloaded file from Download directory to the final requested path */
+		if (!dlFile.renameTo(finalFile)) {
+			FileInputStream inStream = null;
+			FileOutputStream outStream = null;
+			try {
+				inStream = new FileInputStream(dlFile);
+				outStream = new FileOutputStream(finalFile);
+				byte[] buffer = new byte[1024];
+				int length;
+				while ((length = inStream.read(buffer)) > 0) {
+					outStream.write(buffer, 0, length);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to move downloaded file to destination: " + e.getMessage());
+			} finally {
+				if (inStream != null) {
+					try { inStream.close(); } catch (Exception e) {}
+				}
+				if (outStream != null) {
+					try { outStream.close(); } catch (Exception e) {}
+				}
+			}
+			dlFile.delete();
+		}
+
+		if (finalFile.getName().endsWith(".txt")) {
+			try {
+				FileInputStream fis = new FileInputStream(finalFile);
+				byte[] headerSniff = new byte[4];
+				fis.read(headerSniff);
+				fis.close();
+				if (headerSniff[0] == 0x50 && headerSniff[1] == 0x4B) {
+					String newPath = finalFile.getAbsolutePath().replaceAll("(?i)\\.txt$", ".zip");
+					File renamed = new File(newPath);
+					finalFile.renameTo(renamed);
+					return renamed.getAbsolutePath();
+				}
+			} catch (Exception e) {}
+		}
+
+		return finalFile.getAbsolutePath();
+	}
 
     /*───────────────────────────────────────────────────────────────
       downloadAndUnzip(String url, String destinationPath)

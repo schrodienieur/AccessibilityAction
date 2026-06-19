@@ -212,9 +212,16 @@ UpdateManager() {
 			finalFile = dest;
 		}
 
-		// Prevent DownloadManager from appending "-1" to the filename if it exists
-		if (finalFile.exists()) {
-			finalFile.delete();
+		/* Enforce downloading to /storage/emulated/0/Download first */
+		File downloadDir = new File("/storage/emulated/0/Download");
+		if (!downloadDir.exists()) {
+			downloadDir.mkdirs();
+		}
+		File dlFile = new File(downloadDir, finalFile.getName());
+
+		/* Prevent DownloadManager from appending "-1" to the filename if it exists */
+		if (dlFile.exists()) {
+			dlFile.delete();
 		}
 
 		DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -224,7 +231,7 @@ UpdateManager() {
 		request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
 		request.setTitle("Downloading " + finalFile.getName());
 		request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-		request.setDestinationUri(Uri.fromFile(finalFile));
+		request.setDestinationUri(Uri.fromFile(dlFile));
 
 		long downloadId = dm.enqueue(request);
 		boolean downloading = true;
@@ -245,6 +252,9 @@ UpdateManager() {
 					int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
 					int reason = cursor.getInt(reasonIndex);
 					cursor.close();
+					if (dlFile.exists()) {
+						dlFile.delete();
+					}
 					throw new RuntimeException("Native Download Failed. Reason Code: " + reason);
 				}
 				cursor.close();
@@ -255,6 +265,31 @@ UpdateManager() {
 					java.lang.Thread.sleep(1000);
 				} catch (Exception e) {}
 			}
+		}
+
+		/* Move downloaded file from Download directory to the final requested path */
+		if (!dlFile.renameTo(finalFile)) {
+			FileInputStream inStream = null;
+			FileOutputStream outStream = null;
+			try {
+				inStream = new FileInputStream(dlFile);
+				outStream = new FileOutputStream(finalFile);
+				byte[] buffer = new byte[1024];
+				int length;
+				while ((length = inStream.read(buffer)) > 0) {
+					outStream.write(buffer, 0, length);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to move downloaded file to destination: " + e.getMessage());
+			} finally {
+				if (inStream != null) {
+					try { inStream.close(); } catch (Exception e) {}
+				}
+				if (outStream != null) {
+					try { outStream.close(); } catch (Exception e) {}
+				}
+			}
+			dlFile.delete();
 		}
 
 		if (finalFile.getName().endsWith(".txt")) {
