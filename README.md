@@ -5,16 +5,13 @@
 
 &nbsp;
 # Accessibility Action
-Accessibility related actions and events for android automation app called [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm&hl=id)
+Accessibility related actions and events for android automation app called **[Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)** and **[Macrodroid](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)**
 
 [![Downloads](https://img.shields.io/github/downloads/mqwec43as/AccessibilityAction/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&&style=for-the-badge)](https://github.com/mqwec43as/AccessibilityAction/releases/latest/download/AccessibilityAction.zip)
 [![Stable](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?sort=date&display_name=tag&style=for-the-badge&label=stable
 )](https://github.com/mqwec43as/AccessibilityAction/releases/latest)
 [![Beta](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?include_prereleases&sort=semver&display_name=tag&style=for-the-badge&label=beta
 )](https://github.com/mqwec43as/AccessibilityAction/releases)
-
-_**Requires Java Code** action available on **v6.6** for actions **and Material Library** available on **v6.7** for assist features_
-
 </div>
 
 
@@ -26,6 +23,7 @@ _**Requires Java Code** action available on **v6.6** for actions **and Material 
 </div>
 
 ### 1. Syntax based UI automation actions
+[![Tasker](https://img.shields.io/badge/Tasker-v6.6-ffdbcc?style=for-the-badge&labelColor=e65100)](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm) [![Macrodroid](https://img.shields.io/badge/Macrodroid-v5.65.2-d6e3ff?style=for-the-badge&labelColor=003066)](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)
 
 Use text to build our automation, like AutoHotkey or AutoInput Action V2
 
@@ -43,6 +41,10 @@ openApp("Reddit");
 node = scrollTo("r/tasker");
 click(node);
 ```
+
+&nbsp;
+>[!IMPORTANT] 
+> Limited to Tasker. Macrodroid v5.65.2 doesn't suppport intercepting events in Java code.
 
 **React on click.**
 ```java
@@ -69,23 +71,28 @@ a11Y.addEvent(eventName, myEvent);
 
 &nbsp;
 
->[!WARNING] 
->**Below features require v6.7**
-&nbsp;
+### 2. Debug highlighter
+[![Tasker](https://img.shields.io/badge/Tasker-v6.6-ffdbcc?style=for-the-badge&labelColor=e65100)](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm) [![Macrodroid](https://img.shields.io/badge/Macrodroid-v5.65.2-d6e3ff?style=for-the-badge&labelColor=003066)](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)
 
-### 2. Debug highlighter & UI inspector
-
-Highlight certain actions and maps the entire UI.
+Highlight actions and display brief information toast.
 
 <video height ="560" src="https://github.com/user-attachments/assets/d87dbd79-3aab-4c42-a4eb-f2b5e4397771" controls="controls" muted="muted" playsinline="playsinline"></video>
 
 
 &nbsp;
 ### 3. Script builder
+[![Tasker](https://img.shields.io/badge/Tasker-v6.7-ffdbcc?style=for-the-badge&labelColor=e65100)](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)
 
 Create and test UI automation script by choosing through dialogs.
 
 <video height ="560" src="https://github.com/user-attachments/assets/37fbec1e-f809-4241-a570-e2dee39b005a" controls="controls" muted="muted" playsinline="playsinline"></video>
+
+
+> [!IMPORTANT] 
+> This feature use material library available only on Tasker v6.7
+
+> [!NOTE] 
+> Macrodroid can't use material library due to missing compatible theme Theme.Material3
 
 &nbsp;
 <div align="center">
