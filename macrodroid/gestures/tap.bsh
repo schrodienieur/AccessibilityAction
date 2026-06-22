@@ -90,6 +90,8 @@ public boolean tap(double x, double y, long duration) {
 		// * TASKER_OR_KID_APP
 		if (signal != null) signal.blockingAwait();
 		handlerThread.quitSafely();
+		// * Add a small delay because Macrodroid can't use AccessibilityService.GestureResultCallback
+		wait(duration + 50);
 		return true;
 	} catch (Exception e) {
 		return false;

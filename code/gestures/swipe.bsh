@@ -2,8 +2,10 @@
 This code was generated using AI.
 ───────────────────────────────────────────────────────────────*/
 boolean swipe(double startX, double startY, double endX, double endY, long duration, boolean stopFlick) {
+	Object[][] swipePoints;
+	
 	if (stopFlick) {
-		Object[][] swipePoints = new Object[][] {
+		swipePoints = new Object[][] {
 			{
 				(float) startX, (float) startY, 0,1L
 			}, // Action Down
@@ -19,10 +21,8 @@ boolean swipe(double startX, double startY, double endX, double endY, long durat
 				2,50L
 			} // Action Up (Type 2) + Hold
 		};
-
-		return gesture(swipePoints);
 	} else {
-		Object[][] swipePoints = new Object[][] {
+		swipePoints = new Object[][] {
 			{
 				(float) startX, (float) startY, 0,1L
 			}, {
@@ -32,8 +32,9 @@ boolean swipe(double startX, double startY, double endX, double endY, long durat
 				duration
 			}
 		};
-		return gesture(swipePoints);
 	}
+
+	return gesture(swipePoints);
 }
 
 boolean swipe(double startX, double startY, double endX, double endY, long duration) {
