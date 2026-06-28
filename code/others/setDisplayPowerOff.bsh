@@ -1,0 +1,3 @@
+setDisplayPowerOff() {
+	return setDisplayPowerMode(0);
+}

@@ -1,0 +1,30 @@
+import com.joaomgcd.taskerm.shell.CommandResult;
+import com.joaomgcd.taskerm.action.java.JavaCodeSceneV2Helper;
+import android.view.SurfaceControl;
+// POWER_MODE_OFF = 0
+// POWER_MODE_DOZE = 1
+// POWER_MODE_NORMAL = 2
+// POWER_MODE_DOZE_SUSPEND = 3
+setDisplayPowerMode(int mode) {
+	// Source https://github.com/HunterXProgrammer/DisplayToggle
+	String scriptPath = pathToFile("others/DisplayToggle.dex").getAbsolutePath();
+	String command = "CLASSPATH=\"" + scriptPath + "\" app_process / DisplayToggle " + mode;
+	int timeout = 5;
+	CommandResult result;
+	boolean hasUpdated;
+	try {
+		tasker.getClass().getMethod("isAdbWifiAvailable");
+		hasUpdated = true;
+	} catch (e) {}
+	if (!hasUpdated) return false;
+	if (tasker.isRootAvailable()) {
+		result = tasker.runShellRoot(command, timeout);
+	} else if (tasker.isAdbWifiAvailable()) {
+		result = tasker.runShellAdbWifi(command, timeout);
+	} else if (tasker.isShizukuAvailable()) {
+		result = tasker.runShellShizuku(command, timeout);
+	}
+	if (result == null) return false;
+	if (result.error == null) return true;
+	return false;
+}
