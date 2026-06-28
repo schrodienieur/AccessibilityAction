@@ -33,8 +33,6 @@ scrollTo(String key, String value, int scrollCount, double startY, double endY, 
 			break;
 		}
 		swipe(0.5, startY, 0.5, endY, duration, true);
-		// * Add a small delay because Macrodroid can't use AccessibilityService.GestureResultCallback
-		wait(duration + 50);
 	}
 	if (hasNode(nodes)) return toNode(nodes);
 	return null;

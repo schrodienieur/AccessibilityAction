@@ -5,7 +5,7 @@
 
 &nbsp;
 # Accessibility Action
-Accessibility related actions and events for android automation app called **[Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)** and **[Macrodroid](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)**
+Text based accessibility actions and events for android automation app called **[Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm)** and **[Macrodroid](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)**
 
 [![Downloads](https://img.shields.io/github/downloads/mqwec43as/AccessibilityAction/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&&style=for-the-badge)](https://github.com/mqwec43as/AccessibilityAction/releases/latest/download/AccessibilityAction.zip)
 [![Stable](https://img.shields.io/github/v/release/mqwec43as/AccessibilityAction?sort=date&display_name=tag&style=for-the-badge&label=stable
@@ -22,7 +22,17 @@ Accessibility related actions and events for android automation app called **[Ta
 
 </div>
 
-### 1. Syntax based UI automation actions
+### Summary
+
+| No | Features | Tasker | Macrodroid |
+| --- | --- | --- | --- |
+| 1 | [Text based UI automation](#1-text-based-ui-automation) | :heavy_check_mark: `v6.6` | :heavy_check_mark: `v5.65.2` |
+| 2 | [Debug highlighter](#2-debug-highlighter) | :heavy_check_mark: `v6.6`  | :heavy_check_mark: `v5.65.2` |
+| 3 | [Script builder](#3-script-builder) | :heavy_check_mark: `v6.7` | :x:  |
+
+&nbsp;
+
+### 1. Text based UI automation
 [![Tasker](https://img.shields.io/badge/Tasker-v6.6-ffdbcc?style=for-the-badge&labelColor=e65100)](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm) [![Macrodroid](https://img.shields.io/badge/Macrodroid-v5.65.2-d6e3ff?style=for-the-badge&labelColor=003066)](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid)
 
 Use text to build our automation, like AutoHotkey or AutoInput Action V2
@@ -76,7 +86,7 @@ a11Y.addEvent(eventName, myEvent);
 
 Highlight actions and display brief information toast.
 
-<video height ="560" src="https://github.com/user-attachments/assets/d87dbd79-3aab-4c42-a4eb-f2b5e4397771" controls="controls" muted="muted" playsinline="playsinline"></video>
+<video height ="480" src="https://github.com/user-attachments/assets/d87dbd79-3aab-4c42-a4eb-f2b5e4397771" controls="controls" muted="muted" playsinline="playsinline"></video>
 
 
 &nbsp;
@@ -85,7 +95,7 @@ Highlight actions and display brief information toast.
 
 Create and test UI automation script by choosing through dialogs.
 
-<video height ="560" src="https://github.com/user-attachments/assets/37fbec1e-f809-4241-a570-e2dee39b005a" controls="controls" muted="muted" playsinline="playsinline"></video>
+<video height ="480" src="https://github.com/user-attachments/assets/37fbec1e-f809-4241-a570-e2dee39b005a" controls="controls" muted="muted" playsinline="playsinline"></video>
 
 
 > [!IMPORTANT] 

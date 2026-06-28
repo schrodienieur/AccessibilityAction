@@ -48,9 +48,6 @@ import bsh.BshMethod;
   ───────────────────────────────────────────────────────────────*/
 ListDialog(This config) {
 
-	if (ENV == void || ENV == null) ENV = Environment();
-	ENV.checkMaterialLib(this);
-
 	Activity activity;
 	Context activityContext;
 	boolean isRemoved = true;
@@ -60,9 +57,10 @@ ListDialog(This config) {
 	String title = config.title == void ? null : config.title;
 	boolean showFilter = config.showFilter == void ? false : config.showFilter;
 	boolean isMulti = config.multiSelect == void ? false : config.multiSelect;
-	List preSelect = config.preSelect == void ? null : config.preSelect;
+	List preSelect = config.preSelect == void ? new ArrayList() : config.preSelect;
 	long timeout = config.timeout == void ? 0 : config.timeout;
 	int iconSize = config.iconSize == void ? 40 : config.iconSize;
+	float dimAmount = config.dimAmount == void ? 0.0f : config.dimAmount;
 
 	/* Height Logic Setup */
 	Object rawMaxH = config.maxHeight == void ? 0.8 : config.maxHeight;
@@ -98,6 +96,18 @@ ListDialog(This config) {
 		if (timeout != 0 && !waitTimeout.hasComplete()) waitTimeout.onComplete();
 	}
 
+	setPreSelectedItems(List list) {
+		if (isMulti) {
+			preSelect = list;
+		}
+	}
+
+	clearPreSelectedItems() {
+		if (isMulti) {
+			preSelect = new ArrayList();
+		}
+	}
+
 	layout(Activity act) {
 		activity = act;
 		activityContext = activity;
@@ -121,6 +131,11 @@ ListDialog(This config) {
 
 		WindowManager.LayoutParams lp = window.getAttributes();
 		lp.gravity = Gravity.BOTTOM;
+		if (dimAmount != 0.0f) {
+			window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+			lp.dimAmount = dimAmount;
+		}
+		
 		window.setAttributes(lp);
 
 		This tm = ThemeManager(activityContext);
@@ -130,9 +145,9 @@ ListDialog(This config) {
 		root.setBackgroundColor(Color.TRANSPARENT);
 
 		LinearLayout mainContainer = new LinearLayout(activityContext);
-		mainContainer.setOrientation(1);
+		mainContainer.setOrientation(LinearLayout.VERTICAL);
 
-		LinearLayout.LayoutParams mainLp = new LinearLayout.LayoutParams(-1, -2);
+		LinearLayout.LayoutParams mainLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		mainLp.gravity = Gravity.BOTTOM;
 		mainContainer.setLayoutParams(mainLp);
 		mainContainer.setPadding(dp(20), dp(20), dp(20), dp(20));
@@ -164,17 +179,34 @@ ListDialog(This config) {
 		listView.setDivider(null);
 		listView.setDividerHeight(0);
 
-		LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(-1, -2, 1.0f);
+		LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
 		listView.setLayoutParams(listLp);
 
 		ArrayList filteredList = new ArrayList(originalList);
 
-		if (isMulti && preSelect != null) {
+		if (isMulti && !preSelect.isEmpty()) {
 			for (int i = 0; i < originalList.size(); i++) {
 				Map item = (Map) originalList.get(i);
 				for (int j = 0; j < preSelect.size(); j++) {
 					Object pre = preSelect.get(j);
-					if (item.get("title").equals(pre) || item.get("subtitle").equals(pre)) {
+
+					boolean hasTitle = item.containsKey("title");
+					boolean hasSubtitle = item.containsKey("subtitle");
+					boolean isTitleMatch = item.get("title").equals(pre.get("title"));
+					boolean isSubtitleMatch;
+					
+					if (hasSubtitle) isSubtitleMatch = item.get("subtitle").equals(pre.get("subtitle"));
+					if (!isTitleMatch && !isSubtitleMatch) continue;
+					
+					boolean isMatch;
+
+					if (hasTitle && hasSubtitle && isTitleMatch && isSubtitleMatch) {
+						isMatch = true;
+					} else if (hasTitle && !hasSubtitle && isTitleMatch) {
+						isMatch = true;
+					}
+					
+					if (!selectedItems.contains(item) && isMatch) {
 						selectedItems.add(item);
 						break;
 					}
@@ -212,7 +244,7 @@ ListDialog(This config) {
 
 						LinearLayout itemLayout = new LinearLayout(activityContext);
 						itemLayout.setOrientation(1);
-						itemLayout.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1.0f));
+						itemLayout.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
 
 						titleTextView = new MaterialTextView(activityContext);
 						titleTextView.setTextSize(16);
