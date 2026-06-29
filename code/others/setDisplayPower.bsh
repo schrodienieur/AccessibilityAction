@@ -1,0 +1,30 @@
+import android.os.IBinder;
+import android.hardware.display.IDisplayManager;
+import android.view.Display;
+import com.joaomgcd.taskerm.shell.CommandResult;
+import com.joaomgcd.taskerm.action.java.JavaCodeSceneV2Helper;
+import android.view.SurfaceControl;
+
+setDisplayPower(int displayId, int mode) {
+    boolean hasShellRun ;
+    try {
+		tasker.getClass().getMethod("isAdbWifiAvailable");
+		hasShellRun = true;
+	} catch (e) {}
+    boolean hasShizuku;
+    boolean result;
+    // * Try Shizuku at first via requestDisplayPower
+    try {
+        IBinder binder = tasker.getShizukuService("display");
+        IDisplayManager dm = IDisplayManager.Stub.asInterface(binder);
+        int state = (mode == 0) ? Display.STATE_OFF : Display.STATE_ON;
+        result = dm.requestDisplayPower(displayId, state);
+        return result;
+    } catch(e) {}
+    return setDisplayPowerViaShell(mode);
+}
+
+setDisplayPower(int mode) {
+    int displayId = getContext().getDisplay().getDisplayId();
+    return setDisplayPower(displayId, mode);
+}

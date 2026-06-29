@@ -5,7 +5,7 @@ import android.view.SurfaceControl;
 // POWER_MODE_DOZE = 1
 // POWER_MODE_NORMAL = 2
 // POWER_MODE_DOZE_SUSPEND = 3
-setDisplayPowerMode(int mode) {
+setDisplayPowerViaShell(int mode) {
 	// Source https://github.com/HunterXProgrammer/DisplayToggle
 	String scriptPath = pathToFile("others/DisplayToggle.dex").getAbsolutePath();
 	String command = "CLASSPATH=\"" + scriptPath + "\" app_process / DisplayToggle " + mode;

@@ -1,3 +1,8 @@
+setDisplayPowerOff(boolean useShell) {
+	if (useShell) return setDisplayPowerViaShell(0);
+	return setDisplayPower(0);
+}
+
 setDisplayPowerOff() {
-	return setDisplayPowerMode(0);
+	return setDisplayPowerOff(true);
 }
