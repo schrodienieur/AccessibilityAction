@@ -66,8 +66,6 @@ redditDoomScroll() {
 		}
 	}
 
-	regex = "PackageName";
-
 	return this;
 }
 

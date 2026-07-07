@@ -9,6 +9,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import bsh.This;
 import io.reactivex.internal.operators.observable.ObservableHide;
 import io.reactivex.disposables.Disposable;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 startMonitor() {
 	getService();
@@ -51,9 +53,17 @@ startMonitor() {
 						return;
 					} else {
 						List packageList = a11E.eventMap.get(eventType);
-						if (packageList != null && !packageList.contains(packageName)) {
-							accessibilityEvent.recycle();
-							return;
+						if (packageList != null) {
+							boolean hasEvent;
+							for (String p: packageList) {
+								Matcher m = Pattern.compile(p).matcher(packageName);
+								hasEvent = m.find();
+								if (hasEvent) break;
+							}
+							if (!hasEvent) {
+								accessibilityEvent.recycle();
+								return;	
+							} 
 						}
 					}
 					
@@ -74,6 +84,7 @@ startMonitor() {
 						boolean hasEvent = listener.EVENT_TYPES.containsKey(eventType);
 						if (!hasEvent) continue;
 						This sourceListener;
+						listener.PackageName = null;
 						boolean valid = validate(listener, accessibilityEvent);
 
 						if (listener.namespace.getMethod("Source", new Class[] {}) != null && valid) {
@@ -93,6 +104,8 @@ startMonitor() {
 								}
 							});
 							
+						} else {
+							log("Invalid listener: " + key + " for event: " + eventType, "ERROR");
 						}
 					}
 					

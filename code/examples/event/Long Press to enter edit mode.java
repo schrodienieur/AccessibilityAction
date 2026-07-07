@@ -2,7 +2,6 @@ a11Y.set();
 myEvent() {
 	String PackageName = "reddit";
 
-
 	Source() {
 		String ViewIdResourceName = "(com.laurencedawson.reddit_sync:id/root|com.laurencedawson.reddit_sync:id/comment_row_base)";
 		String regex = "ViewIdResourceName";
@@ -17,8 +16,6 @@ myEvent() {
 		}
 	}
 
-
-	regex = "PackageName";
 	return this;
 }
 
