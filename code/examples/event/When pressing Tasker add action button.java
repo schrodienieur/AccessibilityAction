@@ -1,7 +1,6 @@
 a11Y.set();
 myEvent() {
-	String PackageName = "tasker";
-
+	String PackageName = "net.dinglisch.android.taskerm";
 
 	Source() {
 		String ViewIdResourceName = "net.dinglisch.android.taskerm:id/button_add_action";
@@ -16,11 +15,10 @@ myEvent() {
 		tasker.showToast("Quick Actions");
 	}
 
-
-	regex = "PackageName";
 	return this;
 }
 
 myEvent = myEvent();
 a11Y.removeEvent("myEvent");
 a11Y.addEvent("myEvent", myEvent);
+

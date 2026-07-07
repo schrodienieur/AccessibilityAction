@@ -1,6 +1,8 @@
 import com.joaomgcd.taskerm.action.java.JavaCodeException;
+import io.reactivex.subjects.CompletableSubject;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers; // NEW: Needed for thread control
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -32,7 +34,7 @@ startMonitor() {
 		 * This prevents the Accessibility Service thread from hanging during validation.
 		 */
 		Disposable disposable = events.observeOn(Schedulers.from(a11E.executor))
-			.subscribe(new Consumer() {
+			.subscribe(new io.reactivex.functions.Consumer() {
 				accept(Object accessibilityEvent) {
 					// Now running on "a11E_x" thread
 					This a11E = tasker.getJavaVariable("a11E");
@@ -97,7 +99,7 @@ startMonitor() {
 					accessibilityEvent.recycle();
 					
 				}
-			}, new Consumer() {
+			}, new io.reactivex.functions.Consumer() {
 				accept(Object errorObject) {
 					Throwable error = (Throwable) errorObject;
 					a11E.namespace.unsetVariable("disposable");
@@ -109,6 +111,6 @@ startMonitor() {
 
 	} catch (Exception e) {
 		a11E.namespace.unsetVariable("disposable");
-		throw e;
+		log("Monitor Stream Error: " + e.getMessage());
 	}
 }
