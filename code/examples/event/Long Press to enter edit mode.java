@@ -1,6 +1,6 @@
 a11Y.set();
 myEvent() {
-	String PackageName = "reddit";
+	String PackageName = ".*reddit.*";
 
 	Source() {
 		String ViewIdResourceName = "(com.laurencedawson.reddit_sync:id/root|com.laurencedawson.reddit_sync:id/comment_row_base)";

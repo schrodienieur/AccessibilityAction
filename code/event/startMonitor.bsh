@@ -13,17 +13,17 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 startMonitor() {
+	final This TOP = this;
 	getService();
 	This a11E = tasker.getJavaVariable("a11E");
-	if (a11E == null || a11E == void) {
+	String lastPackageName = "";
+	if (a11E == null) {
 		throw new JavaCodeException("The a11E object is missing.");
 	}
 
-	if (a11E.disposable != void && a11E.disposable != null) {
-		if (!a11E.disposable.isDisposed()) {
-			tasker.logAndToast("Monitor is already running.");
-			return;
-		}
+	if (!a11E.disposable.isDisposed()) {
+		log("Monitor is already running.");
+		return;
 	}
 
 	try {
@@ -37,36 +37,33 @@ startMonitor() {
 		 */
 		Disposable disposable = events.observeOn(Schedulers.from(a11E.executor))
 			.subscribe(new io.reactivex.functions.Consumer() {
-				accept(Object accessibilityEvent) {
-					// Now running on "a11E_x" thread
+				accept(AccessibilityEvent accessibilityEvent) {
+
 					This a11E = tasker.getJavaVariable("a11E");
 					int eventType = accessibilityEvent.getEventType();
 					String packageName = accessibilityEvent.getPackageName();
-					
+
+					// * Check if muted
 					if (a11E == null || a11E == void || a11E.isMuted()) {
 						accessibilityEvent.recycle();
 						return;
 					}
-					
+
+					// * Filter event type first
 					if (!a11E.eventList.contains(eventType)) {
 						accessibilityEvent.recycle();
 						return;
-					} else {
-						List packageList = a11E.eventMap.get(eventType);
-						if (packageList != null) {
-							boolean hasEvent;
-							for (String p: packageList) {
-								Matcher m = Pattern.compile(p).matcher(packageName);
-								hasEvent = m.find();
-								if (hasEvent) break;
-							}
-							if (!hasEvent) {
-								accessibilityEvent.recycle();
-								return;	
-							} 
-						}
 					}
-					
+
+					// * Use lastPackageName if packageName is null
+					if (packageName == null) {
+						packageName = lastPackageName;
+					}
+
+					// * Filter listeners with packageName and event type
+					List listeners = a11E.getEvents(eventType, packageName);
+					if (listeners.isEmpty()) return;
+
 					a11E.event = accessibilityEvent;
 					a11E.node = accessibilityEvent.getSource();
 
@@ -75,55 +72,53 @@ startMonitor() {
 						a11E.history.subList(a11E.historyLimit, a11E.history.size()).clear();
 					}
 
-					Map listeners = a11E.listeners != void ? a11E.listeners : null;
+					for (This listener: listeners) {
 
-					if (listeners == null) return;
-					for (String key: listeners.keySet()) {
-
-						This listener = listeners.get(key);
 						boolean hasEvent = listener.EVENT_TYPES.containsKey(eventType);
 						if (!hasEvent) continue;
 						This sourceListener;
+
+						// * Validate listener first while ignoring packageName
+						String savedTemp = listener.PackageName;
 						listener.PackageName = null;
 						boolean valid = validate(listener, accessibilityEvent);
+						listener.PackageName = savedTemp;
 
+						// * Validate source if declared
 						if (listener.namespace.getMethod("Source", new Class[] {}) != null && valid) {
-
 							sourceListener = listener.Source();
 							AccessibilityNodeInfo node = accessibilityEvent.getSource();
 							if (node != null) valid = validate(sourceListener, node);
-							
+
 						}
 
+						// * Run listener if it's valid
 						if (valid) {
-
 							String methodName = listener.EVENT_TYPES.get(eventType);
 							a11E.executor.submit(new Runnable() {
 								run() {
 									listener.invokeMethod(methodName, new Object[] { accessibilityEvent });
 								}
 							});
-							
 						} else {
 							log("Invalid listener: " + key + " for event: " + eventType, "ERROR");
 						}
 					}
-					
+
 					accessibilityEvent.recycle();
-					
+
 				}
 			}, new io.reactivex.functions.Consumer() {
-				accept(Object errorObject) {
-					Throwable error = (Throwable) errorObject;
-					a11E.namespace.unsetVariable("disposable");
+				accept(Throwable error) {
 					tasker.showToast("Monitor Stream Error: " + error.getMessage());
+					log("Monitor Stream Error: " + error.getMessage(), "ERROR", TOP);
+					throw error;
 				}
 			});
 
 		a11E.namespace.setVariable("disposable", disposable, false);
 
 	} catch (Exception e) {
-		a11E.namespace.unsetVariable("disposable");
 		log("Monitor Stream Error: " + e.getMessage());
 	}
 }

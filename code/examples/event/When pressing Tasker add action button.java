@@ -1,6 +1,6 @@
 a11Y.set();
 myEvent() {
-	String PackageName = "taskerm";
+	String PackageName = ".*taskerm.*";
 
 
 	Source() {

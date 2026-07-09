@@ -11,7 +11,7 @@ a11Y.set();
   - Blocks app usage until cooldown expires.
   ───────────────────────────────────────────────────────────────*/
 redditDoomScroll() {
-	String PackageName = "reddit";
+	String PackageName = ".*reddit.*";
 	int scrollCount = 0;
 	int limit = 50;
 	

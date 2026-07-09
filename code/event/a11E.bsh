@@ -8,12 +8,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import io.reactivex.disposables.Disposable;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 a11E() {
 	This old = tasker.getJavaVariable("a11E");
 	if (old != null) {
 		try {
-			if (old.executor != void && old.executor != null) {
+			if (old.executor != null) {
 				if (!old.executor.isShutdown()) {
 					old.executor.shutdownNow();
 				}
@@ -21,7 +23,7 @@ a11E() {
 		} catch (Exception e) {}
 
 		try {
-			if (old.disposable != void && old.disposable != null) {
+			if (old.disposable != null) {
 				if (!old.disposable.isDisposed()) {
 					old.disposable.dispose();
 				}
@@ -55,6 +57,7 @@ a11E() {
 	List eventList = new ArrayList();
 	Map eventMap = new HashMap();
 	int historyLimit = 10;
+	Map ignoredPackages = new HashMap();
 
 	boolean isMuted;
 	public String toConstant(String methodName) {
@@ -147,6 +150,22 @@ a11E() {
 		}
 
 		THIS.namespace.setTypedVariable("EVENT_TYPES", map.getClass(), map, true);
+		THIS.namespace.setTypedVariable("EVENT_LIST", constants.getClass(), constants, true);
+		THIS.namespace.setTypedVariable("HAS_PACKAGE", boolean.class, false, false);
+		THIS.namespace.setTypedVariable("HAS_IGNORED_PACKAGE", boolean.class, false, false);
+
+		if (THIS.PackageName != void) {
+			Pattern pattern = Pattern.compile(THIS.PackageName);
+			THIS.namespace.setTypedVariable("HAS_PACKAGE", boolean.class, true, false);
+			THIS.namespace.setTypedVariable("PACKAGE_PATTERN", pattern.getClass(), pattern, true);
+		} 
+
+		if (THIS.ignoredPackageName != void) {
+			Pattern pattern = Pattern.compile(THIS.ignoredPackageName);
+			THIS.namespace.setTypedVariable("HAS_IGNORED_PACKAGE", boolean.class, true, false);
+			THIS.namespace.setTypedVariable("IGNORED_PACKAGE_PATTERN", pattern.getClass(), pattern, true);
+		}
+
 		return constants;
 	}
 
@@ -184,6 +203,51 @@ a11E() {
 
 	get(String eventId) {
 		return listeners.get(eventId);
+	}
+
+	getEvents(int eventType, String packageName) {
+		List filtered = new ArrayList();
+
+		if (!ignoredPackages.isEmpty()) {
+			for (String ignoredPattern: ignoredPackages.values()) {
+				if (ignoredPattern == null) continue;
+				Matcher ignoredMatcher = Pattern.compile(ignoredPattern).matcher(packageName);
+				if (ignoredMatcher.matches()) {
+					return filtered;
+				}
+			}
+		}
+
+		for (This listener: listeners.values()) {
+			boolean hasEvent = listener.EVENT_TYPES.containsKey(eventType);
+
+			if (!hasEvent) continue;
+
+			if (listener.HAS_IGNORED_PACKAGE) {
+				boolean matches = listener.IGNORED_PACKAGE_PATTERN.matcher(packageName).matches();
+				if (matches) continue;
+			}
+
+			if (listener.HAS_PACKAGE) {
+				boolean matches = listener.PACKAGE_PATTERN.matcher(packageName).matches();
+				if (!matches) continue;
+			}
+
+			filtered.add(listener);
+		}
+		return filtered;
+	}
+
+	addIgnorePackage(String name, String packagePattern) {
+		ignoredPackages.put(name, packagePattern);
+	}
+
+	ignoreThisPackage() {
+		ignoredPackages.put(context.getPackageName(), context.getPackageName());
+	}
+
+	includeThisPackage() {
+		ignoredPackages.remove(context.getPackageName());
 	}
 	
 	return this;
