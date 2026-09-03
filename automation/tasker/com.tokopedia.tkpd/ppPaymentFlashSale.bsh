@@ -1,0 +1,40 @@
+a11Y.set();
+
+if (!a11Y.checkService()) {
+	tasker.showToast("Tasker Accessibility is disabled. Enabling service..", "tokopediaPpPaymentFlashSale");
+	a11Y.enableService();
+	wait(1000);
+};
+
+
+if (!a11Y.checkService()) {
+	tasker.showToast("Tasker Accessibility is disabled. Please enable it manually!");
+	return "ERROR: Accessibility Service not enabled";
+}
+
+String packageName = "com.tokopedia.tkpd";
+
+
+// Get startTime
+startTime = dateTimePickerDialog();
+
+// Haste
+haste = longInputDialog("Haste", "Haste in milliseconds");
+
+adjustedStartTime = startTime - haste;
+
+// Opening Tokopedia
+currentPackage = currentPackage();
+if (!packageName.equals(currentPackage)) {
+	openApp(packageName);
+}
+
+pinAuthNode = getNode("id", "PreAuth PIN", 0, 60000);
+
+// Start
+tasker.showToast("Started and waiting...");
+waitNTP(adjustedStartTime);
+
+click("id", "PreAuth PIN");
+
+return "Tokopedia - ppPaymentFlashSale";
