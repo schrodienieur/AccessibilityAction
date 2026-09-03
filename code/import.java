@@ -16,6 +16,7 @@ importCommands("assist.helper");
 importCommands("assist.dialog");
 importCommands("event");
 importCommands("global");
+importCommands("dialog");
 import android.view.accessibility.*;
 if (debugMe == void) debugMe = false;
 if (debugDelay == void) debugDelay = 1000;

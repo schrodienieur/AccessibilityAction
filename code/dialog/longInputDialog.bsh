@@ -1,0 +1,59 @@
+import java.util.function.Consumer;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.widget.EditText;
+import android.text.InputType;
+import io.reactivex.subjects.SingleSubject;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+
+/*───────────────────────────────────────────────────────────────
+ * longInputDialog(String title, String hint)
+ * **Shows a blocking Long-only Input Dialog**
+ * Returns: Long object.
+ * ─────────────────────────────────────────────────────────────*/
+Long longInputDialog(String title, String hint) {
+    final SingleSubject resultSignal = SingleSubject.create();
+
+    Consumer myActivityConsumer = new Consumer() {
+        accept(Object activity) {
+            final Activity currentActivity = (Activity) activity;
+            final EditText input = new EditText(currentActivity);
+            input.setHint(hint);
+            input.setInputType(InputType.TYPE_CLASS_NUMBER); // Number pad only
+
+            onClickListener = new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) {
+                    try {
+                        // Use Long.parseLong to handle 13-digit timestamps
+                        resultSignal.onSuccess(Long.parseLong(input.getText().toString()));
+                    } catch (Exception e) {
+                        resultSignal.onSuccess(0L); 
+                    }
+                    currentActivity.finish();
+                }
+            };
+            
+            // Listener for back button/outside touch
+            onCancelListener = new DialogInterface.OnCancelListener() {
+                onCancel(DialogInterface dialog) {
+                    resultSignal.onError(new JavaCodeException("canceled"));
+                    currentActivity.finish();
+                }
+            };
+
+            builder = new AlertDialog.Builder(currentActivity);
+            builder.setTitle(title);
+            builder.setView(input);
+            builder.setPositiveButton("OK", onClickListener);
+            builder.setCancelable(true);
+            builder.setOnCancelListener(onCancelListener);
+            builder.show();
+                   
+        }
+    };
+
+    tasker.doWithActivity(myActivityConsumer);
+    return (Long) resultSignal.blockingGet();
+}

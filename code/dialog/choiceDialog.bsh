@@ -1,0 +1,58 @@
+/*───────────────────────────────────────────────────────────────
+ * choiceDialog(String title, String[] options)
+ * **Shows a blocking Single Choice List Dialog**
+ * Displays a list of options and waits for the user to select one.
+ * Arguments:
+ * * - title → Dialog title.
+ * * - options → Dialog choices.
+ *
+ * Example:
+ * // Choose payment methods
+ * String[] paymentMethods = {"GoPay", "QRIS"};
+ * String choice = choiceDialog("Select Payment Method", paymentMethods);
+ * ─────────────────────────────────────────────────────────────*/
+choiceDialog(String title, String[] options) {
+    final SingleSubject resultSignal = SingleSubject.create();
+    
+    Consumer myActivityConsumer = new Consumer() {
+        accept(Object activity) {
+            final Activity currentActivity = (Activity) activity;
+            
+            // Listener for list item selection
+            onClickListener = new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) {
+                    // 'which' is the index of the clicked item
+                    String selected = options[which];
+                    resultSignal.onSuccess(selected);
+                    dialog.dismiss();
+                    currentActivity.finish();
+                }
+            };
+
+            // Listener for back button/outside touch
+            onCancelListener = new DialogInterface.OnCancelListener() {
+                onCancel(DialogInterface dialog) {
+                    resultSignal.onError(new JavaCodeException("canceled"));
+                    currentActivity.finish();
+                }
+            };
+
+            builder = new AlertDialog.Builder(currentActivity);
+            builder.setTitle(title);
+            
+            // This turns the dialog into a list selection
+            builder.setItems(options, onClickListener);
+            
+            builder.setCancelable(true);
+            builder.setOnCancelListener(onCancelListener);
+            builder.create().show();
+        }
+    };
+
+    tasker.doWithActivity(myActivityConsumer);
+    return resultSignal.blockingGet();
+}
+
+// --- Implementation ---
+
+

@@ -1,0 +1,78 @@
+import java.util.function.Consumer;
+import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.widget.DatePicker;
+import android.widget.TimePicker;
+import java.util.Calendar;
+import io.reactivex.subjects.SingleSubject;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
+
+/*───────────────────────────────────────────────────────────────
+ * dateTimePickerDialog()
+ * **Shows a sequential Date and Time picker**
+ * Returns a Long Epoch Timestamp (ms) for the chosen moment.
+ * ─────────────────────────────────────────────────────────────*/
+Long dateTimePickerDialog() {
+    final SingleSubject resultSignal = SingleSubject.create();
+    final Calendar calendar = Calendar.getInstance();
+
+    Consumer myActivityConsumer = new Consumer() {
+        accept(Object activity) {
+            final Activity currentActivity = (Activity) activity;
+
+            // 2. The TimePicker Listener (Runs second)
+            onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
+                onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    calendar.set(Calendar.MINUTE, minute);
+                    calendar.set(Calendar.SECOND, 0);
+                    calendar.set(Calendar.MILLISECOND, 0);
+
+                    resultSignal.onSuccess(calendar.getTimeInMillis());
+                    currentActivity.finish();
+                }
+            };
+
+            // 1. The DatePicker Listener (Runs first)
+            onDateSetListener = new DatePickerDialog.OnDateSetListener() {
+                onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    // Launch TimePicker immediately after Date is picked
+                    TimePickerDialog timeDialog = new TimePickerDialog(
+                        currentActivity,
+                        onTimeSetListener,
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE),
+                        true // 24-hour format
+                    );
+                    timeDialog.show();
+                }
+            };
+
+            onCancelListener = new android.content.DialogInterface.OnCancelListener() {
+                onCancel(android.content.DialogInterface dialog) {
+                    resultSignal.onError(new JavaCodeException("canceled"));
+                    currentActivity.finish();
+                }
+            };
+
+            // Initialize and show the first dialog (Date)
+            DatePickerDialog dateDialog = new DatePickerDialog(
+                currentActivity,
+                onDateSetListener,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            dateDialog.setOnCancelListener(onCancelListener);
+            dateDialog.show();
+        }
+    };
+
+    tasker.doWithActivity(myActivityConsumer);
+    return (Long) resultSignal.blockingGet();
+}

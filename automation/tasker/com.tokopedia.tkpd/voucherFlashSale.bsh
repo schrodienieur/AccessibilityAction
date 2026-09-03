@@ -1,0 +1,68 @@
+a11Y.set();
+
+if (!a11Y.checkService()) {
+	tasker.showToast("Tasker Accessibility is disabled. Enabling service..", "tokopediaVoucherFlashSale");
+	a11Y.enableService();
+	wait(1000);
+};
+
+
+if (!a11Y.checkService()) {
+	tasker.showToast("Tasker Accessibility is disabled. Please enable it manually!");
+	return "ERROR: Accessibility Service not enabled";
+}
+
+Object[][] btnPayConfigs = {
+	{
+		"btnPay",
+		"id",
+		"com.tokopedia.tkpd.df_base:id/btn_order_submit_sticky_pay"
+	},
+	{
+		"btnPay",
+		"id",
+		"com.tokopedia.tkpd.df_base:id/btn_checkout_pay"
+	}
+};
+
+String packageName = "com.tokopedia.tkpd";
+
+
+// Get startTime
+startTime = dateTimePickerDialog();
+
+// Haste
+haste = longInputDialog("Haste", "Haste in milliseconds");
+
+adjustedStartTime = startTime - haste;
+
+// Choose payment method
+String[] paymentMethods = {
+	"GoPay",
+	"QRIS"
+};
+String paymentText = choiceDialog("Select Payment Method", paymentMethods);
+
+// Opening Tokopedia
+currentPackage = currentPackage();
+if (!packageName.equals(currentPackage)) {
+	openApp(packageName);
+}
+
+// Wait for user to go to payment page in 60 seconds
+paymentNode = getNode("text", paymentText, 0, 60000);
+// coords = getNodeCoordinates(paymentNode);
+// HashMap map = waitNodes(btnPayConfigs, 10000, false);
+// tasker.showToast("Payment:" + paymentNode.get);
+// Start
+tasker.showToast("Started and waiting...");
+waitNTP(adjustedStartTime);
+// Click payment selection
+click(paymentNode);
+// click(coords.x, coords.y);
+// Wait for loader
+nodes = waitNodes("id", "com.tokopedia.tkpd:id/loader_unify_text", 1000);
+// Click pay button
+HashMap map = waitNodes(btnPayConfigs, 10000, false);
+click(map.get("btnPay").get(0));
+return "Tokopedia - voucherFlashSale";
