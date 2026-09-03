@@ -1,0 +1,33 @@
+a11Y.set();
+
+packageName = "com.shopee.id";
+
+// Get startTime
+startTime = dateTimePickerDialog();
+
+// Haste
+haste = longInputDialog("Haste", "Haste in milliseconds");
+
+adjustedStartTime = startTime - haste;
+
+// Opening Shopee
+currentPackage = currentPackage();
+if (!packageName.equals(currentPackage)) {
+	openApp(packageName);
+}
+
+// Wait for trigger node to appear on screen
+nodes = waitNodes("id", "buttonCartPanelSubmit", 60000);
+triggerNode = nodes.get(0);
+while (getNodeCoordinates(triggerNode) == null) {
+	wait(250);
+	triggerNode.refresh();
+}
+coords = getNodeCoordinates(triggerNode);
+
+// Start
+tasker.showToast("Started and waiting...");
+waitNTP(adjustedStartTime);
+click("id", "buttonCartPanelSubmit");
+click("id", "buttonPlaceOrder", 0);
+return "Shopee - VoucherFlashSale";

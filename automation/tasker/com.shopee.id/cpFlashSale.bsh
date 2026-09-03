@@ -1,0 +1,45 @@
+a11Y.set();
+
+Object[][] btnRefreshConfigs = {
+	{
+		"btnRefresh",
+		"id",
+		"buttonCheckBoxChecked"
+	},
+	{
+		"btnRefresh",
+		"id",
+		"buttonCheckBoxNotChecked"
+	},
+	{
+		"btnRefresh",
+		"id",
+		"toggleCartPageUseShopeeCoin"
+	}
+};
+
+packageName = "com.shopee.id";
+
+// Get startTime
+startTime = dateTimePickerDialog();
+
+// Haste
+haste = longInputDialog("Haste", "Haste in milliseconds");
+adjustedStartTime = startTime - haste;
+
+// Opening Shopee
+currentPackage = currentPackage();
+if (!packageName.equals(currentPackage)) {
+	openApp(packageName);
+}
+
+HashMap map = waitNodes(btnRefreshConfigs, 10000, false);
+// Start
+tasker.callTask("Triple Beep", new HashMap());
+waitNTP(adjustedStartTime);
+click(map.get("btnRefresh").get(0));
+// click("id", "buttonPlaceOrder", 0);
+tasker.showToast("Started and waiting...");
+waitNTP(startTime+4900L);
+click("id", "buttonPlaceOrder", 0);
+return "Shopee - cpFlashSale";
