@@ -38,7 +38,7 @@ import android.app.Activity;
 
 UpdateManager() {
 	String repo = "AccessibilityAction";
-	String owner = "mqwec43as";
+	String owner = "schrodienieur";
 	String targetFile = "AccessibilityAction.zip";
 	String[] urls = { "https://github.com/" + owner + "/" + repo + "/releases/latest/download/" + targetFile };
 	String directoryPath;

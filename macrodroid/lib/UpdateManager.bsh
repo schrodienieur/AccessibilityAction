@@ -92,7 +92,7 @@ SingleSubjectImpl() {
 UpdateManager() {
     boolean isMacrodroid = context.getPackageName().equals("com.arlosoft.macrodroid");
     String repo = "AccessibilityAction";
-    String owner = "mqwec43as";
+    String owner = "schrodienieur";
     String targetFile = "Macrodroid-release.zip";
     String[] urls = { "https://github.com/" + owner + "/" + repo + "/releases/latest/download/" + targetFile };
     String directoryPath;
