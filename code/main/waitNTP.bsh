@@ -1,0 +1,124 @@
+import android.util.Log;
+import android.os.SystemClock;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.lang.reflect.Array;
+import java.util.concurrent.TimeUnit;
+
+if (ENV.TASKER || ENV.KID_APP) {
+	import io.reactivex.Completable;
+}
+
+/*───────────────────────────────────────────────────────────────
+ * waitNTP(long targetEpoch)
+ * Synchronizes with NTP (averages 5 samples from a time server) 
+ * and waits until target. Fallbacks to next server if one fails.
+ * ─────────────────────────────────────────────────────────────*/
+void waitNTP(long scheduleTime) {
+	String[] servers = new String[] {
+		"pool.ntp.org",
+		"time.apple.com",
+		"time.google.com"
+	};
+
+	int targetSamples = 5;
+	long avgSystemOffset = 0;
+	boolean syncSuccessful = false;
+
+	// OUTER LOOP: Iterate through the fallback servers
+	for (int i = 0; i < servers.length; i++) {
+		String server = servers[i];
+		long totalSystemOffset = 0;
+		int successfulSamples = 0;
+
+		// INNER LOOP: Try to get 3 samples from the CURRENT server.
+		// We allow up to 5 attempts to account for a few dropped UDP packets.
+		for (int attempt = 0; attempt < 10; attempt++) {
+			if (successfulSamples >= targetSamples) break;
+
+			DatagramSocket socket = null;
+			try {
+				socket = new DatagramSocket();
+				socket.setSoTimeout(500);
+
+				InetAddress address = InetAddress.getByName(server);
+				byte[] buffer = new byte[48];
+				Array.setByte(buffer, 0, (byte) 0x1B);
+
+				DatagramPacket request = new DatagramPacket(buffer, 48, address, 123);
+				socket.send(request);
+
+				DatagramPacket response = new DatagramPacket(buffer, 48);
+				socket.receive(response);
+
+				// Record time immediately after receive
+				long nowSystem = System.currentTimeMillis();
+
+				// --- Parse NTP Response ---
+				long seconds = ((long)(buffer[40] & 0xFF) << 24) | ((long)(buffer[41] & 0xFF) << 16) |
+					((long)(buffer[42] & 0xFF) << 8) | ((long)(buffer[43] & 0xFF));
+				long fraction = ((long)(buffer[44] & 0xFF) << 24) | ((long)(buffer[45] & 0xFF) << 16) |
+					((long)(buffer[46] & 0xFF) << 8) | ((long)(buffer[47] & 0xFF));
+
+				long ntpTime = (seconds -2208988800L) * 1000;
+				ntpTime += (long)(((double) fraction / 4294967296.0) * 1000);
+
+				// Calculate true clock offset
+				long systemOffset = ntpTime - nowSystem;
+
+				totalSystemOffset += systemOffset;
+				successfulSamples++;
+
+				// Small delay to prevent the server from rate-limiting us for spamming
+				Thread.sleep(100);
+				Log.d("nizamu", "[" + scheduleTime + "] Offset " + attempt + ": " + systemOffset);
+
+			} catch (Exception e) {
+				log("[" + scheduleTime + "] Packet dropped from " + server + ": " + e.getMessage());
+			} finally {
+				if (socket != null) socket.close();
+			}
+		}
+
+		if (successfulSamples > 2) {
+			avgSystemOffset = totalSystemOffset / successfulSamples;
+// 			syncSuccessful = true;
+
+			if (ENV.TASKER) {
+				tasker.showToast(server + " " + avgSystemOffset + " ms avg offset");
+			}
+			Log.d("nizamu", "[" + scheduleTime + "] SUCCESS: Averaged " + successfulSamples + " samples from " + server + "--> " + avgSystemOffset + " ms");
+
+			// Break the OUTER loop so we don't check the fallback servers
+			break;
+		} else {
+			Log.d("nizamu", "FAILED to get enough samples from " + server + ". Trying next fallback...");
+		}
+	}
+
+// 	// Abort if all servers failed
+// 	if (!syncSuccessful) {
+// 		log("All time servers failed. Cannot sync time.");
+// 		if (ENV.TASKER || ENV.KID_APP) tasker.showToast("Time Sync Failed - Check Network");
+// 		return;
+// 	}
+
+	// --- Calculate final target wait time ---
+	// Add the averaged offset back to the current device time
+	long currentCalculatedTime = System.currentTimeMillis() + avgSystemOffset;
+	long timeRemaining = scheduleTime - currentCalculatedTime;
+
+
+	if (timeRemaining > 0) {
+		if (ENV.TASKER || ENV.KID_APP) {
+			try {
+				Completable.timer(timeRemaining, TimeUnit.MILLISECONDS).blockingAwait();
+			} catch (Exception e) {
+				log("wait interrupted: " + e.getMessage(), "ERROR");
+			}
+		} else if (ENV.MACRODROID) {
+			Thread.sleep(timeRemaining);
+		}
+	}
+}
