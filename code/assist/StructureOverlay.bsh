@@ -1,3 +1,5 @@
+importCommands("assist.structure");
+
 /*────────────────────────────────────────────────────────────────
 	This code was generated using AI with minimal human editing.
 ──────────────────────────────────────────────────────────────── */
@@ -28,6 +30,8 @@ import android.view.View.*;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityWindowInfo;
+import android.os.Build;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /*────────────────────────────────────────────────────────────────
@@ -57,6 +61,16 @@ import android.view.accessibility.AccessibilityWindowInfo;
 
 ──────────────────────────────────────────────────────────────── */
 StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int displayId) {
+
+
+	final int STRUCTURE_NOT_AVAILABLE = 0;
+	final int CAPTURING_STRUCTURE = 1;
+	final int STRUCTURE_AVAILABLE = 2;
+	final int CACHING_SCREENSHOT = 3;
+	final int STRUCTURE_AND_SCREENSHOT_AVAILABLE = 4;
+
+	int state = STRUCTURE_NOT_AVAILABLE;
+
 	final This TOP = this;
 	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_STRUCTURE_OVERLAY;
@@ -75,10 +89,13 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	This activeSimilar;
 	List searchHighlightNodes;
 	This nodeBoxListener;
-	Map map = new HashMap();
+	This screenshotListener;
+	Map map = new ConcurrentHashMap();
 	List highlighted = new ArrayList();
 	List hiddenBoxes = new ArrayList();
 	List boxHistory = new ArrayList();
+
+	This structureSnapshot = StructureSnapshot(displayId);
 
 	final Object accessibilityService = getService();
 	Context context = getContext(useA11y, displayId);
@@ -96,14 +113,26 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		return (alpha << 24) | (color & 0x00ffffff);
 	}
 
+	int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_FULLSCREEN;
+	
 	final FrameLayout rootLayout = new FrameLayout(context);
 	WindowManager.LayoutParams rootParams = new WindowManager.LayoutParams(
 		WindowManager.LayoutParams.MATCH_PARENT,
 		WindowManager.LayoutParams.MATCH_PARENT,
 		overlayType,
-		WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+		flags,
 		PixelFormat.TRANSLUCENT
 	);
+
+	if (Build.VERSION.SDK_INT >= 28) {
+		rootParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+	}
+
+	rootLayout.setOnClickListener(new View.OnClickListener() {
+		public void onClick(View view) {
+			tasker.showToast("Root");
+		}
+	});
 
 	rootParams.gravity = Gravity.TOP | Gravity.LEFT;
 
@@ -122,6 +151,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	remove() {
 		if (activeBox != null) activeBox.reset();
 		if (!isRemoved()) windowManager.removeView(rootLayout);
+		structureSnapshot.recycle();
 	}
 
 	isRemoved() {
@@ -249,6 +279,62 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		return this;
 	}
 
+	getScreenshotListener() {
+		boolean hasOnScreenshotSuccess() {
+			return TOP.listener != null && TOP.listener.namespace.getMethod("onScreenshotSuccess", new Class[] { This.class }) != null;
+		}
+
+		boolean hasOnScreenshotError() {
+			return TOP.listener != null && TOP.listener.namespace.getMethod("onScreenshotError", new Class[] { int.class }) != null;
+		}
+
+		void onSuccess(This screenshotHelper) {
+			if (hasOnScreenshotSuccess()) TOP.listener.onScreenshotSuccess(screenshotHelper);
+		}
+
+		void onError(int errorCode) {
+			if (hasOnScreenshotError()) TOP.listener.onStructureError(errorCode);
+		}
+		return this;
+	}
+
+	takeScreenshot() {
+		if (screenshotListener == null) screenshotListener = getScreenshotListener();
+		return structureSnapshot.takeScreenshot(screenshotListener);
+	}
+
+	/* 
+	 * Triggers/updates full display screenshot
+	 ! structureSnapshot uses takeScreenshot, which uses Single by default and has to be ran on background thread
+	 */
+	cacheScreenshot() {
+		if (structureSnapshot == null) return;
+		super.state = CACHING_SCREENSHOT;
+		try {
+			Set nodes = map.keySet();
+			for (AccessibilityNodeInfo node: nodes) {
+				try {
+					structureSnapshot.getNodeBitmap(node);
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP);
+				}
+			}
+			super.state = STRUCTURE_AND_SCREENSHOT_AVAILABLE;
+		} catch (e) {
+			log(e.getMessage(), "ERROR", TOP);
+			throw e;
+		} finally {
+			super.state = STRUCTURE_AVAILABLE;
+		}
+	}
+
+	getNodeBitmap(AccessibilityNodeInfo node) {
+		return structureSnapshot.getNodeBitmap(node);
+	}
+
+	getNodeDrawable(AccessibilityNodeInfo node) {
+		return structureSnapshot.getNodeDrawable(node);
+	}
 
 	addHistory(This nodeBox) {
 		if (nodeBox == null) return;
@@ -295,7 +381,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 			if (getA11yInstance().quickAddMode) {
 				This nodeData = SimilarNodes(root, map, nodeBox);
 				remove();
-				a11Y.executor.submit(new Runnable() {
+				a11Y.execute(new Runnable() {
 					run() {
 						try {
 							getA11yInstance().set();
@@ -341,6 +427,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 					if (!bounds.isEmpty() && bounds.width() > 2 && bounds.height() > 2) {
 						int area = bounds.width() * bounds.height();
 						This nodeBox = NodeBox(context, overlayType, node);
+						nodeBox.setDepth(depth);
 						nodeBox.setGestureListener(nodeBoxListener);
 						nodeBox.setTouchable(nodeBoxTouchable);
 						nodeList.add(new Object[] { depth, area, nodeBox });
@@ -382,6 +469,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	}
 
 	show() {
+		super.state = CAPTURING_STRUCTURE;
 		// Reset everything
 		log("Showing", TOP);
 		if (hasShownOnce) {
@@ -411,6 +499,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 							log("Calling onStructureReady", TOP);
 							TOP.listener.onStructureReady(TOP);
 						}
+						
+						// * Structure is Ready
+						super.state = STRUCTURE_AVAILABLE;
 					}
 				};
 				post(showRun);
@@ -424,6 +515,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	}
 
 	show(List nodes) {
+		super.state = CAPTURING_STRUCTURE;
 		if (nodes.isEmpty()) {
 			showToast("Not found");
 			return;
@@ -449,8 +541,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 						nodeBox.addViewTo(rootLayout);
 						map.put(node, nodeBox);
 					}
-
 				}
+				// * Structure is Ready
+				super.state = STRUCTURE_AVAILABLE;
 			}
 		};
 		post(showRun);
@@ -567,7 +660,6 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 			hasShownOnce = true;
 			isShown = true;
 			if (isRemoved) isRemoved = false;
-
 			if (a11Y.structureOverlay == void) a11Y.namespace.setVariable("structureOverlay", TOP, false);
 			a11Y.addOverlay(TOP);
 			if (TOP.listener != null) {
@@ -587,6 +679,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 			if (TOP.listener != null) {
 				try {
 					TOP.listener.onViewDetachedFromWindow(view);
+					super.state = STRUCTURE_NOT_AVAILABLE;
 				} catch (e) {}
 			}
 		}

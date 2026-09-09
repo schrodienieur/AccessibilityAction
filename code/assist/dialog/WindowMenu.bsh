@@ -1,0 +1,199 @@
+importCommands("others");
+
+import bsh.This;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.graphics.Point;
+import android.util.SparseArray;
+import android.view.accessibility.AccessibilityWindowInfo;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.graphics.Color;
+import android.graphics.drawable.Drawable;
+
+
+/*───────────────────────────────────────────────────────────────
+  DisplayMenu()
+  ───────────────────────────────────────────────────────────────*/
+WindowMenu() {
+	final This TOP = this;
+	This a11Y = getA11yInstance();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_SEARCH;
+	a11Y.viewControl.addView(TOP);
+	List windowList = new ArrayList();
+	This config;
+	This listDialog;
+	This onClickListener;
+	This WindowInfo = a11Y.WindowInfo;
+	int allowed = WindowInfo.TYPE_SYSTEM | WindowInfo.TYPE_APPLICATION;
+    long screenshotDelay = a11Y.screenshotDelay != void ? a11Y.screenshotDelay : 500;
+	Map snapshots = new HashMap();
+
+	loadList() {
+		windowList.clear();
+		Thread.sleep(200);
+		SparseArray allDisplaysWindows = getService().getWindowsOnAllDisplays();
+		if (allDisplaysWindows == null) {
+			tasker.showToast("No windows found");
+			return;
+		}
+		// Loop through all displays windows
+		List windows = new ArrayList();
+		for (int i = 0; i < allDisplaysWindows.size(); i++) {
+			int displayId = allDisplaysWindows.keyAt(i);
+			try {
+				This snapshot = StructureSnapshot(displayId);
+				snapshots.put(displayId, snapshot);
+				snapshot.takeScreenshot();
+				Thread.sleep(screenshotDelay);
+			} catch (e) {
+				log(e.getMessage(), "ERROR", TOP);
+				throw e;
+			}
+			windows.addAll(allDisplaysWindows.valueAt(i));
+		}
+
+		for (int i = 0; i < windows.size(); i++) {
+			AccessibilityWindowInfo window = windows.get(i);
+			Map item = new HashMap();
+			String title = window.getTitle() == null ? "No Title" : window.getTitle().toString();
+			item.put("title", title);
+
+			int displayId = window.getDisplayId();
+			int id = window.getId();
+			Rect rect = new Rect();
+			window.getBoundsInScreen(rect);
+			String description = "ID: " + id + "\nDisplay: " + displayId + "\nBounds: " + rect.toString();
+
+			AccessibilityNodeInfo root = window.getRoot();
+			if (root != null) {
+				String packageName = root.getPackageName();
+				String packageLabel = a11Y.packageManager.getLabel(packageName);
+				description += "\nPackage: " + packageName + " (" + packageLabel + ")";
+			}
+			boolean isApplication = WindowInfo.hasFlag(window, WindowInfo.TYPE_APPLICATION);
+			String packageName = window.getRoot() != null ? window.getRoot().getPackageName() : null;
+			boolean isSystemUi = WindowInfo.hasFlag(window, WindowInfo.TYPE_SYSTEM) && "com.android.systemui".equals(packageName);
+			This snapshot = snapshots.get(displayId);
+			
+			if (snapshot != null && root != null) {
+				try {
+					Drawable drawable = snapshot.getNodeDrawable(root);
+					item.put("icon", drawable);
+				} catch (e) {
+					tasker.showToast(e.toString());
+				}
+			} else {
+				Drawable emptyDrawable = new ColorDrawable(Color.TRANSPARENT);
+				item.put("icon", emptyDrawable);
+			}
+
+			item.put("subtitle", description);
+			item.put("window", window);
+			windowList.add(item);
+		}
+	}
+
+
+	config(This THIS) {
+		List itemList = TOP.windowList;
+		String title = "Window Menu";
+		long timeout = 30000;
+		boolean showFilter = true;
+		int iconSize = 200;
+		onSuccess(Map map) {
+			AccessibilityWindowInfo window = map.get("window");
+			if (TOP.onClickListener != null) {
+				Runnable runMe = new Runnable() {
+					run() {
+						try {
+							if (TOP.namespace.getVariable("onClickListener") != null) {
+								TOP.onClickListener.onClick(window);
+							} else {
+								log("No onClickListener set", "INFO", TOP);
+								showToast("No onClickListener set");
+							}
+						} catch (Exception e) {
+							log(e.getMessage(), "ERROR", TOP);
+							showToast(e.getMessage());
+						}
+					};
+				};
+				a11Y.post(runMe);
+			} else {
+				log("No onClickListener set", "ERROR", TOP);
+			}
+			TOP.remove();
+		}
+
+		onCancel() {
+
+		}
+
+		onTimeout() {}
+
+		onAttach() {}
+
+		onDetach() {
+			Set set = snapshots.keySet();
+			for (int displayId : set) {
+				try {
+					This snapshot = snapshots.get(displayId);
+					snapshot.recycle();
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP);
+				}
+			}
+			snapshots.clear();
+		}
+
+		return this;
+	}
+
+	setOnClickListener(This listener) {
+		TOP.onClickListener = listener;
+	}
+
+	show() {
+		loadList();
+		config = config(TOP);
+		TOP.listDialog = ListDialog(config);
+		listDialog.show();
+	}
+
+	remove() {
+		if (listDialog != null) listDialog.remove();
+	}
+
+	toggle() {
+		if (listDialog != null) listDialog.toggle();
+	}
+
+	isAdded() {
+		if (listDialog == null) return false;
+		return listDialog.isAdded();
+	}
+
+	isHidden() {
+		if (listDialog == null) return false;
+		return listDialog.isHidden();
+	}
+
+	isShown() {
+		if (listDialog == null) return false;
+		return listDialog.isShown();
+	}
+
+	isRemoved() {
+		if (listDialog == null) return false;
+		return listDialog.isRemoved();
+	}
+
+	return this;
+}
+
+/* Auto-start if called directly */
+// if (MAIN_DIRECTORY == void) {
+// 	a11Y.set();
+// 	DisplayMenu = DisplayMenu();
+// 	DisplayMenu.show();
+// }

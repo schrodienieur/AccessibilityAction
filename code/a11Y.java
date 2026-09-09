@@ -5,6 +5,8 @@ addClassPath(ENV_PATH);
 importCommands("lib");
 importCommands("lib.file");
 importCommands("main");
+importCommands("config");
+
 import bsh.This;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -15,6 +17,10 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
 import android.os.Handler;
 import android.os.Looper;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import com.joaomgcd.taskerm.action.java.JavaCodeException;
 
 This ENV = Environment();
 
@@ -24,18 +30,20 @@ a11Y() {
 	if (old != null) {
 		try {
 			boolean hasRemoveBoolean = old.namespace.getMethod("remove", new Class[] { Boolean.class }) != null;
-			boolean hasRemove = old.namespace.getMethod("remove", new Class[] {}) != null;
-			if (hasRemoveBoolean) {
-				old.remove(false);
-			} else if (hasRemove) {
-				old.remove();
-			} else {
-				old.clean();
-				old.removeAssist();
-				old.removeEvents();
-				old.executor.shutdownNow();
+			if (hasRemoveBoolean) old.remove(false);
+			else {
+				throw new JavaCodeException("Could not find remove(boolean) method");
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			log(e.getMessage(), "ERROR");
+			String packageName = context.getPackageName();
+			String appName = context.getApplicationContext()
+				.getApplicationInfo()
+				.loadLabel(packageName)
+				.toString();
+			tasker.showToast("Unable to clear existing a11Y instance:\n" + e.getMessage(), "Please Restart " + appName);
+			return;
+		}
 	}
 
 	final This TOP = this;
@@ -46,7 +54,7 @@ a11Y() {
 	String ENV_PATH;
 	String LOG_FILE;
 	long lastActionPickerReminder = 0;
-
+	long screenshotDelay = 500;
 	This assistBar;
 	This updateManager;
 	This materialColorFallback;
@@ -54,6 +62,7 @@ a11Y() {
 	String scriptEditor = "";
 	This inspector;
 	This NodeInfo;
+	This WindowInfo;
 	This config;
 	Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -66,7 +75,7 @@ a11Y() {
 		}
 	};
 
-	ThreadPoolExecutor executor = new ThreadPoolExecutor(
+	ThreadPoolExecutor a11yExecutor = new ThreadPoolExecutor(
 		1, // Core size
 		1, // Max size
 		30, // Idle timeout
@@ -76,8 +85,17 @@ a11Y() {
 		new ThreadPoolExecutor.DiscardOldestPolicy()
 	);
 
+	ThreadPoolExecutor executor = new ThreadPoolExecutor(
+		1, /* Core size */
+		3, /* Max size */
+		30, /* Idle timeout */
+		TimeUnit.SECONDS, /* Timeout unit */
+		new LinkedBlockingQueue(), /* Unbounded queue guarantees no tasks are dropped */
+		Executors.defaultThreadFactory() /* Thread factory */
+	);
+
 	reload() {
-		executor.execute(new Runnable() {
+		Runnable reloadTask = new Runnable() {
 			run() {
 				try {
 					if (ENV_PATH != null) source(ENV_PATH + "/a11Y.java");
@@ -85,31 +103,27 @@ a11Y() {
 					log(e.getMessage(), "ERROR");
 				}
 			}
-		});
+		};
+		execute(reloadTask);
 	}
 
 	debug() {
 		debugMe = true;
 	}
 
+	setConfigTo(This THIS) {
+		config.setTo(TOP, THIS);
+	}
+
 	set(This THIS) {
+		if (ENV_PATH == null) {
+			throw new JavaCodeException("ENV_PATH is null");
+		}
 		config.setTo(TOP, THIS);
 		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
 		if (NodeInfo != null) THIS.namespace.setVariable("NodeInfo", NodeInfo, false);
-		if (ENV_PATH == null) {
-			String superImport = tasker.getVariable("ImportJava");
-			try {
-				this.interpreter.source(superImport);
-				THIS.invokeMethod("IMPORT", new Object[] { "AccessibilityAction" });
-				if (THIS.namespace.getVariable("MAIN_DIRECTORY") != null) ENV_PATH = THIS.namespace.getVariable("MAIN_DIRECTORY");
-				THIS.namespace.setVariable("a11Y", THIS, false);
-			} catch (e) {
-				tasker.showToast("Please set the folder with a11Y.setEnvPath(\"Directory path\")");
-				return;
-			}
-		} else {
-			this.interpreter.source(ENV_PATH + "/import.java");
-		}
+		if (WindowInfo != null) THIS.namespace.setVariable("WindowInfo", WindowInfo, false);
+		this.interpreter.source(ENV_PATH + "/import.java");
 		return THIS;
 	}
 
@@ -217,7 +231,19 @@ a11Y() {
 	}
 
 	execute(Runnable postRun) {
-		executor.execute(postRun);
+		executor.submit(postRun);
+	}
+
+	executeA11y(Runnable postRun) {
+		a11yExecutor.submit(postRun);
+	}
+
+	submit(Runnable postRun) {
+		return executor.submit(postRun);
+	}
+
+	submitA11y(Runnable postRun) {
+		return a11yExecutor.submit(postRun);
 	}
 
 	run(String fileName) {
@@ -262,8 +288,8 @@ a11Y() {
 		displayInfos.show(6000);
 	}
 
-	post(Runnable run) {
-		mainHandler.post(run);
+	post(Runnable runMe) {
+		mainHandler.post(runMe);
 	}
 
 	remove(boolean clearA11Y) {
@@ -272,6 +298,7 @@ a11Y() {
 		removeAssist();
 		removeEvents();
 		executor.shutdownNow();
+		a11yExecutor.shutdownNow();
 		tasker.setJavaVariable("a11E", null);
 		if (clearA11Y) tasker.setJavaVariable("a11Y", null);
 	}
@@ -329,6 +356,9 @@ tasker.setJavaVariable("a11E", a11E);
 
 This NodeInfo = NodeInfo();
 a11Y.namespace.setVariable("NodeInfo", NodeInfo, false);
+
+This WindowInfo = WindowInfo();
+a11Y.namespace.setVariable("WindowInfo", WindowInfo, false);
 
 This updateManager = UpdateManager();
 updateManager.namespace.setVariable("directoryPath", ENV_PATH, false);
