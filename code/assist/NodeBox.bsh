@@ -31,6 +31,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
 import android.view.Surface;
 import android.content.res.Configuration;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 /*────────────────────────────────────────────────────────────────
 NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node)
@@ -54,10 +55,12 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_BOX;
 	a11Y.viewControl.addView(TOP);
+	int hashCode = node.hashCode();
 
 	setAlpha(int color, int alpha) {
 		return (alpha << 24) | (color & 0x00ffffff);
 	}
+	
 	int displayId = nodeContext.getDisplay().getDisplayId();
 	int rotation = nodeContext.getDisplay().getRotation();
 	int orientation = nodeContext.getResources().getConfiguration().orientation;
@@ -65,6 +68,16 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	Runnable displayOverlay;
 	
 	int properties = NodeInfo.getProperties(node);
+	
+	AccessibilityWindowInfo window = node.getWindow();
+	int type = AccessibilityWindowInfo.TYPE_APPLICATION;
+	int windowType = 1 << type;
+	int displayId;
+	if (window != null) {
+		type = window.getType();
+		windowType = 1 << type;
+		displayId = window.getDisplayId();
+	}
 
 	// Has viewIdResourceName
 	if (NodeInfo != void) {
@@ -94,11 +107,13 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		return result;
 	}
 
+	int getDefaultColor() {
+		return type == AccessibilityWindowInfo.TYPE_APPLICATION ? Color.GREEN : 0xFFCCFF00;
+	}
+
 	WindowManager WINDOW_MANAGER;
-	boolean isRemoved;
-	boolean isShown;
 	int DEFAULT_COLOR = Color.TRANSPARENT;
-	int DEFAULT_STROKE_COLOR = setAlpha(Color.GREEN, 100);
+	int DEFAULT_STROKE_COLOR = setAlpha(getDefaultColor(), 100);
 	int DEFAULT_STROKE_WIDTH = 1;
 	This infoToast;
 	This infoDialog;
@@ -176,7 +191,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		return view.getParent() == null;
 	}
 
-	isShown() {
+	isShowing() {
 		return view.getVisibility() == View.VISIBLE && !isRemoved();
 	}
 
@@ -251,14 +266,10 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 
 	view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 		onViewAttachedToWindow(View v) {
-			isRemoved = false;
-			isShown = true;
 			a11Y.addOverlay(TOP);
 		}
 
 		onViewDetachedFromWindow(View v) {
-			isRemoved = true;
-			isShown = false;
 			a11Y.removeOverlay(TOP);
 			removeDialogAndInfo();
 		}
@@ -278,7 +289,7 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	remove(WindowManager win) {
-		if (!isRemoved) {
+		if (!isRemoved()) {
 			win.removeView(view);
 		}
 		removeInfo();
@@ -286,14 +297,34 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 	}
 
 	remove() {
-		if (!isRemoved) {
+		if (!isRemoved()) {
 			getWindowManager().removeView(view);
 		}
 		removeInfo();
 		removeDialog();
 	}
 
-	setTouchable(boolean toucable) {
+	boolean isAdded() {
+		if (view == null) return false;
+		return view.getParent() != null && view.isAttachedToWindow();
+	}
+
+	boolean isHidden() {
+		if (view == null) return false;
+		return view.getVisibility() == View.GONE && isAdded();
+	}
+
+	boolean isShowing() {
+		if (view == null) return false;
+		return view.getVisibility() == View.VISIBLE && isAdded();
+	}
+
+	boolean isRemoved() {
+		if (view == null) return false;
+		return !isAdded();
+	}
+
+	void setTouchable(boolean toucable) {
 		WindowManager.LayoutParams currentParams = (WindowManager.LayoutParams) view.getLayoutParams();
 		if (currentParams == null) {
 			currentParams = params;
@@ -306,20 +337,18 @@ NodeBox(Context nodeContext, int overlayType, AccessibilityNodeInfo node) {
 		}
 
 		params = currentParams;
-		if (isShown && !isRemoved) {
+		if (isShowing() && !isRemoved()) {
 			getWindowManager().updateViewLayout(view, params);
 		}
 	}
+
 	setDefault();
 
 	post(Runnable postRun) {
-		Handler mainHandler = new Handler(Looper.getMainLooper());
-		mainHandler.post(postRun);
+		a11Y.post(postRun);
 	}
 
 	return this;
-
-
 
 }
 

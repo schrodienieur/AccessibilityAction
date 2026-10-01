@@ -1,16 +1,19 @@
 importCommands("others");
+importCommands("others.screenshot");
 
 import bsh.This;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.graphics.Point;
+import android.os.Looper;
 
 /*───────────────────────────────────────────────────────────────
-  DisplayMenu()
+	Display Menu
   ───────────────────────────────────────────────────────────────*/
-DisplayMenu() {
+DisplayMenu(This assistBar) {
 	final This TOP = this;
 	This a11Y = getA11yInstance();
-	final int WINDOW_TYPE = ENV.Layout.TYPE_NODE_SEARCH;
+	This ScreenshotHelper = ScreenshotHelper();
+	final int WINDOW_TYPE = ENV.Layout.TYPE_DISPLAY_MENU;
 	a11Y.viewControl.addView(TOP);
 	List displayList = new ArrayList();
 	This displayInfos;
@@ -42,12 +45,23 @@ DisplayMenu() {
 			item.put("display", display);
 			try {
 				int index = i + 1; 
-				This ss = takeScreenshot(id);
-				screenshots.add(ss);
+				listener() {
+					onSuccess(This ss) {
+						screenshots.add(ss);
+						item.put("icon", ss.getDrawable());
+					}
+					onError(int errorCode) {
+						String message = ScreenshotHelper.getErrorMessage(errorCode);
+						log(message, "ERROR", TOP);
+						tasker.showToast(message, "Display: " + display.getName() + " (" + id + ")");
+					}
+					return this;
+				}
+				This ss = takeScreenshot(id, listener());
 				Thread.sleep(screenshotDelay);
-				item.put("icon", ss.getDrawable());
 			} catch(e) {
 				tasker.showToast(e.toString());
+				log(e.getMessage(), "ERROR", TOP);
 			}
 			displayList.add(item);
 		}
@@ -57,20 +71,32 @@ DisplayMenu() {
 	config(This THIS) {
 		List itemList = TOP.displayList;
 		String title = "Display Menu";
-		long timeout = 30000;
+		String text = "Tap: Capture tree, Long tap: Move assist bar";
 		int iconSize = 240;
 		boolean showFilter;
+		int displayId = assistBar.getContext().getDisplay().getDisplayId();
+
+		boolean useOverlay = !assistBar.shouldUseActivity();
+		boolean useAccessibility = true;
+		float dimAmount = 0.5f;
+		float maxWidth = 0.5f;
+
 		onSuccess(Map map) {
 			Display display = map.get("display");
+			boolean longClick = map.getOrDefault("longClick", false);
 			if (TOP.onClickListener != null) {
 				Runnable runMe = new Runnable() {
 					run() {
 						try {
-							if (TOP.namespace.getVariable("onClickListener") != null) {
-								TOP.onClickListener.onClick(display);
+							if (longClick) {
+								assistBar.show(display.getDisplayId());
 							} else {
-								log("No onClickListener set", "INFO", TOP);
-								showToast("No onClickListener set");
+								if (TOP.namespace.getVariable("onClickListener") != null) {
+									TOP.onClickListener.onClick(display);
+								} else {
+									log("No onClickListener set", "INFO", TOP);
+									showToast(assistBar.getContext(), "No onClickListener set");
+								}
 							}
 						} catch (Exception e) {
 							log(e.getMessage(), "ERROR", TOP);
@@ -78,7 +104,7 @@ DisplayMenu() {
 						}
 					};
 				};
-				a11Y.post(runMe);
+				a11Y.postDelayed(runMe, 500);
 			} else {
 				log("No onClickListener set", "ERROR", TOP);
 			}
@@ -89,15 +115,13 @@ DisplayMenu() {
 
 		}
 
-		onTimeout() {}
-
-		onAttach() {}
-
 		onDetach() {
 			for (This ss: screenshots) {
 				try {
 					ss.recycle();
-				} catch (e) {}
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP);
+				}
 			}
 		}
 
@@ -108,48 +132,37 @@ DisplayMenu() {
 		TOP.onClickListener = listener;
 	}
 
-	show() {
-		displayInfos = DisplayInfos();
-		loadList();
+	create(boolean readDisplay) {
+		if (readDisplay) {
+			displayInfos = DisplayInfos();
+			loadList();
+		}
 		config = config(TOP);
-		TOP.listDialog = ListDialog(config);
-		listDialog.show();
+		listDialog = ListDialog(config);
+		bind(TOP, listDialog.namespace);
 	}
 
-	remove() {
-		if (listDialog != null) listDialog.remove();
+	create(false);
+
+	show() {
+		create(true);
+		boolean isMainThread = Looper.getMainLooper().isCurrentThread();
+        if (config.useOverlay) {
+            if (isMainThread) {
+                listDialog.show();
+            } else {
+                Runnable showRun = new Runnable() {
+                    run() {
+                        listDialog.show();
+                    }
+                };
+                a11Y.post(showRun);
+            }
+		} else {
+			listDialog.show();
+		}
 	}
 
-	toggle() {
-		if (listDialog != null) listDialog.toggle();
-	}
-
-	isAdded() {
-		if (listDialog == null) return false;
-		return listDialog.isAdded();
-	}
-
-	isHidden() {
-		if (listDialog == null) return false;
-		return listDialog.isHidden();
-	}
-
-	isShown() {
-		if (listDialog == null) return false;
-		return listDialog.isShown();
-	}
-
-	isRemoved() {
-		if (listDialog == null) return false;
-		return listDialog.isRemoved();
-	}
 
 	return this;
 }
-
-/* Auto-start if called directly */
-// if (MAIN_DIRECTORY == void) {
-// 	a11Y.set();
-// 	DisplayMenu = DisplayMenu();
-// 	DisplayMenu.show();
-// }

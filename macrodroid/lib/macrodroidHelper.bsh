@@ -205,7 +205,7 @@ macrodroidHelper() {
 	  getVariable(java.lang.String)
 	  ───────────────────────────────────────────────────────────────*/
 	public String getVariable(String varName) {
-		return magicText.evalueuateString("{lv=" + varName + "}");
+		return magicText.evaluateString("{lv=" + varName + "}");
 	}
 
 	/*───────────────────────────────────────────────────────────────

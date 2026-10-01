@@ -118,7 +118,7 @@ List findNodes(AccessibilityNodeInfo root, String key, String value) {
 
 List findNodes(String key, String value) {
 	List roots = new ArrayList();
-	if (A11yConfig != void && A11yConfig.includeAllWindows) {
+	if (A11yConfig != void && A11yConfig.hasWindowFilter()) {
 		roots.addAll(getRoots());
 	} else {
 		roots.add(getRoot());
@@ -129,6 +129,7 @@ List findNodes(String key, String value) {
 		List foundNodes = findNodes(root, key, value);
 		if (!foundNodes.isEmpty()) {
 			nodes.addAll(foundNodes);
+			if (A11yConfig.findFirstForRecursive) break;
 		}
 	}
 
@@ -206,7 +207,7 @@ findNodes(AccessibilityNodeInfo root, Object[][] argsConfigs, boolean allFound) 
 
 findNodes(Object[][] argsConfigs, boolean allFound) {
 	List roots = new ArrayList();
-	if (A11yConfig != void && A11yConfig.includeAllWindows) {
+	if (A11yConfig != void && A11yConfig.hasWindowFilter()) {
 		roots.addAll(getRoots());
 	} else {
 		roots.add(getRoot());
@@ -244,7 +245,7 @@ List findNodes(AccessibilityNodeInfo root, String key, String value, Object[][] 
 
 List findNodes(String key, String value, Object[][] argsConfigs) {
 	List roots = new ArrayList();
-	if (A11yConfig != void && A11yConfig.includeAllWindows) {
+	if (A11yConfig != void && A11yConfig.hasWindowFilter()) {
 		roots.addAll(getRoots());
 	} else {
 		roots.add(getRoot());
@@ -274,7 +275,7 @@ List findNodes(String key, String value, int parentLevel, String nearbyKey, Stri
 	};
 
 	List roots = new ArrayList();
-	if (A11yConfig != void && A11yConfig.includeAllWindows) {
+	if (A11yConfig != void && A11yConfig.hasWindowFilter()) {
 		roots.addAll(getRoots());
 	} else {
 		roots.add(getRoot());
@@ -321,14 +322,14 @@ List findNodes(AccessibilityNodeInfo root, This multiKeys) {
 	}
 
 	List nodes = new ArrayList();
-	boolean oldDebug = debugMe;
-	if (oldDebug == true) debugMe = false;
+	boolean oldDebug = A11yConfig.debugMe;
+	if (oldDebug == true) setDebugMode(false);
 	if (multiKeys.id != void) {
 		nodes = findNodes(root, "id", multiKeys.id);
 	} else if (multiKeys.text != void) {
 		nodes = findNodes(root, "text", multiKeys.text);
 	}
-	debugMe = oldDebug;
+	setDebugMode(oldDebug);
 	// Returns empty list if no nodes are found
 	if (nodes.isEmpty()) return nodes;
 
@@ -339,7 +340,7 @@ List findNodes(AccessibilityNodeInfo root, This multiKeys) {
 		}
 	}
 
-	if (debugMe) {
+	if (A11yConfig.debugMe) {
 		debugMe(matchNodes);
 	}
 
@@ -348,7 +349,7 @@ List findNodes(AccessibilityNodeInfo root, This multiKeys) {
 
 List findNodes(This multiKeys) {
 	List roots = new ArrayList();
-	if (A11yConfig != void && A11yConfig.includeAllWindows) {
+	if (A11yConfig != void && A11yConfig.hasWindowFilter()) {
 		roots.addAll(getRoots());
 	} else {
 		roots.add(getRoot());

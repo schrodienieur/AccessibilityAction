@@ -34,7 +34,6 @@ Returns:
 * boolean → True if gesture dispatched successfully, false otherwise.
 ──────────────────────────────────────────────────────────────── */
 public boolean tap(double x, double y, long duration) {
-	AccessibilityService service = (AccessibilityService) getService();
 
 	try {
 		Context windowContext = getContext(true);
@@ -78,7 +77,7 @@ public boolean tap(double x, double y, long duration) {
 			}
 		);
 
-		service.dispatchGesture(gesture, callback, handler);
+		getService().dispatchGesture(gesture, callback, handler);
 
 		signal.blockingAwait();
 		handlerThread.quitSafely();
@@ -162,7 +161,7 @@ boolean tap(String value, long duration) {
 }
 
 boolean tap(String value, int index, long duration) {
-	return tap(getNode("text", value, index, waitNodesTimeout), duration);
+	return tap(getNode("text", value, index, A11yConfig.waitNodesTimeout), duration);
 }
 
 boolean tap(String value, long timeout, long duration) {
@@ -188,19 +187,19 @@ boolean tap(AccessibilityNodeInfo root, String value, long duration) {
 }
 
 boolean tap(String value, Object[][] argsConfigs, long duration) {
-	return tap(getNode("text", value, 0, waitNodesTimeout, argsConfigs), duration);
+	return tap(getNode("text", value, 0, A11yConfig.waitNodesTimeout, argsConfigs), duration);
 }
 
 boolean tap(String value, int parentLevel, String nearbyValue, long duration) {
-	return tap(getNode("text", value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
+	return tap(getNode("text", value, 0, A11yConfig.waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
 }
 
 boolean tap(String key, String value, int parentLevel, String nearbyValue, long duration) {
-	return tap(getNode(key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
+	return tap(getNode(key, value, 0, A11yConfig.waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
 }
 
 boolean tap(String key, String value, int parentLevel, String nearbyKey, String nearbyValue, long duration) {
-	return tap(getNode(key, value, 0, waitNodesTimeout, parentLevel, nearbyKey, nearbyValue), duration);
+	return tap(getNode(key, value, 0, A11yConfig.waitNodesTimeout, parentLevel, nearbyKey, nearbyValue), duration);
 }
 
 boolean tap(String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue, long duration) {
@@ -237,15 +236,15 @@ boolean tap(AccessibilityNodeInfo root, String key, String value, int index, lon
 }
 
 boolean tap(AccessibilityNodeInfo root, String value, Object[][] argsConfigs, long duration) {
-	return tap(getNode(root, "text", value, 0, waitNodesTimeout, argsConfigs), duration);
+	return tap(getNode(root, "text", value, 0, A11yConfig.waitNodesTimeout, argsConfigs), duration);
 }
 
 boolean tap(AccessibilityNodeInfo root, String value, int parentLevel, String nearbyValue, long duration) {
-	return tap(getNode(root, "text", value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
+	return tap(getNode(root, "text", value, 0, A11yConfig.waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
 }
 
 boolean tap(AccessibilityNodeInfo root, String key, String value, int parentLevel, String nearbyValue, long duration) {
-	return tap(getNode(root, key, value, 0, waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
+	return tap(getNode(root, key, value, 0, A11yConfig.waitNodesTimeout, parentLevel, "text", nearbyValue), duration);
 }
 
 boolean tap(AccessibilityNodeInfo root, String key, String value, int index, long timeout, int parentLevel, String nearbyKey, String nearbyValue, long duration) {

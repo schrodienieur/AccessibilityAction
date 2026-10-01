@@ -61,7 +61,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 ──────────────────────────────────────────────────────────────── */
 StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int displayId) {
+	
+	if (root == null) {
+		throw new JavaCodeException("Root is null.");
+	}
 
+	if (displayId < 0) {
+		throw new JavaCodeException("Display id is invalid.");
+	}
 
 	final int STRUCTURE_NOT_AVAILABLE = 0;
 	final int CAPTURING_STRUCTURE = 1;
@@ -72,13 +79,13 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	int state = STRUCTURE_NOT_AVAILABLE;
 
 	final This TOP = this;
+	This AssistInfo = AssistInfo();
 	This a11Y = getA11yInstance();
 	final int WINDOW_TYPE = ENV.Layout.TYPE_STRUCTURE_OVERLAY;
+	This WindowInfo = a11Y.WindowInfo;
 	a11Y.viewControl.addView(TOP);
 	// Always uses accessibility service for non main screen
 	// if (displayId > 0) useA11y = true;
-	boolean isRemoved;
-	boolean isShown;
 	boolean hasShownOnce;
 
 	boolean nodeBoxTouchable = true;
@@ -100,7 +107,6 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	final Object accessibilityService = getService();
 	Context context = getContext(useA11y, displayId);
 	final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-	Handler mainHandler = new Handler(Looper.getMainLooper());
 
 	int overlayType = useA11y ?
 		WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY :
@@ -114,7 +120,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	}
 
 	int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_FULLSCREEN;
-	
+
 	final FrameLayout rootLayout = new FrameLayout(context);
 	WindowManager.LayoutParams rootParams = new WindowManager.LayoutParams(
 		WindowManager.LayoutParams.MATCH_PARENT,
@@ -124,13 +130,15 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		PixelFormat.TRANSLUCENT
 	);
 
+	rootParams.setTitle(AssistInfo.STRUCTURE_TITLE);
+
 	if (Build.VERSION.SDK_INT >= 28) {
 		rootParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 	}
 
 	rootLayout.setOnClickListener(new View.OnClickListener() {
 		public void onClick(View view) {
-			tasker.showToast("Root");
+			showToast(getContext(), "Root");
 		}
 	});
 
@@ -158,10 +166,14 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		return rootLayout.getParent() == null;
 	}
 
-	post(Runnable run) {
-		mainHandler.post(run);
+	boolean isMainThread() {
+		return Looper.getMainLooper().isCurrentThread();
 	}
 
+	post(Runnable run) {
+		if (isMainThread()) run.run();
+		else a11Y.post(run);
+	}
 
 	/* External API to highlight specific nodes via color. */
 	highlightNodeBox(This nodeBox, int strokeColor, int fillColor) {
@@ -322,10 +334,19 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 			super.state = STRUCTURE_AND_SCREENSHOT_AVAILABLE;
 		} catch (e) {
 			log(e.getMessage(), "ERROR", TOP);
-			throw e;
+			throw new JavaCodeException(e.getMessage());
 		} finally {
 			super.state = STRUCTURE_AVAILABLE;
 		}
+	}
+
+	recycleScreenshot() {
+		log("Recycling screenshot", TOP);
+		if (structureSnapshot == null) {
+			log("No screenshot to recycle", TOP);
+			return;
+		}
+		structureSnapshot.recycle();
 	}
 
 	getNodeBitmap(AccessibilityNodeInfo node) {
@@ -363,7 +384,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 		onDoubleTap(This nodeBox) {
 			addHistory(nodeBox);
-			showToast("Clean Leftover");
+			showToast(getContext(), "Clean Leftover");
 			a11Y.clean();
 			return true;
 		}
@@ -378,34 +399,32 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		onLongPress(This nodeBox) {
 			vibrate(nodeBox.view);
 			addHistory(nodeBox);
-			if (getA11yInstance().quickAddMode) {
-				This nodeData = SimilarNodes(root, map, nodeBox);
-				remove();
-				a11Y.execute(new Runnable() {
-					run() {
-						try {
-							getA11yInstance().set();
-							if (a11Y.assistBar == null) return;
-							if (a11Y.assistBar.actionPicker == null) return;
-							Map result = a11Y.assistBar.actionPicker.selectNodeActions(nodeData);
-							if (result != null) {
-								a11Y.selectedAction = result;
-							}
-						} catch (e) {
-							log(e.getMessage(), "ERROR", TOP);
-						}
-
-					}
-				});
+			if (A11yConfig.quickAddMode) {
+				openActionPicker(nodeBox);
 			} else {
 				activeHighlight(nodeBox);
 				nodeBox.showDialog();
 			}
-
 		}
 		return this;
 	}
 
+	openActionPicker(This nodeBox) {
+		This nodeData = SimilarNodes(root, map, nodeBox);
+		remove();
+		a11Y.execute(new Runnable() {
+			run() {
+				try {
+					getA11yInstance().set();
+					if (a11Y.assistBar == null) return;
+					if (a11Y.assistBar.actionPicker == null) return;
+					a11Y.assistBar.actionPicker.selectNodeActions(nodeData);
+				} catch (e) {
+					log(e.getMessage(), "ERROR", TOP);
+				}
+			}
+		});
+	}
 
 	createNodeList(This nodeListListener) {
 		Runnable showRun = new Runnable() {
@@ -413,7 +432,23 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 				ArrayList stack = new ArrayList();
 				if (nodeBoxListener == null) nodeBoxListener = getDefaultListener();
 				// Stack will be pair of node and their depth
-				stack.add(new Object[] { root, 0 });
+				AccessibilityWindowInfo window = root.getWindow();
+				int windowType = WindowInfo.TYPE_APPLICATION;
+				int displayId;
+
+				if (window != null) {
+					windowType = 1 << window.type;
+					displayId = window.getDisplayId();
+				}
+
+				if (windowType == WindowInfo.TYPE_APPLICATION && a11Y.captureAllWindowsAsDefault) {
+					List roots = getRoots(displayId);
+					for (int i = 0; i < roots.size(); i++) {
+						stack.add(new Object[] { (AccessibilityNodeInfo) roots.get(i), 0 });
+					}
+				} else {
+					stack.add(new Object[] { root, 0 });
+				}
 				while (!stack.isEmpty()) {
 					Object[] item = (Object[]) stack.remove(0);
 					AccessibilityNodeInfo node = (AccessibilityNodeInfo) item[0];
@@ -459,10 +494,10 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 				if (nodeListListener != null) {
 					try {
 						nodeListListener.onListReady(nodeList);
-					} catch(e) {
+					} catch (e) {
 						log("onListReady ist not implemented: " + e.getMessage(), "ERROR", TOP);
 					}
-				}				
+				}
 			}
 		};
 		a11Y.execute(showRun);
@@ -472,12 +507,13 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		super.state = CAPTURING_STRUCTURE;
 		// Reset everything
 		log("Showing", TOP);
+		
 		if (hasShownOnce) {
 			log("Already shown once, refreshing the node list", TOP);
 			root = (AccessibilityNodeInfo) getRoot(displayId);
 			nodeList.clear();
 		}
-		
+
 		long start = System.currentTimeMillis();
 
 		This listener() {
@@ -492,14 +528,14 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 							This nodeBox = wrap[2];
 							nodeBox.addViewTo(rootLayout);
 						}
-
+						
 						float end = System.currentTimeMillis() - start;
-						showToast("Found " + nodeList.size() + " nodes in " + (end) + " ms");
+						showToast(getContext(), "Found " + nodeList.size() + " nodes in " + (end) + " ms");
 						if (TOP.listener != null) {
 							log("Calling onStructureReady", TOP);
-							TOP.listener.onStructureReady(TOP);
-						}
-						
+							if (isAdded()) TOP.listener.onStructureReady(TOP);
+						} 
+
 						// * Structure is Ready
 						super.state = STRUCTURE_AVAILABLE;
 					}
@@ -511,13 +547,12 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		This nodeListListener = listener();
 		TOP.add();
 		if (nodeList.isEmpty()) createNodeList(nodeListListener);
-
 	}
 
 	show(List nodes) {
 		super.state = CAPTURING_STRUCTURE;
 		if (nodes.isEmpty()) {
-			showToast("Not found");
+			showToast(getContext(), "Not found");
 			return;
 		}
 		if (nodeBoxListener == null) nodeBoxListener = getDefaultListener();
@@ -588,11 +623,13 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 	}
 
 	isVisible() {
-		return rootLayout.getVisibility() == View.VISIBLE;
+		if (rootLayout == null) return false;
+		return rootLayout.getVisibility() == View.VISIBLE && isAdded();
 	}
 
 	isHidden() {
-		return rootLayout.getVisibility() == View.GONE;
+		if (rootLayout == null) return false;
+		return rootLayout.getVisibility() == View.GONE && isAdded();
 	}
 
 	toggleHide() {
@@ -608,15 +645,18 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		show(nodes);
 	}
 
-	isShown() {
+	isShowing() {
+		if (rootLayout == null) return false;
 		return rootLayout.getParent() != null && isVisible();
 	}
 
 	isAdded() {
+		if (rootLayout == null) return false;
 		return rootLayout.getParent() != null;
 	}
 
 	isRemoved() {
+		if (rootLayout == null) return false;
 		return rootLayout.getParent() == null;
 	}
 
@@ -645,7 +685,7 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		}
 
 		rootParams = currentParams;
-		if (isShown && !isRemoved) {
+		if (isShowing() && !isRemoved()) {
 			/* Use the instance windowManager and the updated params */
 			windowManager.updateViewLayout(rootLayout, rootParams);
 		}
@@ -658,29 +698,32 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 		public void onViewAttachedToWindow(View view) {
 			log("StructureOverlay attached", TOP);
 			hasShownOnce = true;
-			isShown = true;
-			if (isRemoved) isRemoved = false;
 			if (a11Y.structureOverlay == void) a11Y.namespace.setVariable("structureOverlay", TOP, false);
 			a11Y.addOverlay(TOP);
 			if (TOP.listener != null) {
 				try {
 					TOP.listener.onViewAttachedToWindow(view);
-				} catch (e) {}
+				} catch (e) {
+					log("Listener threw exception" + e.getMessage(), TOP);
+					throw new JavaCodeException(e.getMessage());
+				}
 			}
 		}
 
 		public void onViewDetachedFromWindow(View view) {
 			log("StructureOverlay detached", TOP);
-			isRemoved = true;
-			isShown = false;
 			a11Y.removeOverlay(this);
 			a11Y.namespace.unsetVariable("structureOverlay");
 			removeActiveHighlight();
+			recycleScreenshot();
 			if (TOP.listener != null) {
 				try {
 					TOP.listener.onViewDetachedFromWindow(view);
 					super.state = STRUCTURE_NOT_AVAILABLE;
-				} catch (e) {}
+				} catch (e) {
+					log("Listener threw exception" + e.getMessage(), TOP);
+					throw new JavaCodeException(e.getMessage());
+				}
 			}
 		}
 	});
@@ -691,6 +734,9 @@ StructureOverlay(This listener, AccessibilityNodeInfo root, boolean useA11y, int
 
 StructureOverlay(This listener, boolean useA11y, AccessibilityWindowInfo window) {
 	AccessibilityNodeInfo root = window.getRoot();
+	if (root == null) {
+		throw new JavaCodeException("Could not get root node from window.");
+	}
 	return StructureOverlay(listener, root, useA11y, window.displayId);
 }
 
@@ -700,6 +746,9 @@ StructureOverlay(AccessibilityNodeInfo root, boolean useA11y, int displayId) {
 
 StructureOverlay(boolean useA11y, AccessibilityWindowInfo window) {
 	AccessibilityNodeInfo root = window.getRoot();
+	if (root == null) {
+		throw new JavaCodeException("Could not get root node.");
+	}
 	return StructureOverlay(null, root, useA11y, window.displayId);
 }
 

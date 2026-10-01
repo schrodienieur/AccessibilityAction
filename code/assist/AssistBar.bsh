@@ -1,5 +1,7 @@
 importCommands("lib.ui");
 importCommands("assist.button");
+importCommands("main");
+importCommands("assist.display");
 
 import android.content.Context;
 import android.graphics.Color;
@@ -31,6 +33,7 @@ import java.util.List;
 import android.view.HapticFeedbackConstants;
 
 import bsh.This;
+import android.os.Looper;
 
 /*───────────────────────────────────────────────────────────────
   dp(int value)
@@ -59,12 +62,16 @@ public This AssistBar(int initialX, int initialY) {
 	final int OPENING_SCRIPT_EDITOR = 5;
 	final int OPENING_NODE_SEARCH = 6;
 	final int OPENING_ACTIONS_GROUP = 7;
+	final int TOGGLING_ASSIST_BAR = 8;
+	final int CLOSING_ASSIST_BAR_FROM_BUTTON = 9;
 
 	int state = ACTIVITY_NONE;
+	int mode = CAPTURE_MODE;
 
 	This AssistInfo = AssistInfo();
 	final This TOP = this;
 	This a11Y = getA11yInstance();
+	This buttonManager = AssistButtonManager(this);
 	final int WINDOW_TYPE = ENV.Layout.TYPE_ASSIST_BAR;
 	a11Y.viewControl.addView(TOP);
 
@@ -74,22 +81,20 @@ public This AssistBar(int initialX, int initialY) {
 	// Properties
 	boolean useA11y = true;
 	This tm;
-	int padding = dp(4);
+	int padding;
 	Context assistContext;
+	int targetDisplayId;
 	WindowManager windowManager;
 	int assistOverlayType = useA11y ?
 		WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY :
 		WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-	FrameLayout assistButton;
+	FrameLayout assistBar;
 	WindowManager.LayoutParams assistParams;
 	int screenheight;
 	DisplayMetrics displayMetrics;
 	LinearLayout container;
-	Handler mainHandler = new Handler(Looper.getMainLooper());
-	boolean isRemoved;
-	boolean isShown;
-	boolean hasShownOnce;
-	int selectedDisplayId;
+	int selectedDisplayId = Display.DEFAULT_DISPLAY;
+	int selectedWindowFilter;
 
 	// Instances
 	This structureOverlay;
@@ -100,6 +105,8 @@ public This AssistBar(int initialX, int initialY) {
 	This scriptEditor;
 	This assistSetting;
 	This actionPicker;
+	This actionsGroupDialog;
+	This displayListener;
 
 	// Buttons and Handle
 	GestureDetector detector;
@@ -108,34 +115,44 @@ public This AssistBar(int initialX, int initialY) {
 	float initialTouchY;
 	int initialWinX;
 	int initialWinY;
+	DisplayMetrics initialDisplayMetrics = getDisplayMetrics(selectedDisplayId);
+	final float initialXPercent = (float) initialX / initialDisplayMetrics.widthPixels;
+	final float initialYPercent = (float) initialY / initialDisplayMetrics.heightPixels;
 	This handleGesture;
 
-	create() {
-		assistContext = getContext(useA11y);
-		windowManager = (WindowManager) assistContext.getSystemService(Context.WINDOW_SERVICE);
+	getContext() {
+		return assistContext;
+	}
+
+	create(Context context) {
+		assistContext = context;
+		windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+		targetDisplayId = getContext().getDisplay().getDisplayId();
+		selectedDisplayId = targetDisplayId;
 
 		/* THEME */
-		tm = ThemeManager(assistContext);
+		tm = ThemeManager(getContext());
 		tm.setThemeDark();
+		padding = tm.dp(4);
 
-		displayMetrics = getDisplayMetrics();
+		displayMetrics = getDisplayMetrics(targetDisplayId);
 		screenheight = displayMetrics.heightPixels;
 
 		/* ROOT & CONTAINER SETUP */
-		assistButton = new FrameLayout(assistContext);
-		container = new LinearLayout(assistContext);
+		assistBar = new FrameLayout(getContext());
+		container = new LinearLayout(getContext());
 		container.setOrientation(LinearLayout.HORIZONTAL);
 
 		GradientDrawable bg = new GradientDrawable();
 		bg.setShape(GradientDrawable.RECTANGLE);
-		bg.setCornerRadius(dp(28));
+		bg.setCornerRadius(tm.dp(28));
 		bg.setColor(tm.color("colorSurfaceContainerHighest"));
 		container.setBackground(bg);
 		container.setPadding(padding, padding, padding, padding);
 
 		FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(-2, -2);
 		container.setLayoutParams(containerParams);
-		assistButton.addView(container);
+		assistBar.addView(container);
 
 		container.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
 			public void onChildViewAdded(View parent, View child) {
@@ -156,9 +173,12 @@ public This AssistBar(int initialX, int initialY) {
 			WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
 			PixelFormat.TRANSLUCENT
 		);
+		assistParams.title = AssistInfo.ASSIST_BAR_TITLE;
 		assistParams.gravity = Gravity.TOP | Gravity.LEFT;
-		assistParams.x = initialX;
-		assistParams.y = initialY;
+		int newX = displayMetrics.widthPixels * initialXPercent;
+		int newY = displayMetrics.heightPixels * initialYPercent;
+		assistParams.x = newX;
+		assistParams.y = newY;
 	}
 
 	setHandleTouch(boolean state) {
@@ -172,40 +192,42 @@ public This AssistBar(int initialX, int initialY) {
 	}
 
 	setHandleMode(int mode, boolean state) {
-		This handleBtn = getIconButton(AssistInfo.HANDLE_BUTTON);
-		if (state) {
-			handleGesture.unmute();
-		} else {
-			handleGesture.mute();
-		}
-		switch (mode) {
-			case CAPTURE_MODE:
-				handleBtn.resetIcon();
-				handleBtn.setTouchState(state);
-				break;
-			case DELETE_CAPTURE_MODE:
-				handleBtn.setTemporaryIcon(AssistInfo.DELETE_ICON);
-				handleBtn.setTouchState(state);
+		Runnable handleModeRun = new Runnable() {
+			run() {
+				This handleBtn = getIconButton(AssistInfo.HANDLE_BUTTON);
 				if (state) {
-					handleBtn.setTemporaryIconColor(tm.color("colorErrorContainer"), tm.color("colorOnErrorContainer"));
+					handleGesture.unmute();
+				} else {
+					handleGesture.mute();
 				}
-				break;
-		}
+				switch (mode) {
+					case CAPTURE_MODE:
+						super.mode = CAPTURE_MODE;
+						handleBtn.resetIcon();
+						handleBtn.setTouchState(state);
+						break;
+					case DELETE_CAPTURE_MODE:
+						super.mode = DELETE_CAPTURE_MODE;
+						handleBtn.setTemporaryIcon(AssistInfo.DELETE_ICON);
+						handleBtn.setTouchState(state);
+						if (state) {
+							handleBtn.setTemporaryIconColor(tm.color("colorErrorContainer"), tm.color("colorOnErrorContainer"));
+						}
+						break;
+				}
+			}
+		};
+		a11Y.post(handleModeRun);
 	}
 
 
 	/*────────────────────────────
 	  UTILITY METHODS
 	────────────────────────────*/
-	getContext() {
-		return assistContext;
-	}
-
 	removeStructure() {
-		This searchBtn = getIconButton(AssistInfo.SEARCH_BUTTON);
-		searchBtn.setTouchState(false);
 		if (structureOverlay != null && !structureOverlay.isRemoved()) {
 			structureOverlay.remove();
+			stuctureOverlay = null;
 		}
 	}
 
@@ -231,33 +253,47 @@ public This AssistBar(int initialX, int initialY) {
 		assistParams.height = measuredHeight;
 		assistParams.width = measuredWidth;
 
-		if (!isShown) return;
+		if (!isShowing()) return;
 		try {
-			windowManager.updateViewLayout(assistButton, (WindowManager.LayoutParams) assistParams);
-		} catch (e) {}
+			windowManager.updateViewLayout(assistBar, (WindowManager.LayoutParams) assistParams);
+		} catch (e) {
+			log(e.getMessage(), "ERROR", TOP);
+		}
 	}
 
-	addButton(String name, Drawable drawable, boolean isActive, boolean displayFirst, View.OnClickListener onClickListener) {
-		This iconButton = IconButton(TOP);
-		iconButton.setId(name);
-		MaterialButton button = iconButton.build();
-		iconButton.setIcon(drawable);
-		iconButton.setColorState(isActive);
-		iconButton.addToContainer();
-		if (!displayFirst) {
-			iconButton.removeFromContainer();
-		}
-		if (onClickListener != null) {
-			button.setOnClickListener(onClickListener);
-		}
-		return button;
-	}
-
-	getIconButton(String id) {
+	getIconButton(int id) {
 		return buttons.get(id);
 	}
 
-	getButton(String id) {
+	/*
+	 * Determine if activity dialog should be used
+	 * Activity should be used if assistBar is on the default display 
+	 * and has an application window without an input window present
+	 * @returns	boolean
+	*/
+	boolean shouldUseActivity() {
+
+		boolean isDefaultDisplay = getContext().getDisplay().getDisplayId() == Display.DEFAULT_DISPLAY;
+		if (!isDefaultDisplay) return false;
+
+		List windows = getWindows(selectedDisplayId);
+		boolean hasAppWindow;
+		boolean hasInputWindow;
+		for (AccessibilityWindowInfo window: windows) {
+			switch (window.getType()) {
+				case AccessibilityWindowInfo.TYPE_APPLICATION:
+					hasAppWindow = true;
+					break;
+				case AccessibilityWindowInfo.TYPE_INPUT_METHOD:
+					hasInputWindow = true;
+					break;
+			};
+		};
+
+		return hasAppWindow && !hasInputWindow;
+	}
+
+	getButton(int id) {
 		This iconButton = buttons.get(id);
 		if (iconButton == null) {
 			throw new NullPointerException("No button with id " + id);
@@ -274,6 +310,18 @@ public This AssistBar(int initialX, int initialY) {
 					true,
 					true,
 					null
+			},
+			{
+				AssistInfo.ACTIONS_GROUP_BUTTON,
+				tm.attr(AssistInfo.ACTIONS_GROUP_ICON),
+				false,
+				true,
+				new View.OnClickListener() {
+					onClick(View view) {
+						view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+						toggleActionsGroup();
+					}
+				}
 			},
 			{
 				AssistInfo.SCRIPT_BUTTON,
@@ -300,6 +348,18 @@ public This AssistBar(int initialX, int initialY) {
 				}
 			},
 			{
+				AssistInfo.SEARCH_BUTTON,
+				tm.attr(AssistInfo.SEARCH_ICON),
+				false,
+				false,
+				new View.OnClickListener() {
+					onClick(View view) {
+						view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+						toggleSearch();
+					}
+				}
+			},
+			{
 				AssistInfo.FILTER_BUTTON,
 				tm.attr(AssistInfo.FILTER_ICON),
 				false,
@@ -312,14 +372,13 @@ public This AssistBar(int initialX, int initialY) {
 				}
 			},
 			{
-				AssistInfo.SEARCH_BUTTON,
-				tm.attr(AssistInfo.SEARCH_ICON),
+				AssistInfo.INFO_BUTTON,
+				tm.attr(AssistInfo.INFO_ICON),
 				false,
 				false,
 				new View.OnClickListener() {
 					onClick(View view) {
-						view.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
-						toggleSearch();
+						showToast(getContext(), "Info not set yet");
 					}
 				}
 			},
@@ -338,75 +397,92 @@ public This AssistBar(int initialX, int initialY) {
 		};
 
 		for (Object[] button: buttonsConfig) {
-			String name = button[0];
+			int id = button[0];
 			Drawable drawable = button[1];
 			boolean isActive = button[2];
 			boolean displayFirst = button[3];
 			View.OnClickListener onClickListener = button[4];
-			MaterialButton button = addButton(name, drawable, isActive, displayFirst, onClickListener);
+			MaterialButton button = buttonManager.addButton(id, drawable, isActive, displayFirst, onClickListener);
 		}
 
 		This closeIcon = getIconButton(AssistInfo.CLOSE_BUTTON);
-		closeIcon.setIconColor(tm.color("colorErrorContainer"), tm.color("colorOnErrorContainer"));
+		if (closeIcon != null) closeIcon.setIconColor(tm.color("colorErrorContainer"), tm.color("colorOnErrorContainer"));
 
 		return;
 	}
 
+	isDialogsShowing() {
+		return a11Y.viewControl.isAnyVisible(ENV.Layout.TYPE_ALL_WINDOWS);
+	}
+
+	removeDialogs() {
+		a11Y.viewControl.remove(ENV.Layout.TYPE_ALL_WINDOWS);
+	}
 
 	/*────────────────────────────
 	  Search Utils
 	────────────────────────────*/
 	showSearch() {
 		if (filterSheet != null) filterSheet.remove();
-		nodeSearch = NodeSearch(structureOverlay);
-		structureOverlay.hide();
+		nodeSearch = NodeSearch(TOP, structureOverlay);
 		A11yConfig.refresh();
-		nodeSearch.show();
-		super.state = OPENING_NODE_SEARCH;
+		Runnable post = new Runnable() {
+			run() {
+				log("Showing Node Search", "INFO", TOP);
+				a11Y.viewControl.show(ENV.Layout.TYPE_NODE_SEARCH);
+				super.state = OPENING_NODE_SEARCH;
+			}
+		};
+		a11Y.post(post);
 	}
 
 	toggleSearch() {
+		This searchButton = getIconButton(AssistInfo.SEARCH_BUTTON);
 		Runnable runMe = new Runnable() {
 			run() {
 				try {
 					if (nodeSearch != null) {
-						if (structureOverlay != null && structureOverlay.isShown()) {
-							showSearch();
+						if (structureOverlay != null && structureOverlay.isShowing()) {
+							if (structureOverlay.structureSnapshot.isScreenshotRecycled()) {
+								showToast(getContext(), "Screenshot recycled");
+							} else {
+								log("Showing Node Search when structure overlay is showing", "INFO", TOP);
+								showSearch();
+							}
 						} else {
+							log("Removing Node Search when structure overlay is not showing", "INFO", TOP);
 							nodeSearch.remove();
 							nodeSearch = null;
 							structureOverlay.unhide();
 						}
 					} else {
+						log("Showing Node Search when null", "INFO", TOP);
 						showSearch();
 					}
 				} catch (e) {
-					tasker.showToast(e.getMessage());
+					tasker.showToast(e.getMessage(), "Error showing search");
+					log(e.getMessage(), "ERROR", TOP);
+					a11Y.lastError = e;
+					throw e;
 				}
 			}
 		};
-		runMe(runMe);
+		a11Y.execute(runMe);
 	}
 
 	toggleScriptEditor() {
-		if (assistSetting != null) assistSetting.remove();
-		if (structureOverlay != null) structureOverlay.remove();
-		if (scriptEditor != null) {
-			scriptEditor.toggle();
-			super.state = OPENING_SCRIPT_EDITOR;
-		}
+		a11Y.viewControl.toggle(ENV.Layout.TYPE_SCRIPT_EDITOR);
+		super.state = OPENING_SCRIPT_EDITOR;
 	}
 
 	toggleSetting() {
-		if (assistSetting != null) {
-			assistSetting.toggle();
-			super.state = OPENING_SETTINGS;
-		}
+		a11Y.viewControl.toggle(ENV.Layout.TYPE_SETTINGS);
+		super.state = OPENING_SETTINGS;
 	}
 
 	toggleFilter() {
 		if (filterSheet == null) {
-			filterSheet = FilterSheet(TOP.namespace.getVariable("structureOverlay"));
+			filterSheet = FilterSheet(TOP, TOP.namespace.getVariable("structureOverlay"));
 			int filterY = (1 - filterSheet.config.maxHeight) * screenheight;
 			int assistY = assistParams.y + assistParams.height;
 			if (assistY > filterY) moveHandle(assistParams.x, filterY - assistParams.height);
@@ -415,6 +491,12 @@ public This AssistBar(int initialX, int initialY) {
 		if (filterSheet != null) filterSheet.toggle();
 		if (nodeSearch != null) nodeSearch.remove();
 		super.state = OPENING_FILTER;
+	}
+
+	toggleActionsGroup() {
+		removeStructure();
+		a11Y.viewControl.toggle(ENV.Layout.TYPE_ACTIONS_GROUP_DIALOGS);
+		super.state = OPENING_ACTIONS_GROUP;
 	}
 
 	isSystemWindow() {
@@ -426,6 +508,7 @@ public This AssistBar(int initialX, int initialY) {
 	displayStructure(AccessibilityWindowInfo window) {
 		setHandleMode(CAPTURE_MODE, false);
 		super.state = CAPTURING_STRUCTURE;
+
 		if (window == null) {
 			setHandleMode(CAPTURE_MODE, true);
 			removeStructure();
@@ -433,6 +516,7 @@ public This AssistBar(int initialX, int initialY) {
 			throw new NullPointerException("Window is null");
 			return;
 		}
+
 		Runnable displayMe = new Runnable() {
 			run() {
 				try {
@@ -449,11 +533,12 @@ public This AssistBar(int initialX, int initialY) {
 					removeStructure();
 					setHandleMode(CAPTURE_MODE, true);
 					log(e.getMessage(), "ERROR", TOP);
-					tasker.showToast("Failed to display structure overlay");
-					throw new JavaCodeException(e.getMessage());
+					tasker.showToast(e.getMessage(), "Failed to display structure overlay");
+					show();
 				}
 			}
 		};
+
 		a11Y.post(displayMe);
 	}
 
@@ -495,26 +580,41 @@ public This AssistBar(int initialX, int initialY) {
 
 	toggleStructure() {
 		try {
+			// Remove Any Dialogs
+			if (isDialogsShowing()) {
+				assistBar.performHapticFeedback(HapticFeedbackConstants.REJECT);
+				removeDialogs();
+				return;
+			}
+
 			if (structureOverlay == null) {
 				log("Displaying Structure Overlay From Toggle because null", "INFO", this);
-				scriptEditor.remove();
 				displayStructure();
 			}
 
-			else if (structureOverlay.isShown()) {
+			else if (structureOverlay.isShowing() || structureOverlay.isHidden() || mode == DELETE_CAPTURE_MODE) {
 				structureOverlay.remove();
 				log("Removing Structure Overlay From Toggle", "INFO", this);
 			}
 
 			else {
 				log("Displaying Structure Overlay From Toggle" + structureOverlay.isRemoved(), "INFO", this);
-				scriptEditor.remove();
 				displayStructure();
 			}
 
 		} catch (e) {
-			tasker.showToast(e.getMessage());
+			tasker.showToast(e.getMessage(), "Failed to toggle structure overlay");
+			log(e.getMessage(), "ERROR", TOP);
 		}
+	}
+
+	toggleDisplayMenu() {
+		Runnable runMe = new Runnable() {
+			run() {
+				a11Y.viewControl.toggle(ENV.Layout.TYPE_DISPLAY_MENU);
+			}
+		};
+		a11Y.execute(runMe);
 	}
 
 	/*────────────────────────────
@@ -530,73 +630,63 @@ public This AssistBar(int initialX, int initialY) {
 		refreshSize();
 	}
 
-	public void replaceButton(String currentButton, String newButton) {
-		MaterialButton currentBtn = getButton(currentButton);
-		MaterialButton newBtn = getButton(newButton);
-		replaceView(currentBtn, newBtn);
-	}
-
 	public void switchLayout(boolean isStructureShown) {
+		int whenShown = AssistInfo.SCRIPT_BUTTON | AssistInfo.SETTING_BUTTON | AssistInfo.ACTIONS_GROUP_BUTTON ;
+		int whenNot = AssistInfo.FILTER_BUTTON | AssistInfo.SEARCH_BUTTON | AssistInfo.INFO_BUTTON ;
 		if (isStructureShown) {
-			replaceButton(AssistInfo.SCRIPT_BUTTON, AssistInfo.SEARCH_BUTTON);
-			replaceButton(AssistInfo.SETTING_BUTTON, AssistInfo.FILTER_BUTTON);
+			buttonManager.hideButtons(whenShown);
+			buttonManager.unhideButtons(whenNot);
 		} else {
-			replaceButton(AssistInfo.SEARCH_BUTTON, AssistInfo.SCRIPT_BUTTON);
-			replaceButton(AssistInfo.FILTER_BUTTON, AssistInfo.SETTING_BUTTON);
+			buttonManager.hideButtons(whenNot);
+			buttonManager.unhideButtons(whenShown);
 		}
 	}
-
 	// Listener for Structure Overlay to switch layout
 	createStructureOverlayListener() {
+		This structureSnapshot;
+
 		onViewAttachedToWindow(View view) {
+			setHandleMode(DELETE_CAPTURE_MODE, false);
+			buttonManager.setButtonsTouchState(AssistInfo.SEARCH_BUTTON | AssistInfo.FILTER_BUTTON, false);
 			TOP.switchLayout(true);
+			hide();
 			structureOverlay.takeScreenshot();
 		}
 
 		onViewDetachedFromWindow(View view) {
 			setHandleMode(CAPTURE_MODE, true);
-			This searchBtn = getIconButton(AssistInfo.SEARCH_BUTTON);
-			searchBtn.setTouchState(false);
+			buttonManager.setButtonsTouchState(AssistInfo.SEARCH_BUTTON | AssistInfo.FILTER_BUTTON, false);
+			switchLayout(false);
 			log("Reset layout then remove structure overlay with node search & filter", TOP);
-			TOP.switchLayout(false);
 			try {
-				filterSheet.remove();
+				if (filterSheet != null) filterSheet.remove();
 				filterSheet = null;
-				nodeSearch.remove();
+				if (filterSheet != null) nodeSearch.remove();
 				nodeSearch = null;
 			} catch (e) {
-
+				log(e.getMessage(), "ERROR", TOP);
 			}
 		}
 
 		onStructureReady(This structureOverlay) {
-			log("Switching layout to use structure overlay", TOP);
+			log("Structure overlay ready", TOP);
+			buttonManager.setButtonsTouchState(AssistInfo.FILTER_BUTTON | AssistInfo.SEARCH_BUTTON, true);
+			if (structureOverlay.isRemoved()) {
+				setHandleMode(CAPTURE_MODE, true);
+			} else {
+				setHandleMode(DELETE_CAPTURE_MODE, true);
+				super.state = ACTIVITY_NONE;
+			}
 			super.state = STRUCTURE_CAPTURED;
 		}
 
-		onScreenshotSuccess(This screenshotHelper) {
-			setHandleMode(DELETE_CAPTURE_MODE, false);
-			This searchBtn = getIconButton(AssistInfo.SEARCH_BUTTON);
-			Runnable takeScreenshot = new Runnable() {
-				run() {
-					// * Take screenshot here after the structure overlay is attached
-					structureOverlay.cacheScreenshot();
-					Runnable runMe = new Runnable() {
-						run() {
-							searchBtn.setTouchState(true);
-							if (structureOverlay.isShown()) {
-								setHandleMode(DELETE_CAPTURE_MODE, true);
-								super.state = ACTIVITY_NONE;
-							} else {
-								setHandleMode(CAPTURE_MODE, true);
-								screenshotHelper.recycle();
-							}
-						}
-					};
-					a11Y.post(runMe);
-				}
-			};
-			a11Y.execute(takeScreenshot);
+		onScreenshotSuccess(This structureSnapshot) {
+			unhide();
+			log("Screenshot success", "INFO", TOP);
+		}
+
+		onScreenshotError(int errorCode) {
+			unhide();
 		}
 
 		return this;
@@ -607,11 +697,11 @@ public This AssistBar(int initialX, int initialY) {
 	────────────────────────────*/
 	setupResources() {
 		if (displayMenu == null) {
-			displayMenu = DisplayMenu();
+			displayMenu = DisplayMenu(TOP);
 			listener() {
 				onClick(Object display) {
 					TOP.namespace.setVariable("selectedDisplayId", display.getDisplayId(), false);
-					showToast("Selected Display: " + display.getName());
+					showToast(getContext(), "Selected Display: " + display.getName());
 					TOP.displayStructure(display.getDisplayId());
 				}
 				return this;
@@ -620,11 +710,11 @@ public This AssistBar(int initialX, int initialY) {
 			displayMenu.setOnClickListener(listener);
 		}
 		if (windowMenu == null) {
-			windowMenu = WindowMenu();
+			windowMenu = WindowMenu(TOP);
 			listener() {
 				onClick(AccessibilityWindowInfo window) {
 					TOP.namespace.setVariable("selectedDisplayId", window.getDisplayId(), false);
-					showToast("Selected Window: " + window.getTitle());
+					showToast(getContext(), "Selected Window: " + window.getTitle());
 					TOP.displayStructure(window);
 				}
 				return this;
@@ -632,9 +722,14 @@ public This AssistBar(int initialX, int initialY) {
 			This listener = listener();
 			windowMenu.setOnClickListener(listener);
 		}
-		if (scriptEditor == null) scriptEditor = ScriptEditor();
-		if (assistSetting == null) assistSetting = AssistSetting();
-		if (actionPicker == null) actionPicker = ActionPicker();
+		if (scriptEditor == null) scriptEditor = ScriptEditor(TOP);
+		if (assistSetting == null) assistSetting = AssistSetting(TOP);
+		if (actionPicker == null) actionPicker = ActionPicker(TOP);
+		if (actionsGroupDialog == null) actionsGroupDialog = ActionsGroupDialog(TOP);
+		if (displayListener == null) {
+			displayListener = MyDisplayListener(TOP);
+			displayListener.register();
+		}
 	}
 
 	clearResources() {
@@ -650,6 +745,11 @@ public This AssistBar(int initialX, int initialY) {
 		scriptEditor = null;
 		if (assistSetting != null) assistSetting.remove();
 		assistSetting = null;
+		if (actionsGroupDialog != null) actionsGroupDialog.remove();
+		actionsGroupDialog = null;
+		if (displayListener != null) displayListener.unregister();
+		displayListener = null;
+		a11Y.clean();
 	}
 
 	/*────────────────────────────
@@ -657,18 +757,11 @@ public This AssistBar(int initialX, int initialY) {
 	────────────────────────────*/
 	handleListener() {
 		onLongPress() {
-			assistButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-			Runnable runMe = new Runnable() {
-				run() {
-					removeStructure();
-					ActionsGroupDialog();
-					super.state = OPENING_ACTIONS_GROUP;
-				}
-			};
-			a11Y.execute(runMe);
+			assistBar.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+			toggleDisplayMenu();
 		}
 		onSingleTapConfirmed() {
-			assistButton.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+			assistBar.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
 			toggleStructure();
 		}
 		onDoubleTap() {
@@ -683,15 +776,17 @@ public This AssistBar(int initialX, int initialY) {
 		assistParams.x = x;
 		assistParams.y = y;
 		try {
-			windowManager.updateViewLayout(assistButton, assistParams);
-		} catch (e) {}
+			windowManager.updateViewLayout(assistBar, assistParams);
+		} catch (e) {
+			log(e.getMessage(), "ERROR", TOP);
+		}
 	}
 
 	onMove(View view, MotionEvent event) {
 		switch (event.getAction()) {
 			case 0: // ACTION_DOWN
 				int[] loc = new int[2];
-				assistButton.getLocationOnScreen(loc);
+				assistBar.getLocationOnScreen(loc);
 				initialWinX = loc[0];
 				initialWinY = loc[1];
 				assistParams.x = initialWinX;
@@ -721,82 +816,125 @@ public This AssistBar(int initialX, int initialY) {
 			});
 		}
 
-		assistButton.setOnTouchListener(new View.OnTouchListener() {
+		assistBar.setOnTouchListener(new View.OnTouchListener() {
 			onTouch(View view, MotionEvent event) {
 				onMove(view, event);
 				return false;
 			}
 		});
 
-		assistButton.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+		assistBar.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
 			onViewAttachedToWindow(View v) {
+				if (isToggling()) return;
 				try {
-					hasShownOnce = true;
-					isShown = true;
-					if (isRemoved) isRemoved = false;
 					refreshSize();
 					setupResources();
 				} catch (e) {
 					log(e.getMessage(), "ERROR", TOP, true);
 				}
-
 			}
 			onViewDetachedFromWindow(View v) {
-				// try {
-				isShown = false;
-				isRemoved = true;
+				if (isToggling()) return;
 				clearResources();
-				a11Y.clean();
-				// } catch (e) {
-				// 	log(e.getMessage(), "ERROR", TOP, true);
-				// }
 			}
 		});
 	}
 
+	toggle() {
+		Runnable toggleRun = new Runnable() {
+			run() {
+				state = TOGGLING_ASSIST_BAR;
+				if (isShowing()) {
+					windowManager.removeView(assistBar);
+					windowManager.addView(assistBar, assistParams);
+				}
+				state = ACTIVITY_NONE;
+			}
+		};
+		a11Y.post(toggleRun);
+	}
+
+	isToggling() {
+		return state == TOGGLING_ASSIST_BAR;
+	}
+
 	isAdded() {
-		if (assistButton == null) return false;
-		return assistButton.getParent() != null && assistButton.isAttachedToWindow();
+		if (assistBar == null) return false;
+		return assistBar.getParent() != null && assistBar.isAttachedToWindow();
 	}
 
 	isHidden() {
-		if (assistButton == null) return false;
-		return assistButton.getVisibility() == View.GONE && isAdded();
+		if (assistBar == null) return false;
+		return assistBar.getVisibility() == View.GONE && isAdded();
 	}
 
-	isShown() {
-		if (assistButton == null) return false;
-		return assistButton.getVisibility() == View.VISIBLE && isAdded();
+	isShowing() {
+		if (assistBar == null) return false;
+		return assistBar.getVisibility() == View.VISIBLE && isAdded();
 	}
 
 	isRemoved() {
-		if (assistButton == null) return false;
+		if (assistBar == null) return false;
 		return !isAdded();
 	}
 
 	remove() {
-		removeStructure();
-		stuctureOverlay = null;
-		if (isShown) windowManager.removeView(assistButton);
-		isShown = false;
-		a11Y.clean();
+		if (isShowing()) windowManager.removeView(assistBar);
 	}
 
-	show() {
-		if (assistButton == null) {
-			create();
+	show(int targetDisplayId) {
+		boolean sameDisplay = getContext() != null && getContext().getDisplay().getDisplayId() == targetDisplayId;
+		Display targetDisplay;
+		boolean isDisplayValid; 
+		if (getContext() != null) {
+			Display display = getContext().getSystemService(Context.DISPLAY_SERVICE).getDisplay(targetDisplayId);
+			isDisplayValid = display != null;
+			
+		}
+
+		if (!isDisplayValid) {
+			targetDisplayId = Display.DEFAULT_DISPLAY;
+			sameDisplay = false;
+		}
+
+		if (assistBar == null) {
+			Context context = getContext(useA11y, targetDisplayId);
+			create(context);
+			addButtons();
+			addListenerAndGesture();
+		} else if (!sameDisplay) {
+			if (isShowing()) remove();
+			clearResources();
+			Context context = getContext(useA11y, targetDisplayId);
+			create(context);
 			addButtons();
 			addListenerAndGesture();
 		}
+
 		Runnable displayOverlay = new Runnable() {
 			run() {
 				if (detector == null && handleGesture != null) {
 					detector = handleGesture.getDetector();
 				}
-				windowManager.addView(assistButton, assistParams);
+				windowManager.addView(assistBar, assistParams);
 			}
 		};
-		if (!isShown) mainHandler.post(displayOverlay);
+		if (!isShowing()) {
+			a11Y.post(displayOverlay);
+		}
+	}
+
+	show() {
+		show(targetDisplayId);
+	}
+
+	// Visibility hidden
+	hide() {
+		if (isShowing()) assistBar.setVisibility(View.GONE);
+	}
+
+	unhide() {
+		if (isAdded() && isHidden()) assistBar.setVisibility(View.VISIBLE);
 	}
 
 	return this;

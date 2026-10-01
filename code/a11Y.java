@@ -2,16 +2,28 @@ String ENV_PATH = new File(getSourceFileInfo()).getParentFile().getAbsolutePath(
 LOG_FILE = ENV_PATH + "/log.txt";
 
 addClassPath(ENV_PATH);
+importCommands("main");
+importCommands("window");
+importCommands("gestures");
+importCommands("actions");
+importCommands("others");
+importCommands("assist");
+importCommands("helper");
 importCommands("lib");
 importCommands("lib.file");
-importCommands("main");
+importCommands("assist.helper");
+importCommands("assist.dialog");
+importCommands("event");
+importCommands("global");
 importCommands("config");
 
 import bsh.This;
+import bsh.NameSpace;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.*;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.lang.reflect.Field;
@@ -30,23 +42,27 @@ a11Y() {
 	if (old != null) {
 		try {
 			boolean hasRemoveBoolean = old.namespace.getMethod("remove", new Class[] { Boolean.class }) != null;
-			if (hasRemoveBoolean) old.remove(false);
+			if (hasRemoveBoolean) old.remove(true);
 			else {
 				throw new JavaCodeException("Could not find remove(boolean) method");
 			}
 		} catch (Exception e) {
 			log(e.getMessage(), "ERROR");
+			String appName = context.getApplicationContext().getApplicationInfo().loadLabel(context.getPackageManager());
 			String packageName = context.getPackageName();
-			String appName = context.getApplicationContext()
-				.getApplicationInfo()
-				.loadLabel(packageName)
-				.toString();
-			tasker.showToast("Unable to clear existing a11Y instance:\n" + e.getMessage(), "Please Restart " + appName);
+			tasker.showToast("Unable to clear existing a11Y instance:\n in package " + packageName + "\n" + e.getMessage(), "Please Restart " + appName);
+			throw e;
 			return;
 		}
 	}
 
 	final This TOP = this;
+	final String[] constants = new String[] {
+		"AssistInfo",
+		"WindowInfo",
+		"NodeInfo",
+		"ENV",
+	};
 
 	// Variables
 	List assistOverlays = new ArrayList();
@@ -94,7 +110,7 @@ a11Y() {
 		Executors.defaultThreadFactory() /* Thread factory */
 	);
 
-	reload() {
+	void reload() {
 		Runnable reloadTask = new Runnable() {
 			run() {
 				try {
@@ -107,56 +123,72 @@ a11Y() {
 		execute(reloadTask);
 	}
 
-	debug() {
+	void debug() {
 		debugMe = true;
 	}
 
-	setConfigTo(This THIS) {
+	void setConfigTo(This THIS) {
 		config.setTo(TOP, THIS);
 	}
 
-	set(This THIS) {
+	This set(This THIS) {
 		if (ENV_PATH == null) {
 			throw new JavaCodeException("ENV_PATH is null");
 		}
 		config.setTo(TOP, THIS);
-		if (ENV != null) THIS.namespace.setVariable("ENV", ENV, false);
-		if (NodeInfo != null) THIS.namespace.setVariable("NodeInfo", NodeInfo, false);
-		if (WindowInfo != null) THIS.namespace.setVariable("WindowInfo", WindowInfo, false);
+		setConstant(THIS, true);
 		this.interpreter.source(ENV_PATH + "/import.java");
 		return THIS;
 	}
 
-	set() {
+	void set() {
 		set(this.caller);
 	}
 
-	setEnvPath(String path) {
+	void bind() {
+		bind(this.caller, super.namespace);
+	}	
+	
+	void setConstant(This THIS, boolean force) {
+		NameSpace callerNamespace = THIS.namespace;
+		for (String constant: constants) {
+			if (callerNamespace.getVariable(constant) == void && !force) {
+				Object value = TOP.namespace.getVariable(constant);
+				callerNamespace.setTypedVariable(constant, value.getClass(), value, true);
+			}
+		};
+	}
+
+	void setConstant(This THIS) {
+		setConstant(THIS, false);
+	}
+
+	void setEnvPath(String path) {
 		ENV_PATH = path;
 		LOG_FILE = path + "/log.txt";
 	}
 
-	setEnv(This env) {
+	void setEnv(This env) {
 		ENV = env;
 	}
 
-	resetEnv() {
+	void resetEnv() {
 		ENV_PATH = null;
 	}
 
-	reset() {
+	void reset() {
 		config.setTo(TOP);
 	}
 
-	addOverlay(This overlay) {
+	void addOverlay(This overlay) {
 		assistOverlays.add(overlay);
 	};
 
-	removeOverlay(This overlay) {
+	void removeOverlay(This overlay) {
 		assistOverlays.remove(overlay);
 	}
 
-	clean() {
+	void clean() {
 		if (assistOverlays.isEmpty()) return;
 		for (This overlay: assistOverlays) {
 			try { overlay.remove(); } catch (e) {}
@@ -164,42 +196,40 @@ a11Y() {
 		assistOverlays.clear();
 	}
 
-	addEvent(String eventId, This eventListener) {
-		This a11E = tasker.getJavaVariable("a11E");
+	void addEvent(String eventId, This eventListener) {
 		if (a11E != null) a11E.add(eventId, eventListener);
 	}
 
-	removeEvent(String eventId) {
-		This a11E = tasker.getJavaVariable("a11E");
+	void removeEvent(String eventId) {
 		if (a11E != null) a11E.remove(eventId);
 	}
 
-	removeEvents() {
-		This a11E = tasker.getJavaVariable("a11E");
+	void removeEvents() {
 		if (a11E != null) a11E.removeEvents();
 	}
 
-	getEvents() {
-		This a11E = tasker.getJavaVariable("a11E");
+	List getEvents() {
 		if (a11E != null) {
 			Set keyset = a11E.listeners.keySet();
 			return new ArrayList(keyset);
 		}
+		
+		return new ArrayList();
 	}
 
 	if (old != null) {
 		if (old.scriptEditor != void) scriptEditor = old.scriptEditor;
 	}
 
-	showAssist() {
-		if (!assistBar.isShown) assistBar.show();
+	void showAssist() {
+		if (!assistBar.isShowing()) assistBar.show();
 	}
 
-	removeAssist() {
-		if (assistBar.isShown) assistBar.remove();
+	void removeAssist() {
+		if (assistBar.isShowing()) assistBar.remove();
 	}
 
-	update() {
+	void update() {
 		if (updateManager != null) {
 			if (updatePreRelease) {
 				updateManager.updatePreRelease();
@@ -213,40 +243,38 @@ a11Y() {
 
 	}
 
-	updatePreRelease() {
+	void updatePreRelease() {
 		if (updateManager != null) {
 			updateManager.updatePreRelease();
 			reload();
 		}
 	}
 
-	muteEvents() {
-		This a11E = tasker.getJavaVariable("a11E");
+	void muteEvents() {
 		a11E.mute();
 	}
 
-	unmuteEvents() {
-		This a11E = tasker.getJavaVariable("a11E");
+	void unmuteEvents() {
 		a11E.unmute();
 	}
 
-	execute(Runnable postRun) {
-		executor.submit(postRun);
+	void execute(Runnable postRun) {
+		executor.execute(postRun);
 	}
 
-	executeA11y(Runnable postRun) {
-		a11yExecutor.submit(postRun);
+	void executeA11y(Runnable postRun) {
+		a11yExecutor.execute(postRun);
 	}
 
-	submit(Runnable postRun) {
+	FutureTask submit(Runnable postRun) {
 		return executor.submit(postRun);
 	}
 
-	submitA11y(Runnable postRun) {
+	FutureTask submitA11y(Runnable postRun) {
 		return a11yExecutor.submit(postRun);
 	}
 
-	run(String fileName) {
+	void run(String fileName) {
 		Runnable runMe = new Runnable() {
 			run() {
 				try {
@@ -280,102 +308,129 @@ a11Y() {
 		execute(runMe);
 	}
 
-	testDisplay() {
+	void testDisplay(long duration) {
 		if (displayInfos == null) {
 			set();
 			displayInfos = DisplayInfos();
 		}
-		displayInfos.show(6000);
+		Runnable showInfo = new Runnable() {
+			run() {
+				displayInfos.show(duration);
+			}
+		};
+		post(showInfo);
 	}
 
-	post(Runnable runMe) {
-		mainHandler.post(runMe);
+	void testDisplay() {
+		testDisplay(3000);
 	}
 
-	remove(boolean clearA11Y) {
+	void post(Runnable postRun, boolean forceMainThread) {
+		if (Looper.getMainLooper().isCurrentThread() && !forceMainThread) {
+			postRun.run();
+		} else {
+			mainHandler.post(postRun);
+		}
+	}
+
+	void post(Runnable postRun) {
+		post(postRun, false);
+	}
+
+	void postDelayed(Runnable postRun, long delay) {
+		mainHandler.postDelayed(postRun, delay);
+	}
+
+	void remove(boolean clearGlobalVariable) {
+		tasker.setJavaVariable("a11E", null);
+		if (clearGlobalVariable) tasker.setJavaVariable("a11Y", null);
 		log("Removing a11Y", TOP);
 		clean();
 		removeAssist();
 		removeEvents();
 		executor.shutdownNow();
 		a11yExecutor.shutdownNow();
-		tasker.setJavaVariable("a11E", null);
-		if (clearA11Y) tasker.setJavaVariable("a11Y", null);
 	}
 
-	remove() {
+	void remove() {
 		remove(true);
 	}
 
-	checkService() {
+	boolean checkService() {
 		return tasker.getAccessibilityService() != null;
 	}
 
-	enableService() {
+	void enableService() {
 		if (a11yController == null) a11yController = A11yController();
 		String packageName = context.getPackageName();
 		a11yController.enableService(packageName);
 	}
 
-	disableService() {
+	void disableService() {
 		if (a11yController == null) a11yController = A11yController();
 		String packageName = context.getPackageName();
 		a11yController.disableService(packageName);
 	}
 
 	long startTime = System.currentTimeMillis();
+	
 	return this;
 
 };
 
+if (!canDisplayA11yOverlay()) {
+	tasker.showToast("Please ensure accessibility service is running", "Assist & Debug features may not work.");
+	return;
+}
+
 log("Initializing a11Y");
-This a11Y = a11Y();
-a11Y.setEnvPath(ENV_PATH);
-a11Y.setEnv(ENV);
+This a11y = a11Y();
+tasker.setJavaVariable("a11Y", a11y);
+a11y.setEnvPath(ENV_PATH);
+a11y.setEnv(ENV);
+
+setVariable(String name, Object value) {
+	if (name != null && value != null) {
+		a11y.namespace.setVariable(name, value, false);
+		this.caller.namespace.setVariable(name, value, false);
+	}
+}
 
 This viewControl = ViewControl();
-a11Y.namespace.setVariable("viewControl", viewControl, false);
+setVariable("viewControl", viewControl);
 
 This config = Config(ENV_PATH + "/config.java");
 config.load();
-config.setTo(a11Y);
+config.setTo(a11y);
+setVariable("config", config);
+setVariable("NodeInfo", NodeInfo());
+setVariable("WindowInfo", WindowInfo());
+setVariable("AssistInfo", AssistInfo());
+setVariable("packageManager", PackageManager());
 
-a11Y.namespace.setVariable("config", config, false);
-a11Y.set();
+a11y.set();
 
 This inspector = MethodInspector(this);
 inspector.read();
-a11Y.inspector = inspector;
-tasker.setJavaVariable("a11Y", a11Y);
+a11y.inspector = inspector;
 
-This a11yController = A11yController();
-a11Y.namespace.setVariable("a11yController", a11yController, false);
-
+setVariable("a11yController", A11yController());
 This a11E = a11E();
 tasker.setJavaVariable("a11E", a11E);
 
-This NodeInfo = NodeInfo();
-a11Y.namespace.setVariable("NodeInfo", NodeInfo, false);
-
-This WindowInfo = WindowInfo();
-a11Y.namespace.setVariable("WindowInfo", WindowInfo, false);
 
 This updateManager = UpdateManager();
 updateManager.namespace.setVariable("directoryPath", ENV_PATH, false);
-a11Y.namespace.setVariable("updateManager", updateManager, false);
-
-This packageManager = PackageManager();
-a11Y.namespace.setVariable("packageManager", packageManager, false);
+setVariable("updateManager", updateManager);
 
 // Limit following methods and scripted objects to Tasker app
 if (!ENV.HAS_MATERIAL_LIB) return;
 
-This assistBar = AssistBar(0.8, 0.8);
-a11Y.namespace.setVariable("assistBar", assistBar, false);
+setVariable("assistBar", AssistBar(0.8, 0.8));
 
 if (!ENV.HAS_MATERIAL_COLOR && ENV.HAS_MATERIAL_COLOR_FALLBACK) {
 	This mcf = MaterialColorFallback();
-	a11Y.namespace.setVariable("materialColorFallback", mcf, false);
+	setVariable("materialColorFallback", mcf);
 	mcf.load();
 	log("Using fallback material color.");
 	tasker.showToast("Can't find material color via ThemeManager.color(String). Will try to use a fallback that doesn't match the theme.\n\nAccessibility actions still can be used.", "Assist & Debug features may not work.");
