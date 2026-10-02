@@ -12,6 +12,7 @@ import com.joaomgcd.taskerm.action.java.JavaCodeException;
 import android.content.Context;
 
 This NodeInfo(AccessibilityNodeInfo node) {
+	final This TOP = this;
 	// Properties from https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/accessibility/AccessibilityNodeInfo.java
 	final int CHECKABLE = 1 /* << 0 */ ;
 	final int CHECKED = 1 << 1;
