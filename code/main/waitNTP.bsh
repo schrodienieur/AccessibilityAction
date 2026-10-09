@@ -16,7 +16,8 @@ if (ENV.TASKER || ENV.KID_APP) {
  * waitNTP(long targetEpoch)
  * Synchronizes with NTP (collects 7 samples, filters by round-trip
  * time, averages the 3 lowest-RTT samples) and waits until target.
- * Fallbacks to next server if one fails.
+ * Fallbacks to next server if one fails. Re-syncs 5 seconds before
+ * the target and compensates for device sleep during the wait.
  * ─────────────────────────────────────────────────────────────*/
 void waitNTP(long scheduleTime) {
 	String[] servers = new String[] {
@@ -28,113 +29,143 @@ void waitNTP(long scheduleTime) {
 	int targetSamples = 7;
 	int bestCount = 3;
 	long rttFilterMs = 200;
+	long resyncLeadMs = 5000;
 	long avgSystemOffset = 0;
 	long avgRtt = 0;
 	boolean syncSuccessful = false;
 
-	// OUTER LOOP: Iterate through the fallback servers
-	for (int i = 0; i < servers.length; i++) {
-		String server = servers[i];
-		long[] offsets = new long[targetSamples];
-		long[] rtts = new long[targetSamples];
-		int successfulSamples = 0;
+	for (int hop = 0; hop < 2; hop++) {
+		// OUTER LOOP: Iterate through the fallback servers
+		serverLoop:
+		for (int i = 0; i < servers.length; i++) {
+			String server = servers[i];
+			long[] offsets = new long[targetSamples];
+			long[] rtts = new long[targetSamples];
+			int successfulSamples = 0;
 
-		// INNER LOOP: Try to get 7 samples from the CURRENT server.
-		// We allow up to 10 attempts to account for a few dropped UDP packets.
-		for (int attempt = 0; attempt < 10; attempt++) {
-			if (successfulSamples >= targetSamples) break;
+			// INNER LOOP: Try to get 7 samples from the CURRENT server.
+			// We allow up to 10 attempts to account for a few dropped UDP packets.
+			for (int attempt = 0; attempt < 10; attempt++) {
+				if (successfulSamples >= targetSamples) break;
 
-			DatagramSocket socket = null;
-			try {
-				socket = new DatagramSocket();
-				socket.setSoTimeout(500);
+				DatagramSocket socket = null;
+				try {
+					socket = new DatagramSocket();
+					socket.setSoTimeout(500);
 
-				InetAddress address = InetAddress.getByName(server);
-				byte[] buffer = new byte[48];
-				Array.setByte(buffer, 0, (byte) 0x1B);
+					InetAddress address = InetAddress.getByName(server);
+					byte[] buffer = new byte[48];
+					Array.setByte(buffer, 0, (byte) 0x1B);
 
-				DatagramPacket request = new DatagramPacket(buffer, 48, address, 123);
-				long t1 = System.currentTimeMillis();
-				socket.send(request);
+					DatagramPacket request = new DatagramPacket(buffer, 48, address, 123);
+					long t1 = System.currentTimeMillis();
+					socket.send(request);
 
-				DatagramPacket response = new DatagramPacket(buffer, 48);
-				socket.receive(response);
+					DatagramPacket response = new DatagramPacket(buffer, 48);
+					socket.receive(response);
 
-				// Record time immediately after receive
-				long nowSystem = System.currentTimeMillis();
+					// Record time immediately after receive
+					long nowSystem = System.currentTimeMillis();
 
-				// --- Parse NTP Response ---
-				long seconds = ((long)(buffer[40] & 0xFF) << 24) | ((long)(buffer[41] & 0xFF) << 16) |
-					((long)(buffer[42] & 0xFF) << 8) | ((long)(buffer[43] & 0xFF));
-				long fraction = ((long)(buffer[44] & 0xFF) << 24) | ((long)(buffer[45] & 0xFF) << 16) |
-					((long)(buffer[46] & 0xFF) << 8) | ((long)(buffer[47] & 0xFF));
+					// --- Parse NTP Response ---
+					long seconds = ((long)(buffer[40] & 0xFF) << 24) | ((long)(buffer[41] & 0xFF) << 16) |
+						((long)(buffer[42] & 0xFF) << 8) | ((long)(buffer[43] & 0xFF));
+					long fraction = ((long)(buffer[44] & 0xFF) << 24) | ((long)(buffer[45] & 0xFF) << 16) |
+						((long)(buffer[46] & 0xFF) << 8) | ((long)(buffer[47] & 0xFF));
 
-				long ntpTime = (seconds -2208988800L) * 1000;
-				ntpTime += (long)(((double) fraction / 4294967296.0) * 1000);
+					long ntpTime = (seconds -2208988800L) * 1000;
+					ntpTime += (long)(((double) fraction / 4294967296.0) * 1000);
 
-				// Calculate clock offset and round-trip time
-				long systemOffset = ntpTime - nowSystem;
-				long rtt = nowSystem - t1;
+					// Calculate clock offset and round-trip time
+					long systemOffset = ntpTime - nowSystem;
+					long rtt = nowSystem - t1;
 
-				offsets[successfulSamples] = systemOffset;
-				rtts[successfulSamples] = rtt;
-				successfulSamples++;
+					offsets[successfulSamples] = systemOffset;
+					rtts[successfulSamples] = rtt;
+					successfulSamples++;
 
-				// Small delay to prevent the server from rate-limiting us for spamming
-				Thread.sleep(100);
-				Log.d("nizamu", "[" + scheduleTime + "] Offset " + attempt + ": " + systemOffset + " (rtt " + rtt + "ms)");
+					// Small delay to prevent the server from rate-limiting us for spamming
+					Thread.sleep(100);
+					Log.d("nizamu", "[" + scheduleTime + "] Hop " + hop + " offset " + attempt + ": " + systemOffset + " (rtt " + rtt + "ms)");
 
-			} catch (Exception e) {
-				log("[" + scheduleTime + "] Packet dropped from " + server + ": " + e.getMessage());
-			} finally {
-				if (socket != null) socket.close();
+				} catch (Exception e) {
+					log("[" + scheduleTime + "] Packet dropped from " + server + ": " + e.getMessage());
+				} finally {
+					if (socket != null) socket.close();
+				}
+			}
+
+			if (successfulSamples > 0) {
+				// Pair each offset with its RTT and sort by RTT (lowest first)
+				long[][] paired = new long[successfulSamples][2];
+				for (int s = 0; s < successfulSamples; s++) {
+					paired[s][0] = rtts[s];
+					paired[s][1] = offsets[s];
+				}
+				Arrays.sort(paired, new Comparator() {
+					public int compare(Object a, Object b) {
+						return Long.compare(((long[])a)[0], ((long[])b)[0]);
+					}
+				});
+
+				// Keep only samples under the RTT filter, take the best few
+				int used = 0;
+				long totalOffset = 0;
+				long totalRtt = 0;
+				for (int s = 0; s < successfulSamples && used < bestCount; s++) {
+					if (paired[s][0] > rttFilterMs) continue;
+					totalOffset += paired[s][1];
+					totalRtt += paired[s][0];
+					used++;
+				}
+
+				// Fallback: if every sample exceeded the filter, use the lowest-RTT one
+				if (used == 0) {
+					totalOffset = paired[0][1];
+					totalRtt = paired[0][0];
+					used = 1;
+				}
+
+				avgSystemOffset = totalOffset / used;
+				avgRtt = totalRtt / used;
+				syncSuccessful = true;
+
+				if (ENV.TASKER) {
+					tasker.showToast(server + " " + avgSystemOffset + " ms avg offset (rtt " + avgRtt + "ms)");
+				}
+				Log.d("nizamu", "[" + scheduleTime + "] SUCCESS hop " + hop + ": " + used + " samples from " + server + ", avg offset " + avgSystemOffset + " ms, avg rtt " + avgRtt + " ms");
+
+				// Break the OUTER loop so we don't check the fallback servers
+				break serverLoop;
+			} else {
+				Log.d("nizamu", "FAILED to get enough samples from " + server + ". Trying next fallback...");
 			}
 		}
 
-		if (successfulSamples > 0) {
-			// Pair each offset with its RTT and sort by RTT (lowest first)
-			long[][] paired = new long[successfulSamples][2];
-			for (int s = 0; s < successfulSamples; s++) {
-				paired[s][0] = rtts[s];
-				paired[s][1] = offsets[s];
-			}
-			Arrays.sort(paired, new Comparator() {
-				public int compare(Object a, Object b) {
-					return Long.compare(((long[])a)[0], ((long[])b)[0]);
+		if (hop == 0) {
+			// --- Sleep until the resync lead point, detecting device suspend ---
+			// System.currentTimeMillis ignores suspend, so elapsedRealtime is the
+			// truth: when it advances more than the wall clock, the device slept
+			// and we shift the target by the drift to stay on schedule.
+			long resyncWall = scheduleTime - resyncLeadMs - avgSystemOffset;
+			long lastWall = System.currentTimeMillis();
+			long lastElapsed = SystemClock.elapsedRealtime();
+			while (true) {
+				long nowWall = System.currentTimeMillis();
+				long nowElapsed = SystemClock.elapsedRealtime();
+				long drift = (nowElapsed - lastElapsed) - (nowWall - lastWall);
+				if (drift > 20) {
+					resyncWall += drift;
+					Log.d("nizamu", "[" + scheduleTime + "] Device suspended " + drift + " ms, target shifted");
 				}
-			});
+				lastWall = nowWall;
+				lastElapsed = nowElapsed;
 
-			// Keep only samples under the RTT filter, take the best few
-			int used = 0;
-			long totalOffset = 0;
-			long totalRtt = 0;
-			for (int s = 0; s < successfulSamples && used < bestCount; s++) {
-				if (paired[s][0] > rttFilterMs) continue;
-				totalOffset += paired[s][1];
-				totalRtt += paired[s][0];
-				used++;
+				long remaining = resyncWall - nowWall - 200;
+				if (remaining <= 0) break;
+				if (remaining > 500) remaining = 500;
+				Thread.sleep(remaining);
 			}
-
-			// Fallback: if every sample exceeded the filter, use the lowest-RTT one
-			if (used == 0) {
-				totalOffset = paired[0][1];
-				totalRtt = paired[0][0];
-				used = 1;
-			}
-
-			avgSystemOffset = totalOffset / used;
-			avgRtt = totalRtt / used;
-			syncSuccessful = true;
-
-			if (ENV.TASKER) {
-				tasker.showToast(server + " " + avgSystemOffset + " ms avg offset (rtt " + avgRtt + "ms)");
-			}
-			Log.d("nizamu", "[" + scheduleTime + "] SUCCESS: " + used + " samples from " + server + ", avg offset " + avgSystemOffset + " ms, avg rtt " + avgRtt + " ms");
-
-			// Break the OUTER loop so we don't check the fallback servers
-			break;
-		} else {
-			Log.d("nizamu", "FAILED to get enough samples from " + server + ". Trying next fallback...");
 		}
 	}
 
