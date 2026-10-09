@@ -98,9 +98,9 @@ void waitNTP(long scheduleTime) {
 				paired[s][0] = rtts[s];
 				paired[s][1] = offsets[s];
 			}
-			Arrays.sort(paired, new Comparator<long[]>() {
-				public int compare(long[] a, long[] b) {
-					return Long.compare(a[0], b[0]);
+			Arrays.sort(paired, new Comparator() {
+				public int compare(Object a, Object b) {
+					return Long.compare(((long[])a)[0], ((long[])b)[0]);
 				}
 			});
 
