@@ -178,25 +178,36 @@ void waitNTP(long scheduleTime) {
 
 	// --- Wait until the target time ---
 	// The device clock plus the offset is our best estimate of true UTC.
-	// Sleep for the bulk of the wait, then spin the last few hundred ms
-	// so timer overshoot cannot push us past the target.
+	// Drive the whole wait on the monotonic clock (elapsedRealtime), never a
+	// wall-clock-derived timer: RxJava's Completable.timer computes its delay
+	// from uptimeMillis, which stops in deep sleep, so any doze during the
+	// timer makes it fire hundreds of ms late. Sleeping in elapsedRealtime
+	// chunks and comparing against elapsedRealtime is suspend-proof.
 	long targetDeviceClock = scheduleTime - avgSystemOffset;
-	long coarseRemaining = targetDeviceClock - System.currentTimeMillis() - 150;
 
-	if (coarseRemaining > 0) {
-		if (ENV.TASKER || ENV.KID_APP) {
-			try {
-				Completable.timer(coarseRemaining, TimeUnit.MILLISECONDS).blockingAwait();
-			} catch (Exception e) {
-				log("wait interrupted: " + e.getMessage(), "ERROR");
-			}
-		} else if (ENV.MACRODROID) {
-			Thread.sleep(coarseRemaining);
+	long lastWall = System.currentTimeMillis();
+	long lastElapsed = SystemClock.elapsedRealtime();
+	while (true) {
+		long nowWall = System.currentTimeMillis();
+		long nowElapsed = SystemClock.elapsedRealtime();
+		long drift = (nowElapsed - lastElapsed) - (nowWall - lastWall);
+		if (drift > 20) {
+			targetDeviceClock += drift;
+			Log.d("nizamu", "[" + scheduleTime + "] Device suspended " + drift + " ms, target shifted");
 		}
+		lastWall = nowWall;
+		lastElapsed = nowElapsed;
+
+		long remaining = targetDeviceClock - nowWall;
+		if (remaining <= 0) break;
+		if (remaining > 200) remaining = 200;
+		Thread.sleep(remaining);
 	}
 
-	// Tight spin for the final stretch so we fire exactly on target
-	while (System.currentTimeMillis() < targetDeviceClock) {
+	// Tight spin for the final stretch so we fire exactly on target.
+	// The device clock may have been stepped, so re-check against elapsedRealtime.
+	long spinDeadline = SystemClock.elapsedRealtime() + 50;
+	while (System.currentTimeMillis() < targetDeviceClock && SystemClock.elapsedRealtime() < spinDeadline) {
 		Thread.yield();
 	}
 }
