@@ -130,7 +130,9 @@ void waitNTP(long scheduleTime) {
 				avgRtt = totalRtt / used;
 				syncSuccessful = true;
 
-				if (ENV.TASKER) {
+				// Toast only on the first hop: the resync toast fires right
+				// before the target and would block the click.
+				if (ENV.TASKER && hop == 0) {
 					tasker.showToast(server + " " + avgSystemOffset + " ms avg offset (rtt " + avgRtt + "ms)");
 				}
 				Log.d("nizamu", "[" + scheduleTime + "] SUCCESS hop " + hop + ": " + used + " samples from " + server + ", avg offset " + avgSystemOffset + " ms, avg rtt " + avgRtt + " ms");
