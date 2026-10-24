@@ -208,6 +208,14 @@ a11Y() {
 		if (a11E != null) a11E.removeEvents();
 	}
 
+	This getEvent(String eventId) {
+		if (a11E != null) {
+			return a11E.get(eventId);
+		} else {
+			throw new JavaCodeException("No monitor is running.");
+		}
+	}
+
 	List getEvents() {
 		if (a11E != null) {
 			Set keyset = a11E.listeners.keySet();
@@ -222,11 +230,11 @@ a11Y() {
 	}
 
 	void showAssist() {
-		if (!assistBar.isShowing()) assistBar.show();
+		if (assistBar != null && !assistBar.isShowing()) assistBar.show();
 	}
 
 	void removeAssist() {
-		if (assistBar.isShowing()) assistBar.remove();
+		if (assistBar != null && assistBar.isShowing()) assistBar.remove();
 	}
 
 	void update() {
@@ -251,11 +259,11 @@ a11Y() {
 	}
 
 	void muteEvents() {
-		a11E.mute();
+		if (a11E != null) a11E.mute();
 	}
 
 	void unmuteEvents() {
-		a11E.unmute();
+		if (a11E != null) a11E.unmute();
 	}
 
 	void execute(Runnable postRun) {

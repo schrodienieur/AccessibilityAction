@@ -102,7 +102,7 @@ This NodeInfo(AccessibilityNodeInfo node) {
 		propertiesField.setAccessible(true);
 		hasPropertyField = true;
 	} catch (e) {
-		log(e.getMessage(), "ERROR", TOP);
+		log(e.getMessage(), "ERROR");
 	}
 
 	getConstantNames() {
